@@ -1,0 +1,26 @@
+# macOS
+.DS_Store
+
+# Python / Django
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+db.sqlite3
+*.log
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+dist/
+
+# محیط و اسرار
+.env
+.env.*
+
+# ویرایشگرها
+.idea/
+.vscode/
+
+handoff/

@@ -1,0 +1,27 @@
+Generated: 2026-08-16T23:04:33.067Z
+Route: Markdown -> RTL HTML -> LibreOffice Writer/Web PDF
+Individual PDFs: 21
+Combined PDF: 21 validated PDFs merged with bookmarks, 79 pages
+
+individual/ACCOUNT-SUSPENSION-FLOW.pdf
+individual/ADMIN-OPERATIONS.pdf
+individual/ANALYTICS-DASHBOARDS.pdf
+individual/CONTEXT.pdf
+individual/DISCOVERY-ROADMAP.pdf
+individual/DISCOVERY-SUMMARY.pdf
+individual/DISCREPANCY-FLOW.pdf
+individual/GO-TO-MARKET.pdf
+individual/MADE-TO-ORDER-FLOW.pdf
+individual/MARKET-SCOPE.pdf
+individual/ORDER-LIFECYCLE.pdf
+individual/PAYMENT-SIMULATION.pdf
+individual/PRICING-RULES.pdf
+individual/PRODUCT.pdf
+individual/RATINGS-REVIEWS-FLOW.pdf
+individual/ROLE-MATRIX.pdf
+individual/SHIPPING-FLOW.pdf
+individual/SUPPORT-FLOW.pdf
+individual/UI-LANGUAGE.pdf
+individual/docs/adr/0001-managed-marketplace-not-reseller.pdf
+individual/docs/adr/0002-separate-access-axes.pdf
+DirectSourcing-Marketplace-All-Documents-RTL.pdf

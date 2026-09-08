@@ -1,0 +1,46 @@
+# چرخه‌های وضعیت
+
+تمام commandها باید actor، permission، وضعیت جاری و deadline را داخل transaction بازبینی کنند. تغییر وضعیت از PATCH عمومی یا Admin مجاز نیست. جدول زیر مبنای طراحی هر برش است؛ تست executable هر برش در ردیابی ثبت می‌شود.
+
+## اعتماد کسب‌وکار — PRD-01
+
+```mermaid
+stateDiagram-v2
+    [*] --> draft
+    draft --> pending: مالک / ارسال کامل
+    pending --> changes_requested: مسئول / اصلاح مستدل
+    pending --> verified: پذیرش هر دو بخش
+    pending --> rejected: مسئول / رد مستدل
+    changes_requested --> pending: مالک / ارسال بخش برگشتی
+    rejected --> changes_requested: مسئول یا مالک سامانه / بازگشایی مستدل
+    verified --> suspended: مالک سامانه / تصمیم تعلیق
+    suspended --> verified: مالک سامانه / بازگردانی
+```
+
+هر بخش `identity` و `activity` مستقل `draft → pending → approved|changes_requested|rejected` دارد. نتیجهٔ بخش approved هنگام اصلاح بخش دیگر ثابت است. در انتظار بررسی، مالک حق ویرایش ندارد. نخستین `verified_at` با تأیید مجدد تغییر نمی‌کند. deadline خودکار برای بررسی وجود ندارد. رد فعلی پایان submission است و بازگشایی استثنای صریح PRD-01/08 است. هر تصمیم، علت و before/after همراه outbox در همان commit ثبت می‌شوند.
+
+## دیگر چرخه‌ها و guardها
+
+بازنگری Business تأییدشده مستقل `pending → approved|changes_requested|rejected` است؛ مالک فقط بخش برگشتی را اصلاح و دوباره pending می‌کند. وضعیت live Business در همهٔ این مراحل verified می‌ماند. آخرین پذیرش، current profile/address/identity را در همان transaction جایگزین می‌کند؛ before/proposed نسخهٔ نهایی immutable است. claim/permission مانند پروندهٔ اولیه ولی مسئولیت مستقل دارد.
+
+| چرخه / مرجع | گذار و actor | شرط و اثر | deadline / terminal |
+|---|---|---|---|
+| انتشار / PRD-02 | مالک draft→pending؛ مسئول pending→published/changes_requested/rejected | Business تأیید، ویژگی/قیمت/عرضه/حمل معتبر؛ نسخهٔ عمومی تنها مصوب | رد با دلیل؛ نسخهٔ منتشرشده تا پذیرش اصلاح حفظ می‌شود |
+| سفارش / PRD-04 | checkout→awaiting_response؛ تولیدکننده→accepted/rejected؛ سیستم→expired | رزرو همراه checkout؛ رد و expiry رزرو را آزاد می‌کنند | پاسخ ۲۴ ساعت؛ rejected/expired terminal |
+| سفارش / PRD-04/05 | accepted→active با Pay خرده‌فروش | قبل از payment_due_at؛ یک Payment و Invoice؛ رزرو→allocated | پرداخت ۲۴ ساعت پس از پذیرش |
+| لغو / PRD-04 | پیش از پرداخت→cancelled؛ قبل از آماده‌سازی پس از پرداخت→cancelled+refund؛ بعد از آماده‌سازی→cancel_requested | پذیرش تولیدکننده جبران را آغاز؛ رد/timeout ارجاع اپراتور؛ بعد از ارسال ممنوع | پاسخ لغو ۲۴ ساعت؛ cancelled terminal |
+| آماده‌سازی / PRD-03 | not_started→preparing→ready | فقط Order پرداخت‌شده؛ همهٔ تعداد گروه آماده | deadline از snapshot تولید؛ بدون مبلغ جدید |
+| درخواست حمل / PRD-03 | waiting_ready→ready_to_assign→assigned→completed/cancelled | آمادگی همهٔ اقلام؛ تخصیص توسط مسئول به حمل‌کنندهٔ فعال؛ وزن نامنطبق مانع تخصیص | completed/cancelled terminal |
+| مرسوله / PRD-03 | created→handed_over→in_transit→delivered یا unconfirmed→delivered/failed | شمارش دقیق هنگام handover قفل؛ بدون کد فقط تصمیم مستند مسئول | delivered/returned/cancelled terminal؛ ارسال مجدد رکورد تازه |
+| کد تحویل / PRD-03 | issued→consumed/expired/revoked | شش رقم، hash؛ صدور تازه قبلی را باطل؛ فقط همان مرسوله | ۱۰ دقیقه، ۵ تلاش، فاصله ۶۰ ثانیه، ۵ صدور در ساعت؛ لینک مأمور ۲۴ ساعت |
+| تحویل Order / PRD-03/04 | partially_shipped→shipped→partially_delivered→delivered | فقط تحویل آخرین تعداد؛ failure→needs_attention و منع آغاز مهلت | discrepancy_due_at یک‌بار برابر تحویل کامل +۷۲ ساعت |
+| مالی / PRD-05 | awaiting_payment→paid→partially_refunded/fully_refunded؛ paid/partially_refunded→awaiting_settlement→settled | جبران فقط علت معتبر؛ hold مانع تسویه؛ مبلغ از snapshot | paid یک‌بار؛ سند مالی صادرشده تغییرناپذیر |
+| مغایرت / PRD-06 | open→awaiting_response→accepted/escalated→compensating→closed | ادعا داخل ۷۲ ساعت با مدرک و تعداد؛ رد یا بی‌پاسخی فقط unresolved را ارجاع می‌دهد | پاسخ ۴۸ ساعت؛ بسته پس از اجرای واقعیِ جبران داخلی |
+| تکمیل / PRD-04..07 | active→completed | تحویل کامل، پایان مهلت، هیچ مغایرت باز؛ بررسی hold پیش از settlement | entitlement و تسویه idempotent |
+| Ticket / PRD-06 | new→in_review→waiting_user/resolved→closed؛ پاسخ به resolved→in_review | فقط طرف مرتبط/مسئول؛ پیام مالی را تغییر نمی‌دهد | closed terminal؛ بستن خودکار ندارد |
+| تعلیق / PRD-01/08 | active→suspended→active توسط مالک سامانه | علت، مدرک و تعیین تکلیف هر Order؛ User و Business مستقل | بدون انقضای خودکار؛ بازگردانی رکوردهای لغوشده را باز نمی‌کند |
+| Review / PRD-07 | draft→submitted→published؛ حق استفاده‌نشده→expired | ارسال قفل؛ همکاری با ثبت دو طرف یا پایان مهلت هم‌زمان؛ محصول مستقل | ۱۴ روز از completion؛ moderation متن با invalidation امتیاز فرق دارد |
+| صف / PRD-08 | unassigned→claimed→closed؛ owner reassign | lock ردیف؛ فقط مسئول/مالک command؛ غیرفعال‌سازی اپراتور کار باز را آزاد می‌کند | بدون claim lease خودکار |
+| نشست / ADR-0005 | active→rotated یا revoked/expired | فقط refresh جاری؛ reuse خانواده را باطل؛ خروج access همان خانواده را هم قطع می‌کند | access ۵ دقیقه؛ session حداکثر ۷ روز |
+
+برای پیاده‌سازی هر ماژول، نام enum دقیق و transitionهای تفصیلی باید با سند اختصاصی همان PRD تطبیق داده شوند؛ این خلاصه جای تست معیارهای پذیرش آن ماژول نیست.

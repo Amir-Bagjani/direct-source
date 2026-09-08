@@ -18,6 +18,13 @@ dist/
 # محیط و اسرار
 .env
 .env.*
+!.env.example
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+celerybeat-schedule*
 
 # ویرایشگرها
 .idea/

@@ -187,6 +187,8 @@ deadline روی خود رکورد با `due_at` ذخیره می‌شود. schedu
 
 ## اعلان‌ها
 
+استثنای پذیرفته‌شده در 2026-09-07: تأیید ایمیل و بازیابی حساب از SMTP طبق [ADR-0013](../architecture/adr/0013-verified-email-account-recovery.md) ارسال می‌شوند. intent پایدار بی‌secret و hash لینک در PostgreSQL نگهداری می‌شوند؛ سایر اعلان‌های دامنه همچنان از InternalInbox هستند.
+
 - دامنه فقط intent اعلان شامل گیرنده، template key، مرجع موجودیت و payload حداقلی را در outbox پایدار ثبت می‌کند.
 - ارسال از interface قابل‌تعویض provider عبور می‌کند؛ provider فعال MVP فقط `InternalInbox` است.
 - `InternalInbox` اعلان را در حساب کاربر نمایش می‌دهد و هیچ SMS، ایمیل یا Push واقعی ارسال نمی‌کند.

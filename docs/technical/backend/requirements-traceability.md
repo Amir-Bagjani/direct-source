@@ -17,9 +17,30 @@
 
 ## گیت آمادگی محصول
 
-۲۲ دروازهٔ کشف کلان و تیکت‌های ۰۱ تا ۰۷ و ۱۰ نقشهٔ `.scratch/mvp-plan/` بسته شده‌اند. شکاف‌های اصلی جریان محصول، وابستگی‌ها و ترتیب توسعه بسته شده‌اند؛ تیکت‌های ۰۸ و ۰۹ هنوز باید ریسک‌ها و مرز PRDها را نهایی کنند.
+۲۲ دروازهٔ کشف و همهٔ تیکت‌های ۰۱ تا ۱۰ بسته‌اند. هر هشت PRD پذیرفته شده‌اند و Checkpoint P بسته است. ADRهای ۰۰۰۳ و ۰۰۰۴ پذیرفته‌شده‌اند؛ مدل‌ها براساس طراحی `database/` و معیار پذیرش همان برش ساخته می‌شوند.
 
-ترتیب پیش‌نیاز فنی: بستن تیکت‌های ۰۱ تا ۰۸ و تیکت ۱۰ نقشه با `grilling` و `domain-modeling`، تعیین محدودهٔ PRDها در تیکت ۰۹، نوشتن PRDها با `to-spec` و انتقال تصمیم‌های نهایی از scratch به `docs/product/requirements/`. تا آن زمان ADRهای ۰۰۰۳ و ۰۰۰۴ پیشنهادند و شروع Django model مجاز نیست.
+تصمیم تازهٔ 2026-09-07: بازیابی رمز با ایمیل قبلاً تأییدشده؛ مرجع `business-onboarding.md` و AC-ACC-25..27.
+
+## ردیابی executable برش هویت/اعتماد
+
+مسیر تست‌ها نسبت به `apps/backend/tests/` است. نتیجهٔ اجرای تست در برنامهٔ اجرا ثبت می‌شود؛ این جدول نگاشت است، نه ادعای پذیرش کل قابلیت.
+
+| معیار | Entity / command | تست |
+|---|---|---|
+| AC-ACC-01..02 | User / Register | test_auth.py::test_registration_normalizes_mobile_without_business، test_registration_validation |
+| ADR-0005 / CAP-ACC-01 | AuthSession / Rotate، Logout | test_refresh_reuse_revokes_access_but_other_device_survives، test_concurrent_refresh_only_one_success، test_logout_all_and_suspension_are_immediate |
+| AC-ACC-04..05 | Business، Membership / CreateBusiness | test_business.py::test_business_creation_and_tenant_isolation، test_membership_database_constraint |
+| AC-ACC-08..11 | VerificationSection / Submit، Review، Reopen | test_two_sections_correction_preserves_approved_identity، test_rejected_application_reopens_with_reason |
+| AC-ACC-12، بخشی از 13..14 | controlled_access، permission | test_two_sections_correction_preserves_approved_identity، test_wholesale_permission_axes؛ تست Order در فاز سفارش اضافه می‌شود |
+| AC-ACC-15..16 | tenant و نقش هم‌زمان | test_business_creation_and_tenant_isolation، test_operations.py::test_dual_role_can_read_own_business |
+| AC-ACC-25..27 | EmailChallenge / Verify، Reset | test_verified_email_reset_invalidates_tokens_and_sessions، test_reset_request_does_not_disclose_account |
+| AC-ACC-28..30 | BusinessRevision / Propose، Review، Resubmit | test_revisions.py؛ نسخهٔ قبلی تا approval، حفظ نخستین تاریخ، رد مستقل و اصلاح بخش برگشتی |
+| AC-ACC-06..08 | فایل و بخش‌های اجباری | test_onboarding_api.py برای هر دو نوع Business؛ یک شاهد جایگزین رد می‌شود |
+| PRD-08 claim / audit | VerificationApplication، AuditEvent | test_concurrent_claim_has_one_winner، test_audit_is_immutable_in_database |
+| ADR-0006 / upload policy | StoredFile / Scan، AuthorizeDownload | test_files.py؛ adapterهای S3/ClamAV در این تست‌ها mock هستند و تست واقعی provider جدا لازم است |
+| ADR-0008 | OpenAPI، health، default permission | test_contract.py |
+
+محدودسازی آثار سفارش AC-ACC-17..24 تا ساخت Order/fulfillment قابل‌تکمیل نیست. ردیابی باقی PRDها در فاز مربوط با نام تست اجرایی گسترش می‌یابد.
 
 ## ماتریس ردیابی
 

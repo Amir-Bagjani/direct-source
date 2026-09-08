@@ -1,6 +1,52 @@
 # برنامهٔ مرحله‌ای توسعهٔ بک‌اند
 
-وضعیت: `Proposed` — آمادهٔ بازبینی تیم
+وضعیت: در حال اجرا — طراحی کلان و برش هویت/اعتماد؛ سایر قابلیت‌های MVP هنوز بازند
+
+
+## تحویل اجرایی 2026-09-07
+
+اسکیل‌های architecture، domain-modeling، database-architect، backend-architect، architecture-decision-records، django-pro و postgres-best-practices در این برش استفاده شدند. طرح دامنه و ERD کلان ایجاد و دیتابیس اولین برش به migration تبدیل شد؛ طراحی فیزیکی همهٔ ماژول‌های تجاری هنوز تکمیل نیست.
+
+| task کوچک | اندازه | خروجی و فایل‌های اصلی | معیار و verification | وضعیت |
+|---|---|---|---|---|
+| 1.1.a مرز دامنه | S | database/domain-model.md | ownership، invariant و وابستگی هر context | done |
+| 1.2.a مدل وضعیت | M | database/state-machines.md | چرخهٔ دقیق اعتماد و خلاصهٔ چرخه‌های تجاری؛ تفصیل هر ماژول پیش از ساخت آن | done برای برش جاری |
+| 1.3.a schema اعتماد | M | database/erd.md، data-dictionary.md، accounts/models.py | قیود PostgreSQL، رابطه و snapshot؛ migration از صفر | done |
+| 2.1.a پیکربندی | M | pyproject/lock، settings، Dockerfile، compose | Python 3.13.14 / Django 5.2.17؛ DB واقعی؛ build container جدا در انتظار اجرا | done برای runtime محلی |
+| 2.2.a قرارداد مشترک | S | common، config/urls.py، OpenAPI | schema drift، خطا، pagination، health و deny-by-default | done |
+| 2.3.a کیفیت | S | pyproject، workflow، tests/test_contract.py | Ruff، mypy، pytest، coverage؛ CI تعریف‌شده ولی اجرای remote هنوز مشاهده نشده | done برای بررسی محلی |
+| 2.4.a audit و outbox | M | operations/models.py، services.py، tasks.py، migrations | trigger الحاقی، commit مشترک و inbox idempotent | done |
+| 2.4.b مدارک خصوصی | M | operations/files.py، common/storage.py، API و test_files | signature/size/consent/scan gate و دسترسی؛ تست واقعی provider و حذف کنترل‌شده باز | in-progress |
+| 3.1.a هویت و نشست | M | auth_services.py، authentication.py، serializers/api، test_auth | ثبت‌نام، موبایل canonical، rotation/reuse/logout و تعلیق؛ رقابت PostgreSQL | done برای Django |
+| 3.1.b بازیابی ایمیل | M | email_services.py، tasks، API، test_auth، ADR-0013 | ایمیل verified، لینک منقضی/مصرف‌شده، رمز فعلی برای تغییر ایمیل، revoke همهٔ نشست‌ها | done برای Django؛ SMTP/BFF محیط مقصد باز |
+| 3.2.a مالکیت | S | business_services.py، permissions.py، test_business | یک مالک/یک Business و tenant isolation | done |
+| 3.3.a بررسی اولیه | M | verification_services.py، API، test_onboarding_api | دو بخش مستقل، اصلاح، claim، رد/بازگشایی و مجوز MVP؛ هر دو نوع Business | done با mock provider فایل |
+| 3.4.a عملیات نقش | S | role_services.py، management، operations/api، test_operations | bootstrap اولیه، تغییر نقش فقط owner، آزادسازی claim و نقش هم‌زمان | done برای صف‌های فعلی |
+| 3.5.a بازنگری اعتماد | M | revision_services.py، revision_api.py، models/migrations، test_revisions، ADR-0014 | حفظ نسخهٔ مصوب تا پذیرش، نسخهٔ نهایی immutable و اصلاح مستقل بخش | done |
+
+### اجرای یک‌دستوری محیط توسعه
+
+از ریشهٔ repository، `./run-backend.sh` همهٔ سرویس‌های Compose، آماده‌سازی bucket خصوصی، migration، web، worker و beat را اجرا می‌کند. `Ctrl+C` و خطای startup، `compose down` بدون حذف volume را اجرا می‌کنند. فرمان `prepare_local` فقط با settings محلی مجاز است و پیش از migration منتظر PostgreSQL، broker، SMTP، ClamAV و S3 می‌ماند.
+
+تست launcher: پنج تست مستقل از provider پاس شدند (cleanup هنگام خطا و SIGINT، محدودیت settings، timeout و ترتیب initialization). Ruff و mypy پاس شدند. توقف واقعی حین Docker build نیز بررسی شد؛ دانلود اولیه برای این بررسی متوقف شد و راه‌اندازی سرتاسری تمام containerها هنوز تأیید نشده است.
+
+### راستی‌آزمایی محلی
+
+- ۴۱ تست روی PostgreSQL 16.10 پاس؛ coverage برابر ۹۰٫۵۴٪ (حداقل لازم ۸۰٪).
+- Ruff، formatter، mypy روی ۴۶ فایل و Django system check پاس.
+- migration از صفر و migration بازنگری روی دیتابیس local اعمال؛ `makemigrations --check` بدون drift.
+- OpenAPI با `--validate --fail-on-warn` و مقایسهٔ snapshot پاس.
+- readiness واقعی PostgreSQL/Redis برابر 200 و ping یک worker موقت Celery روی Redis موفق؛ worker تست پس از بررسی بسته شد.
+- `pip-audit` پس از ارتقای DRF به 3.17.2 هیچ آسیب‌پذیری شناخته‌شده‌ای گزارش نکرد. دو مورد DRF 3.16.1 با حداقل نسخهٔ اصلاح‌شده رفع شدند؛ [release notes رسمی](https://www.django-rest-framework.org/community/release-notes/#3172).
+- Docker image وب، providerهای MinIO/ClamAV/SMTP واقعی، secret scan و اجرای remote CI در این نوبت راستی‌آزمایی نشده‌اند؛ نتیجهٔ محلی جای آن‌ها نیست.
+
+### مرز باقی‌ماندهٔ این تحویل
+
+- BFF/NextAuth، CSRF و مصرف امن لینک در مرورگر پیاده نشده‌اند.
+- اتصال واقعی MinIO/ClamAV/SMTP، health object storage، گردش حذف/hold/tombstone و restore drill باید آزموده و تکمیل شوند.
+- ویرایش عمومی پروفایل شخص/اطلاعات اولیهٔ Business، لوگو و جزئیات بازتخصیص صف بازنگری هنوز task تکمیلی‌اند؛ endpointهای موجود فقط محدودهٔ schema را پوشش می‌دهند.
+- فازهای کاتالوگ، تعرفه، سبد/سفارش، مالی، حمل، مغایرت، پشتیبانی، آثار تعلیق، نظر و داشبورد هنوز پیاده نشده‌اند. دامنه و schema پیشنهادی آن‌ها به معنی تحویل نیست.
+- هیچ checkpoint کل MVP یا آمادگی پایلوت بسته نشده است.
 
 ## هدف
 
@@ -175,7 +221,7 @@ P. بستن نقشهٔ محصول و نوشتن PRDها
 
 ### Checkpoint 1
 
-- [ ] مدل دامنه، ERD و state machineها تأیید شده‌اند؛ هنوز Django model ساخته نشده است.
+- [ ] بازبینی تفصیلی مدل دامنه، ERD و state machine همهٔ ماژول‌ها تکمیل شده است. برش اعتماد طراحی و ساخته شده؛ این checkbox پذیرش کل مدل MVP است.
 
 ## فاز ۲ — پایهٔ پروژه Django
 
@@ -183,20 +229,20 @@ P. بستن نقشهٔ محصول و نوشتن PRDها
 
 ### Task 2.1 — scaffold و تنظیمات
 
-- [ ] `pyproject.toml`، lockfile، Django project و settings محیطی با آخرین patch از Python 3.13 و Django 5.2 LTS ساخته شوند.
-- [ ] PostgreSQL تنها backend تست integration و production باشد.
-- [ ] custom User model پیش از اولین migration ایجاد شود.
+- [x] `pyproject.toml`، lockfile، Django project و settings محیطی با آخرین patch از Python 3.13 و Django 5.2 LTS ساخته شوند.
+- [x] PostgreSQL تنها backend تست integration و production باشد.
+- [x] custom User model پیش از اولین migration ایجاد شود.
 
 ### Task 2.2 — استانداردهای API و خطا
 
-- [ ] DRF، REST JSON، `/api/v1/`، OpenAPI 3، pagination و error envelope طبق ADR-0008 پایه شوند.
+- [x] DRF، REST JSON، `/api/v1/`، OpenAPI 3، pagination و error envelope طبق ADR-0008 پایه شوند.
 - [ ] اعتبارسنجی schema و contract test برای جلوگیری از اختلاف OpenAPI و endpointها در CI اجرا شوند.
-- [ ] request ID، health endpoint و logging ساخت‌یافته اضافه شوند.
-- [ ] policy پیش‌فرض API برابر authenticated/deny-by-default باشد و استثناهای عمومی صریح شوند.
+- [x] request ID، health endpoint و logging ساخت‌یافته اضافه شوند.
+- [x] policy پیش‌فرض API برابر authenticated/deny-by-default باشد و استثناهای عمومی صریح شوند.
 
 ### Task 2.3 — کیفیت و CI
 
-- [ ] formatter/linter/type check/test runner و coverage threshold تنظیم شوند.
+- [x] formatter/linter/type check/test runner و coverage threshold تنظیم شوند.
 - [ ] test database واقعی PostgreSQL و migration check در CI اجرا شوند.
 - [ ] secret scan و dependency/security scan پایه شوند.
 
@@ -221,15 +267,15 @@ P. بستن نقشهٔ محصول و نوشتن PRDها
 
 ### Task 3.1 — ثبت‌نام و احراز هویت JWT/NextAuth
 
-- [ ] ثبت‌نام، ورود، خروج، refresh، بازیابی دسترسی و rate limit پیاده شود.
+- [x] ثبت‌نام، ورود، خروج، refresh، بازیابی دسترسی و rate limit پیاده شود.
 - [ ] Django مرجع هویت و صادرکنندهٔ access/refresh JWT و NextAuth لایهٔ session/BFF باشد؛ JWT خام به JavaScript مرورگر نرسد.
 - [ ] rotation/blacklist، CSRF، token replay، refresh reuse و تعلیق فوری تست شوند.
-- [ ] custom User و وضعیت تعلیق شخص تست شود.
+- [x] custom User و وضعیت تعلیق شخص تست شود.
 
 ### Task 3.2 — کسب‌وکار و مالکیت
 
-- [ ] Business، نوع کسب‌وکار، Membership مالک و آدرس‌ها پیاده شوند.
-- [ ] قید «یک مالک در MVP» و tenant isolation در DB/API آزموده شود.
+- [x] Business، نوع کسب‌وکار، Membership مالک و آدرس‌ها پیاده شوند.
+- [x] قید «یک مالک در MVP» و tenant isolation در DB/API آزموده شود.
 
 ### Task 3.3 — احراز و تأیید دستی
 
@@ -249,12 +295,21 @@ P. بستن نقشهٔ محصول و نوشتن PRDها
 
 ## فاز ۴ — کاتالوگ، قیمت و عرضه
 
+### تحویل پیش‌نویس — 2026-09-08
+
+ماژول catalog شامل دسته، ویژگی، مقدار استاندارد، محصول خصوصی و تنوع است. SKU در Business و ترکیب canonical در Product قید یکتا دارند. تصاویر از storage/ClamAV موجود استفاده می‌کنند؛ محدودیت ۵MB و ۸۰۰×۸۰۰، گالری مرتب و fallback تصویر اصلی اعمال می‌شوند. migration، seed اختیاری کیف/کفش و [قرارداد API](../api/catalog-drafts.md) اضافه شدند. اسکیل ponytail برای استفادهٔ مجدد از زیرساخت و پرهیز از dependency جدید اعمال شد.
+
+راستی‌آزمایی: ۵۴ تست روی PostgreSQL پاس؛ پوشش ۹۰٫۸۲٪. Ruff، formatter، mypy (۵۵ فایل)، Django check و قرارداد OpenAPI پاس؛ migrationهای catalog و purpose تصویر روی دیتابیس توسعه اعمال و drift بررسی شد.
+
+پیشنهاد taxonomy و حذف کامل محصول هنوز بازند؛ CAP-CAT-01..03 کامل اعلام نمی‌شوند. قیمت، عرضه، بررسی/انتشار و مرور عمومی مراحل بعدی‌اند.
+
+
 **وابستگی:** فاز ۳
 
 ### Task 4.1 — taxonomy و محصول
 
-- [ ] دسته، تعریف ویژگی، محصول پایه، تنوع، SKU و تصاویر پیاده شوند.
-- [ ] fallback تصویر تنوع به گالری محصول آزموده شود.
+- [x] دسته، تعریف ویژگی، محصول پایه، تنوع، SKU و تصاویر پیاده شوند.
+- [x] fallback تصویر تنوع به تصویر اصلی محصول آزموده شود.
 
 ### Task 4.2 — انتشار و خدمات حمل مجاز
 

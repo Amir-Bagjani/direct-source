@@ -10,9 +10,9 @@
 | attributes/ و attributes/{id}/ | owner/operator فعال | category، code، name، description، kind، scope، unit، required، filterable، position، is_active |
 | attribute-options/ و attribute-options/{id}/ | owner/operator فعال | attribute، code، label، position، is_active |
 | products/ و products/{id}/ | مالک تولیدکنندهٔ غیرمعلق | business، category، name، description، brand، manufacturer_model، attributes، images |
-| products/{id}/variants/ و products/{id}/variants/{id}/ | مالک همان محصول | sku، attributes، images؛ DELETE تنوع نیز مجاز است |
+| products/{id}/variants/ و products/{id}/variants/{id}/ | مالک همان محصول | sku، attributes، images؛ DELETE تنوع پیش‌نویس نیز مجاز است |
 
-ساختار کاتالوگ برای کاربران واردشده قابل‌خواندن است؛ محصول فقط برای مالک آن. فیلتر `?category=UUID` برای ویژگی‌ها و `?attribute=UUID` برای مقدارها پشتیبانی می‌شود. ساختار کاتالوگ حذف API ندارد؛ از is_active استفاده کنید. جابه‌جایی دستهٔ استفاده‌شده و تبدیل آن به دستهٔ غیرنهایی ممنوع است. ویژگی‌ها صریحاً متعلق به دسته‌اند و ارث‌بری ندارند.
+ساختار کاتالوگ برای کاربران واردشده قابل‌خواندن است؛ محصول فقط برای مالک آن. فیلتر `?category=UUID` برای ویژگی‌ها و `?attribute=UUID` برای مقدارها پشتیبانی می‌شود. ساختار کاتالوگ حذف API ندارد؛ از PATCH با `is_active` استفاده کنید و برای هر تغییر وضعیت `reason` بفرستید. جابه‌جایی دستهٔ استفاده‌شده و تبدیل آن به دستهٔ غیرنهایی ممنوع است. ویژگی‌ها صریحاً متعلق به دسته‌اند و ارث‌بری ندارند.
 
 ## جریان نمونه
 
@@ -54,4 +54,8 @@ images آرایهٔ مرتب UUID است؛ نخستین تصویر محصول ت
 docker compose -f apps/backend/compose.yaml --profile app exec web python manage.py seed_catalog +989xxxxxxxxx
 ```
 
-ویژگی‌ها از API مدیریت می‌شوند. پیشنهاد taxonomy، حذف کامل محصول، قیمت، عرضه، حمل، بررسی/انتشار و بازنگری در این تحویل نیستند؛ CAP-CAT-01..03 تا تکمیل پیشنهادها و چرخهٔ حذف کامل اعلام نمی‌شوند.
+ویژگی‌ها از API مدیریت می‌شوند. پیشنهاد taxonomy و حذف کامل پیش‌نویس اکنون در [قرارداد تکمیلی](catalog-browsing-lifecycle.md) پیاده شده‌اند. حمل، انتشار و بازنگری نیز در قراردادهای مرتبط پایین آمده‌اند؛ CAP-CAT-01..03 کامل‌اند.
+
+روش فروش، برنامهٔ قیمت و عرضه اکنون در [قرارداد فروش](catalog-sales.md) پیاده شده‌اند.
+
+به‌روزرسانی 2026-09-09: حمل و انتشار در [قرارداد حمل/انتشار](logistics-publication.md)، بازنگری و قیمت خرده‌فروش در [قرارداد بازنگری](catalog-revisions.md)، و مرور/چرخهٔ تکمیلی در [قرارداد نهایی PRD-02](catalog-browsing-lifecycle.md) پیاده شده‌اند.

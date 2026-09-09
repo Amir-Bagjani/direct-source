@@ -10,19 +10,33 @@ from .models import Attribute, AttributeOption, Category, Product, Variant
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    reason = serializers.CharField(required=False, write_only=True, max_length=2000)
+
     class Meta:
         model = Category
-        fields = ["id", "name", "slug", "parent", "description", "position", "is_active"]
+        fields = [
+            "id",
+            "name",
+            "slug",
+            "parent",
+            "description",
+            "position",
+            "is_active",
+            "reason",
+        ]
 
 
 class OptionSerializer(serializers.ModelSerializer):
+    reason = serializers.CharField(required=False, write_only=True, max_length=2000)
+
     class Meta:
         model = AttributeOption
-        fields = ["id", "attribute", "code", "label", "position", "is_active"]
+        fields = ["id", "attribute", "code", "label", "position", "is_active", "reason"]
 
 
 class AttributeSerializer(serializers.ModelSerializer):
     options = OptionSerializer(many=True, read_only=True)
+    reason = serializers.CharField(required=False, write_only=True, max_length=2000)
 
     class Meta:
         model = Attribute
@@ -40,6 +54,7 @@ class AttributeSerializer(serializers.ModelSerializer):
             "position",
             "is_active",
             "options",
+            "reason",
         ]
 
 
@@ -71,8 +86,18 @@ class VariantSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Variant
-        fields = ["id", "product", "sku", "attributes", "images", "effective_images"]
-        read_only_fields = ["product"]
+        fields = [
+            "id",
+            "product",
+            "sku",
+            "attributes",
+            "images",
+            "effective_images",
+            "is_active",
+            "disabled_code",
+            "status_reason",
+        ]
+        read_only_fields = ["product", "is_active", "disabled_code", "status_reason"]
         validators: list = []  # The service validates the business-scoped SKU and canonical combination.
 
 

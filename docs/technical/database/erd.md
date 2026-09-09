@@ -78,4 +78,60 @@ erDiagram
     Business ||--o{ Variant : scopes_sku
 ```
 
-ویژگی‌ها JSON معتبرشده با code هستند؛ images آرایهٔ مرتب UUID فایل خصوصی‌اند و FK ندارند. سیاست اعتبارسنجی و محدودیت‌ها در data-dictionary و قرارداد catalog-drafts آمده‌اند. ProductRevision، قیمت و عرضه هنوز migration اجرایی ندارند.
+ویژگی‌ها JSON معتبرشده با code هستند؛ images آرایهٔ مرتب UUID فایل خصوصی‌اند و FK ندارند. سیاست اعتبارسنجی و محدودیت‌ها در data-dictionary و قرارداد catalog-drafts آمده‌اند. مدل‌های قیمت، عرضه و ProductRevision در بخش‌های بعد اضافه شده‌اند.
+
+## ERD اجرایی فروش و عرضه — 2026-09-08
+
+```mermaid
+erDiagram
+    Product ||--o| SalesPlan : configures
+    SalesPlan ||--o{ FixedPack : offers
+    FixedPack ||--|{ PackItem : contains
+    Variant ||--o{ PackItem : included
+    SalesPlan ||--|{ PriceTier : prices
+    PriceTier ||--o{ VariantPrice : overrides
+    Variant ||--o{ VariantPrice : priced
+    Variant ||--o| VariantSupply : supplies
+```
+
+وجود حداقل روش فروش/پله و تعلق ارجاع‌ها به همان محصول در تراکنش service کنترل می‌شود. ProductRevision و سفارش هنوز مدل اجرایی ندارند.
+
+## ERD اجرایی حمل و انتشار اولیه — 2026-09-09
+
+```mermaid
+erDiagram
+    ShippingService ||--o{ Tariff : prices
+    Tariff }o--o{ Tariff : replaces
+    Product ||--o| ProductShipping : ships
+    Address ||--o{ ProductShipping : origin
+    ProductShipping }o--o{ ShippingService : permits
+    Variant ||--o| VariantPackage : packages
+    User ||--o{ Product : reviews
+```
+
+ProductRevision و Shipment هنوز مدل اجرایی ندارند. دادهٔ وضعیت و آخرین تصمیم انتشار روی Product و تاریخچهٔ تصمیم‌ها در AuditEvent نگهداری می‌شود.
+
+## بازنگری اجرایی محصول — 2026-09-09
+
+```mermaid
+erDiagram
+    Product ||--o{ ProductRevision : versions
+    User ||--o{ ProductRevision : reviews
+```
+
+ProductRevision اکنون migration اجرایی دارد؛ proposed به تنوع‌های موجود یا شناسهٔ پیش‌اختصاص‌یافتهٔ تنوع تازه اشاره می‌کند. ردیف تنوع تازه فقط هنگام پذیرش ساخته می‌شود. Variant بایگانی‌شده با is_active=false حفظ می‌شود.
+
+## پیشنهاد taxonomy و عملیات تکمیلی کاتالوگ — 2026-09-10
+
+```mermaid
+erDiagram
+    Business ||--o{ TaxonomyProposal : proposes
+    Category ||--o{ TaxonomyProposal : scopes_attribute_or_child
+    Attribute ||--o{ TaxonomyProposal : scopes_option
+    User ||--o{ TaxonomyProposal : reviews
+    Product ||--o{ Variant : controls_status
+    User ||--o{ Product : assigned_review
+    User ||--o{ ProductRevision : assigned_revision
+```
+
+TaxonomyProposal برای خروجی مصوب `result_id` polymorphic نگه می‌دارد و kind نوع Category/Attribute/AttributeOption را تعیین می‌کند. پیشنهاد pending مشابه قید یکتای شرطی دارد. منشأ و دلیل وضعیت مستقل روی Variant ثبت می‌شوند؛ تاریخچهٔ کامل transition و بازتخصیص در AuditEvent است.

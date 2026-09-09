@@ -30,6 +30,9 @@ def set_operator(*, actor, user_id, enabled, reason):
     role.is_active = enabled
     role.save(update_fields=["is_active", "updated_at"])
     if not enabled:
+        from marketplace.catalog.lifecycle import release_reviews
+
+        release_reviews(actor=actor, target=target, reason=reason)
         # Lock Business before Application, matching verification commands.
         ids = list(
             VerificationApplication.objects.filter(

@@ -1,13 +1,10 @@
 # فرهنگ داده و طراحی PostgreSQL
-
 ## قرارداد عمومی
-
 مدل‌های دامنه: `id uuid PK`، `created_at/updated_at timestamptz`. تاریخ تولد `date` میلادی. مبلغ `bigint` با CHECK غیرمنفی و `_rial`؛ تعداد integer مثبت. JSONB فقط snapshot نسخه‌دار یا payload حداقلی، نه جایگزین relation جستجوشونده. تمام FKهای Django index دارند؛ uniqueها index دوم نمی‌خواهند.
 
 ## اولین برش: هویت و اعتماد
-
 | جدول | فیلدهای مهم | constraint / index / حریم |
-|---|---|---|
+| --- | --- | --- |
 | accounts_user | mobile، password hash، first_name، last_name، email، email_verified_at، is_active، is_suspended، terms_version، privacy_version، consented_at | mobile canonical `+989xxxxxxxxx` یکتا؛ email غیرخالی به‌شکل lowercase یکتا؛ نام/تماس خصوصی |
 | accounts_platformrole | user FK، role، is_active | unique(user,role)؛ role فقط owner/operator؛ is_staff مجوز دامنه نیست |
 | accounts_authsession | user FK، current_jti، expires_at، revoked_at | jti یکتا؛ JWT شامل sid؛ authorization نشست فعال را در DB می‌خواند |
@@ -25,37 +22,78 @@
 `operations_storedfile` مالک، Business، purpose، object_key یکتا، content_type، size با CHECK یک بایت تا ۱۰MiB، sha256، scan_status با CHECK، consent_version، legal_hold و deleted_at دارد. مدارک فعلی با UUIDهای اعتبارسنجی‌شده در دادهٔ بخش ارجاع می‌شوند؛ جدول عمومی Evidence برای دامنه‌های بعدی هنوز ساخته نشده است. حذف API فعال نیست. ظرفیت audit/outbox با pagination و batch محدود مهار می‌شود، نه حذف خودکار.
 
 ## قیود لازم ماژول‌های بعدی
-
 - Catalog: unique SKU و combination تنوع؛ unique(product,tier_min)؛ حداقل پله مثبت؛ بازه‌ها مرتب؛ نسخهٔ مصوب قابل‌ارجاع.
+
 - Supply: `available >= reserved >= 0`؛ رزرو یکتا برای OrderLine و نوع عرضه؛ ترتیب lock بر اساس UUID ثابت.
+
 - Order: unique شماره نمایشی؛ unique(group,manufacturer)؛ کلید checkout scoped به Business و hash درخواست؛ snapshot مستقل از جداول زنده.
+
 - Finance: unique payment/invoice/settlement برای Order؛ unique علت refund؛ جمع مبلغ‌ها سروری؛ اسناد الحاقی؛ نرخ در integer basis points.
+
 - Shipping: بازهٔ وزن نیمه‌باز در هر نسخه/مسیر؛ منع overlap با exclusion constraint؛ مجموع ShipmentItem زیر lock ShippingGroup؛ ارتباط قلم به همان Order.
+
 - Dispute: شمارش تجمعی ادعا و جبران زیر lock OrderLine؛ جلوگیری از ادعای تعداد دوباره؛ hold علت‌دار یکتا.
+
 - Review: unique entitlement موضوع سفارش؛ نمرات CHECK ۱..۵؛ publication و moderation جدا.
 
 ## تراکنش و رشد
-
 Isolation پیش‌فرض READ COMMITTED با `select_for_update` روی aggregate. ترتیب قفل: Userهای دخیل مرتب، Business، Application، Section؛ در تجارت Businessهای مرتب، Supplyهای مرتب، Order، فرزندان. I/O شبکه داخل lock ممنوع. deadline داخل lock با ساعت UTC مجدداً بررسی می‌شود. Retry محدود فقط deadlock/serialization failure و command idempotent.
 
 Connection عمر صفر در Django برای آمادگی PgBouncer؛ pool واقعی باید با سقف اتصال hosting تنظیم شود. baseline ۱۰هزار User، ۲هزار Business، ۱۰۰هزار SKU، ۱۰۰۰ Order/day و رشد ۵برابر است. پارتیشن/shard فعلاً لازم نیست؛ ابتدا EXPLAIN (ANALYZE, BUFFERS) روی staging با حجم نماینده، سپس index/replica. دادهٔ authorization از replica/cache خوانده نمی‌شود.
 
 ## migration و بازیابی
-
 Migration از صفر روی PostgreSQL واقعی در CI؛ `makemigrations --check` و تولید schema بدون drift. نسخهٔ لوکال PostgreSQL ۱۶ خط مبنای تست است و انتخاب hosting را الزام نمی‌کند. روی جداول حجیم تغییر به روش expand/backfill/contract، index concurrent و NOT VALID→VALIDATE انجام شود.
 
 پیش از staging: backup رمزگذاری‌شده + WAL/PITR در failure domain جدا، تست restore دیتابیس و bucket، بازاعمال tombstone پیش از بازکردن دسترسی، اندازه‌گیری RPO/RTO و تعیین مالک عملیات. این موارد تا اجرای drill انجام‌شده محسوب نمی‌شوند.
 
 ## جداول هستهٔ کاتالوگ (2026-09-08)
-
 | جدول | مالکیت و قیود |
-|---|---|
+| --- | --- |
 | catalog_category | parent با PROTECT؛ slug یکتا؛ ترتیب/فعال‌بودن؛ چرخه و نهایی‌بودن در service |
 | catalog_attribute | Category؛ UNIQUE(category, code)؛ CHECK نوع و scope؛ واحد فقط برای عدد |
 | catalog_attributeoption | Attribute؛ UNIQUE(attribute, code)؛ حذف API ندارد |
-| catalog_product | Business تولیدکننده و Category نهایی؛ CHECK وضعیت draft؛ attributes و images از نوع JSON |
-| catalog_variant | Product و Business؛ UNIQUE(business, sku)، UNIQUE(product, combination)؛ ترکیب SHA-256 از JSON canonical |
+| catalog_product | Business تولیدکننده و Category نهایی؛ CHECK چرخهٔ draft/pending/changes_requested/published/rejected/inactive؛ مسئول، زمان‌ها و آخرین دلیل تصمیم؛ attributes و images از نوع JSON |
+| catalog_variant | Product و Business؛ UNIQUE(business, sku)، UNIQUE شرطی ترکیب فعال؛ is_active، disabled_code و status_reason؛ ترکیب SHA-256 از JSON canonical |
 
 همه UUID و زمان ایجاد/ویرایش دارند. JSON ویژگی‌ها با تعریف دسته/بخش اعتبارسنجی می‌شود. images آرایهٔ UUID فایل clean با purpose=product_image است؛ FK ندارد و حذف فایل آینده باید ارجاع‌ها را بررسی کند. Business تنوع برای قید SKU تکرار شده و فقط service آن را از Product می‌گیرد. مستقیم‌نویسی خارج از service مجاز نیست.
 
-تغییر ساختاری ویژگی پس از وجود محصول در دسته محافظه‌کارانه محدود می‌شود. فرمان مدیریت taxonomy دسته‌ها را قفل می‌کند؛ نوشتن محصول/تنوع با قفل Business و Category هماهنگ است. قیمت، عرضه و نسخهٔ منتشرشده هنوز جدول اجرایی ندارند.
+تغییر ساختاری ویژگی پس از وجود محصول در دسته محافظه‌کارانه محدود می‌شود. فرمان مدیریت taxonomy دسته‌ها را قفل می‌کند؛ نوشتن محصول/تنوع با قفل Business و Category هماهنگ است. مدل‌های اجرایی قیمت، عرضه، انتشار و نسخه در بخش‌های بعد آمده‌اند.
+
+## جداول فروش و عرضهٔ پیش‌نویس (2026-09-08)
+| جدول | رابطه و قید |
+| --- | --- |
+| catalog_salesplan | OneToOne Product؛ free_mix_min تهی یا مثبت |
+| catalog_fixedpack | FK Plan؛ code در برنامه یکتا |
+| catalog_packitem | FK Pack و Variant (PROTECT)؛ تنوع در بسته یکتا، quantity مثبت |
+| catalog_pricetier | FK Plan؛ min_quantity مثبت و در برنامه یکتا؛ unit_price_irr bigint مثبت |
+| catalog_variantprice | FK Tier و Variant (PROTECT)؛ تنوع در پله یکتا؛ unit_price_irr bigint مثبت |
+| catalog_variantsupply | OneToOne Variant؛ CHECK سازگاری mode با ready_stock، production_cap و lead_time_days |
+
+همه از BaseModel (UUID و timestamp) استفاده می‌کنند. پایان پله مشتق‌شده است و ذخیره نمی‌شود؛ ارتباط یک‌محصولی ارجاع‌ها، حداقل اولین پله و نزولی‌بودن قیمت مؤثر در service تحت قفل Product بررسی می‌شوند. بازنویسی Plan، بسته‌ها و پله‌ها را در همان تراکنش بازسازی می‌کند؛ audit قبل/بعد پایدار است. رزرو/تخصیص سفارش در این جداول وجود ندارد و در فاز سفارش افزوده می‌شود.
+
+## حمل و انتشار اولیه — 2026-09-09
+ShippingService نام، kind داده‌محور، is_active و operational دارد. Tariff متعلق به خدمت، شامل scope، مسیر، بازهٔ بستهٔ وزن گرم، مبلغ ریال، وضعیت، زمان/عامل فعال‌سازی و source=manual_trial است. replaces پیوند M2M نسخه‌های جایگزین‌شده است. exclusion constraint با btree_gist روی خدمت/مسیر و int8range وزن (شرط active) از هم‌پوشانی جلوگیری می‌کند. trigger ویرایش محتوای فعال‌شده یا حذف آن را رد می‌کند؛ فقط active و updated_at قابل تغییرند.
+
+ProductShipping رابطهٔ یک‌به‌یک Product با Address مبدأ (PROTECT) و M2M خدمات است. VariantPackage یک‌به‌یک Variant و شامل وزن گرم، سه بُعد میلی‌متر و تعداد بسته با CHECK مثبت است. مدل Product اکنون وضعیت‌های draft/pending/changes_requested/published/rejected/inactive و مسئول بررسی، زمان ارسال/انتشار، کد/توضیح آخرین تصمیم دارد. تاریخچهٔ کامل در AuditEvent و اطلاع‌رسانی در OutboxEvent است.
+
+ترتیب قفل مشترک User→Business→Category (برای محتوا)→ShippingService→Product است؛ فرمان تعرفه Business/Category را قفل نمی‌کند. هم‌پوشانی بازه به معنی غیرفعال‌شدن کل تعرفهٔ قبلی است، نه شکستن خودکار بازه. اصل snapshot مالی سفارش هنوز پیاده نشده است.
+
+## ProductRevision و تنوع بایگانی‌شده — 2026-09-09
+ProductRevision به Product (PROTECT) و مسئول User (PROTECT) متصل است؛ before/proposed JSON، status، code و reason دارد. UNIQUE(product) فقط برای draft/pending/changes_requested و CHECK مجموعهٔ وضعیت‌ها اعمال می‌شود. trigger UPDATE/DELETE وضعیت نهایی approved/rejected/cancelled را رد می‌کند. history تصمیم‌ها در AuditEvent است.
+
+Variant.is_active پیش‌فرض true دارد؛ UNIQUE(product, combination) به قید جزئی فعال‌ها تبدیل شد، اما UNIQUE(business, sku) شامل ردیف‌های بایگانی‌شده باقی ماند. حذف در بازنگری soft-delete است. بسته/قیمت اختصاصی هنوز FK به تنوع بایگانی‌شده دارند و در پاسخ قابل‌انتخاب فیلتر می‌شوند. هیچ ردیف سفارش بازنویسی نمی‌شود؛ سفارش هنوز پیاده نشده است.
+
+قفل بازنگری User→Business→Category→ShippingService→Product→ProductRevision است. اعتبارسنجی پیشنهادی با اعمال داخلی و rollback savepoint از قواعد واقعی استفاده می‌کند؛ هیچ اثر خارجی داخل این savepoint وجود ندارد.
+
+## تکمیل PRD-02 — 2026-09-10
+
+| جدول / داده | رابطه و قید |
+| --- | --- |
+| catalog_taxonomyproposal | Business پیشنهاددهنده؛ kind از category/attribute/option؛ scope با Category یا Attribute؛ نام اصلی و normalized؛ وضعیت pending/approved/rejected؛ reviewer، reason و result_id؛ UNIQUE شرطی `(kind, scope_key, normalized_name)` برای پیشنهاد pending |
+| catalog_variant | `disabled_code` منشأ producer/operator/revision و `status_reason` آخرین دلیل را نگه می‌دارند؛ CHECK سازگاری active/source، active combination یکتا و SKU بایگانی‌شده نیز غیرقابل استفادهٔ مجدد است |
+
+پیشنهاد و ساخت Category/Attribute/Option مصوب در یک تراکنش و با قفل ساختار کاتالوگ انجام می‌شوند. result_id رابطهٔ polymorphic هدف است و FK ندارد؛ نوع هدف از kind مشخص می‌شود و AuditEvent سابقهٔ تصمیم را حفظ می‌کند. CHECKها ترکیب kind/scope و سازگاری pending/approved/rejected با reviewer/reason/result را کنترل می‌کنند و unique شرطی رقابت ثبت پیشنهاد مشابه را می‌بندد. migration برای تنوع‌های از قبل بایگانی‌شده disabled_code=`revision_removed` را پیش از افزودن CHECK backfill می‌کند.
+
+حذف کامل فقط برای Product در draft بدون هرگونه زمان ارسال/انتشار و بدون ProductRevision مجاز است. ارجاع‌های داخلی برنامهٔ فروش پیش از cascade حذف می‌شوند؛ StoredFile به‌علت lifecycle مستقل حفظ می‌شود. وضعیت مستقل تنوع و بازتخصیص صف با قفل Userهای مرتب→Business→Category/Service→Product→Revision اجرا و همراه before/after حسابرسی می‌شوند.
+
+مرور عمومی در این فاز جدول read model جدا ندارد. query پایه با index وضعیت/زمان Product محدود و روابط لازم prefetch می‌شوند؛ نرمال‌سازی، relevance و metric نماینده روی مجموعهٔ منتشرشدهٔ MVP محاسبه می‌شوند. این سقف آگاهانه باید با ۱۰۰هزار SKU و `EXPLAIN (ANALYZE, BUFFERS)` سنجیده شود؛ در صورت عبور از بودجه، ستون‌های search نرمال‌شده و read model/index PostgreSQL جای این projection را می‌گیرند.

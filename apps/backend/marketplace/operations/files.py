@@ -9,6 +9,7 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.db import transaction
+from django.db.models import Q
 from PIL import Image, UnidentifiedImageError
 from rest_framework.exceptions import APIException, ValidationError
 
@@ -118,6 +119,23 @@ def upload_document(*, actor, business, purpose, consent, upload):
     return file
 
 
+def referenced_in_product_revision(actor, file):
+    from marketplace.catalog.models import ProductRevision
+
+    if file.purpose != "product_image":
+        return False
+    for before, proposed in ProductRevision.objects.filter(
+        product__business=file.business, assigned_to=actor, status="pending"
+    ).values_list("before", "proposed"):
+        for version in [before, proposed]:
+            images = version["profile"]["images"] + [
+                image for row in version["variants"] for image in row["images"]
+            ]
+            if str(file.pk) in images:
+                return True
+    return False
+
+
 def download_document(*, actor, file):
     from marketplace.accounts.permissions import has_role
 
@@ -127,7 +145,14 @@ def download_document(*, actor, file):
         or (
             has_role(actor, "operator")
             and (
-                file.business.verification.assigned_to_id == actor.pk
+                referenced_in_product_revision(actor, file)
+                or file.business.products.filter(assigned_to=actor, status="pending")
+                .filter(
+                    Q(images__contains=[str(file.pk)])
+                    | Q(variants__images__contains=[str(file.pk)])
+                )
+                .exists()
+                or file.business.verification.assigned_to_id == actor.pk
                 or file.business.revisions.filter(
                     assigned_to=actor, status__in=["pending", "changes_requested"]
                 ).exists()

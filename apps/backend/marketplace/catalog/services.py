@@ -50,10 +50,13 @@ def active_category(category):
 def save_taxonomy(*, actor, model, data, pk=None):
     actor = locked_actor(actor)
     require_operator(actor)
+    reason = data.pop("reason", "").strip()
     # ponytail: lock the small taxonomy for structural edits; split by tree if contention grows.
     list(Category.objects.select_for_update().order_by("id"))
     obj = get_object_or_404(model.objects.select_for_update(), pk=pk) if pk else model()
     before = snapshot(obj) if pk else {}
+    if pk and "is_active" in data and data["is_active"] != obj.is_active and not reason:
+        raise ValidationError({"reason": "دلیل تغییر وضعیت الزامی است."})
     if model is Category:
         parent = data.get("parent", obj.parent)
         cursor = parent
@@ -89,6 +92,7 @@ def save_taxonomy(*, actor, model, data, pk=None):
         actor=actor,
         action="catalog.taxonomy_updated" if pk else "catalog.taxonomy_created",
         target=obj,
+        reason=reason,
         before=before,
         after=snapshot(obj),
     )
@@ -176,7 +180,7 @@ def save_product(*, actor, data, pk=None):
         else Product(business=business, category=category)
     )
     before = snapshot(obj) if pk else {}
-    if obj.status != "draft":
+    if obj.status not in ["draft", "changes_requested"]:
         raise Conflict("فقط پیش‌نویس قابل‌ویرایش است.")
     if pk and "business" in data and data["business"] != obj.business:
         raise ValidationError({"business": "مالکیت محصول تغییر نمی‌کند."})
@@ -210,7 +214,7 @@ def save_variant(*, actor, product_id, data, pk=None):
     business = producer(actor, reference.business_id)
     category = Category.objects.select_for_update().get(pk=reference.category_id)
     product = Product.objects.select_for_update().get(pk=product_id)
-    if product.status != "draft":
+    if product.status not in ["draft", "changes_requested"]:
         raise Conflict("فقط تنوع پیش‌نویس قابل‌ویرایش است.")
     obj = (
         get_object_or_404(Variant.objects.select_for_update(), pk=pk, product=product)
@@ -246,8 +250,10 @@ def delete_variant(*, actor, product_id, pk):
     reference = get_object_or_404(Product, pk=product_id, business__membership__user=actor)
     producer(actor, reference.business_id)
     product = Product.objects.select_for_update().get(pk=product_id)
-    if product.status != "draft":
+    if product.status not in ["draft", "changes_requested"]:
         raise Conflict("فقط تنوع پیش‌نویس قابل حذف است.")
     obj = get_object_or_404(Variant, pk=pk, product=product)
+    if obj.pack_items.exists() or obj.price_overrides.exists():
+        raise Conflict("ابتدا ارجاع تنوع را از بسته‌ها و قیمت اختصاصی حذف کنید.")
     audit(actor=actor, action="catalog.variant_deleted", target=obj)
     obj.delete()

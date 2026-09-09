@@ -3369,6 +3369,954 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/products/{id}/activate/:
+    post:
+      operationId: catalog_products_activate_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicationOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/products/{id}/claim/:
+    post:
+      operationId: catalog_products_claim_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicationOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/products/{id}/deactivate/:
+    post:
+      operationId: catalog_products_deactivate_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicationOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/products/{id}/delete/:
+    post:
+      operationId: catalog_products_delete_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '204':
+          description: No response body
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/products/{id}/reassign/:
+    post:
+      operationId: catalog_products_reassign_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReassignInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicationOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/products/{id}/reopen/:
+    post:
+      operationId: catalog_products_reopen_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicationOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/products/{id}/review/:
+    post:
+      operationId: catalog_products_review_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicationOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/products/{id}/submit/:
+    post:
+      operationId: catalog_products_submit_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicationOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/products/{product_id}/quote/:
+    post:
+      operationId: catalog_products_quote_create
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuoteInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuoteOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/products/{product_id}/revisions/:
+    post:
+      operationId: catalog_products_revisions_create
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductRevisionInputRequest'
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevisionOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/products/{product_id}/sales-plan/:
+    get:
+      operationId: catalog_products_sales_plan_retrieve
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    put:
+      operationId: catalog_products_sales_plan_update
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesPlanInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
   /api/v1/catalog/products/{product_id}/variants/:
     get:
       operationId: catalog_products_variants_list
@@ -3778,6 +4726,1684 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/products/{product_id}/variants/{id}/activation/:
+    post:
+      operationId: catalog_products_variants_activation_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VariantActivationInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Variant'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/products/{product_id}/variants/{id}/supply/:
+    get:
+      operationId: catalog_products_variants_supply_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupplyInput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    put:
+      operationId: catalog_products_variants_supply_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplyInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupplyInput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/proposals/:
+    get:
+      operationId: catalog_proposals_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: یک شماره صفحه‌ در مجموعه نتایج صفحه‌بندی شده.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: تعداد نتایج برای نمایش در هر صفحه.
+        schema:
+          type: integer
+      tags:
+      - catalog
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProposalList'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    post:
+      operationId: catalog_proposals_create
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProposalRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proposal'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/proposals/{id}/:
+    get:
+      operationId: catalog_proposals_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: یک رشته UUID که این taxonomy proposal را شناسایی میکند.
+        required: true
+      tags:
+      - catalog
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proposal'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/proposals/{id}/review/:
+    post:
+      operationId: catalog_proposals_review_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProposalReviewInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proposal'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/public/manufacturers/{id}/:
+    get:
+      operationId: catalog_public_manufacturers_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      security:
+      - bearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicManufacturer'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/public/products/:
+    get:
+      operationId: catalog_public_products_list
+      parameters:
+      - in: query
+        name: category
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 30
+      - in: query
+        name: lead_max
+        schema:
+          type: integer
+          maximum: 3650
+          minimum: 0
+      - in: query
+        name: lead_min
+        schema:
+          type: integer
+          maximum: 3650
+          minimum: 0
+      - in: query
+        name: manufacturer
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 30
+      - in: query
+        name: method
+        schema:
+          type: array
+          items:
+            enum:
+            - free_mix
+            - fixed_pack
+            type: string
+            description: |-
+              * `free_mix` - free_mix
+              * `fixed_pack` - fixed_pack
+      - in: query
+        name: orderable
+        schema:
+          type: boolean
+      - in: query
+        name: page
+        schema:
+          type: integer
+          minimum: 1
+      - in: query
+        name: price_max
+        schema:
+          type: integer
+          maximum: 1000000000000000
+          minimum: 0
+          format: int64
+      - in: query
+        name: price_min
+        schema:
+          type: integer
+          maximum: 1000000000000000
+          minimum: 0
+          format: int64
+      - in: query
+        name: q
+        schema:
+          type: string
+          maxLength: 200
+      - in: query
+        name: rating_min
+        schema:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,2})?$
+      - in: query
+        name: sort
+        schema:
+          enum:
+          - relevance
+          - newest
+          - price_asc
+          - price_desc
+          - lead_time
+          - rating
+          type: string
+          minLength: 1
+        description: |-
+          * `relevance` - relevance
+          * `newest` - newest
+          * `price_asc` - price_asc
+          * `price_desc` - price_desc
+          * `lead_time` - lead_time
+          * `rating` - rating
+      - in: query
+        name: supply
+        schema:
+          type: array
+          items:
+            enum:
+            - ready
+            - production
+            - hybrid
+            type: string
+            description: |-
+              * `ready` - ready
+              * `production` - production
+              * `hybrid` - hybrid
+      tags:
+      - catalog
+      security:
+      - bearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPublicProductList'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/public/products/{id}/:
+    get:
+      operationId: catalog_public_products_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      security:
+      - bearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicProduct'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/review-products/{id}/:
+    get:
+      operationId: catalog_review_products_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewDetailOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/review-queue/:
+    get:
+      operationId: catalog_review_queue_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: یک شماره صفحه‌ در مجموعه نتایج صفحه‌بندی شده.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: تعداد نتایج برای نمایش در هر صفحه.
+        schema:
+          type: integer
+      tags:
+      - catalog
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProductQueueList'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/revision-queue/:
+    get:
+      operationId: catalog_revision_queue_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: یک شماره صفحه‌ در مجموعه نتایج صفحه‌بندی شده.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: تعداد نتایج برای نمایش در هر صفحه.
+        schema:
+          type: integer
+      tags:
+      - catalog
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRevisionQueueOutputList'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/revisions/{id}/:
+    get:
+      operationId: catalog_revisions_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevisionOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    put:
+      operationId: catalog_revisions_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductRevisionInputRequest'
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevisionOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/revisions/{id}/cancel/:
+    post:
+      operationId: catalog_revisions_cancel_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevisionOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/revisions/{id}/claim/:
+    post:
+      operationId: catalog_revisions_claim_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevisionOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/revisions/{id}/reassign/:
+    post:
+      operationId: catalog_revisions_reassign_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReassignInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevisionOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/revisions/{id}/review/:
+    post:
+      operationId: catalog_revisions_review_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RevisionDecisionRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevisionOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/revisions/{id}/submit/:
+    post:
+      operationId: catalog_revisions_submit_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevisionOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
   /api/v1/files/{id}/download/:
     post:
       operationId: files_download_create
@@ -3879,6 +6505,1011 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedInboxList'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/logistics/products/{product_id}/quote/:
+    post:
+      operationId: logistics_products_quote_create
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - logistics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShippingQuoteInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShippingQuoteOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/logistics/products/{product_id}/shipping/:
+    get:
+      operationId: logistics_products_shipping_retrieve
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - logistics
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShippingInput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    put:
+      operationId: logistics_products_shipping_update
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - logistics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShippingInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShippingInput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/logistics/provinces/:
+    get:
+      operationId: logistics_provinces_retrieve
+      tags:
+      - logistics
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProvinceOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/logistics/services/:
+    get:
+      operationId: logistics_services_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: یک شماره صفحه‌ در مجموعه نتایج صفحه‌بندی شده.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: تعداد نتایج برای نمایش در هر صفحه.
+        schema:
+          type: integer
+      tags:
+      - logistics
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedServiceList'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    post:
+      operationId: logistics_services_create
+      tags:
+      - logistics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/logistics/services/{id}/:
+    get:
+      operationId: logistics_services_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: یک رشته UUID که این shipping service را شناسایی میکند.
+        required: true
+      tags:
+      - logistics
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    patch:
+      operationId: logistics_services_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: یک رشته UUID که این shipping service را شناسایی میکند.
+        required: true
+      tags:
+      - logistics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedServiceRequest'
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/logistics/tariffs/:
+    get:
+      operationId: logistics_tariffs_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: یک شماره صفحه‌ در مجموعه نتایج صفحه‌بندی شده.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: تعداد نتایج برای نمایش در هر صفحه.
+        schema:
+          type: integer
+      tags:
+      - logistics
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTariffList'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    post:
+      operationId: logistics_tariffs_create
+      tags:
+      - logistics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TariffRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tariff'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/logistics/tariffs/{id}/:
+    get:
+      operationId: logistics_tariffs_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: یک رشته UUID که این tariff را شناسایی میکند.
+        required: true
+      tags:
+      - logistics
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tariff'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    patch:
+      operationId: logistics_tariffs_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: یک رشته UUID که این tariff را شناسایی میکند.
+        required: true
+      tags:
+      - logistics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTariffRequest'
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tariff'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/logistics/tariffs/{id}/activation/:
+    post:
+      operationId: logistics_tariffs_activation_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - logistics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivationInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tariff'
           description: ''
         '400':
           description: API error with request correlation ID
@@ -4252,6 +7883,18 @@ paths:
                 $ref: '#/components/schemas/ErrorEnvelope'
 components:
   schemas:
+    ActivationInputRequest:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+      required:
+      - enabled
+      - reason
     ActivityRequest:
       type: object
       properties:
@@ -4330,7 +7973,7 @@ components:
         kind:
           $ref: '#/components/schemas/AttributeKindEnum'
         scope:
-          $ref: '#/components/schemas/ScopeEnum'
+          $ref: '#/components/schemas/AttributeScopeEnum'
         unit:
           type: string
           maxLength: 40
@@ -4388,7 +8031,7 @@ components:
         kind:
           $ref: '#/components/schemas/AttributeKindEnum'
         scope:
-          $ref: '#/components/schemas/ScopeEnum'
+          $ref: '#/components/schemas/AttributeScopeEnum'
         unit:
           type: string
           maxLength: 40
@@ -4402,12 +8045,25 @@ components:
           minimum: 0
         is_active:
           type: boolean
+        reason:
+          type: string
+          writeOnly: true
+          minLength: 1
+          maxLength: 2000
       required:
       - category
       - code
       - kind
       - name
       - scope
+    AttributeScopeEnum:
+      enum:
+      - product
+      - variant
+      type: string
+      description: |-
+        * `product` - محصول
+        * `variant` - تنوع
     Business:
       type: object
       properties:
@@ -4535,6 +8191,20 @@ components:
       - id
       - name
       - slug
+    CategoryPathOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+      required:
+      - id
+      - name
+      - slug
     CategoryRequest:
       type: object
       properties:
@@ -4560,6 +8230,11 @@ components:
           minimum: 0
         is_active:
           type: boolean
+        reason:
+          type: string
+          writeOnly: true
+          minLength: 1
+          maxLength: 2000
       required:
       - name
       - slug
@@ -4575,16 +8250,13 @@ components:
       required:
       - enabled
       - reason
-    DecisionEnum:
-      enum:
-      - approved
-      - changes_requested
-      - rejected
-      type: string
-      description: |-
-        * `approved` - approved
-        * `changes_requested` - changes_requested
-        * `rejected` - rejected
+    DeleteInputRequest:
+      type: object
+      properties:
+        confirm:
+          type: boolean
+      required:
+      - confirm
     Download:
       type: object
       properties:
@@ -4723,6 +8395,83 @@ components:
         all_sessions:
           type: boolean
           default: false
+    ManufacturerOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        verified:
+          type: boolean
+        province:
+          type: string
+          nullable: true
+        city:
+          type: string
+          nullable: true
+        joined_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - city
+      - description
+      - id
+      - joined_at
+      - name
+      - province
+      - verified
+    MethodEnum:
+      enum:
+      - free_mix
+      - fixed_pack
+      type: string
+      description: |-
+        * `free_mix` - free_mix
+        * `fixed_pack` - fixed_pack
+    ModeEnum:
+      enum:
+      - ready
+      - production
+      - hybrid
+      type: string
+      description: |-
+        * `ready` - ready
+        * `production` - production
+        * `hybrid` - hybrid
+    NewPackageRequest:
+      type: object
+      properties:
+        weight_g:
+          type: integer
+          maximum: 1000000000
+          minimum: 1
+        length_mm:
+          type: integer
+          maximum: 1000000
+          minimum: 1
+        width_mm:
+          type: integer
+          maximum: 1000000
+          minimum: 1
+        height_mm:
+          type: integer
+          maximum: 1000000
+          minimum: 1
+        package_count:
+          type: integer
+          maximum: 1000000
+          minimum: 1
+      required:
+      - height_mm
+      - length_mm
+      - package_count
+      - weight_g
+      - width_mm
     OperatorAccessRequest:
       type: object
       properties:
@@ -4784,10 +8533,147 @@ components:
           minimum: 0
         is_active:
           type: boolean
+        reason:
+          type: string
+          writeOnly: true
+          minLength: 1
+          maxLength: 2000
       required:
       - attribute
       - code
       - label
+    OverrideInput:
+      type: object
+      properties:
+        variant:
+          type: string
+          format: uuid
+        unit_price_irr:
+          type: integer
+          maximum: 1000000000000000
+          minimum: 1
+          format: int64
+      required:
+      - unit_price_irr
+      - variant
+    OverrideInputRequest:
+      type: object
+      properties:
+        variant:
+          type: string
+          format: uuid
+        unit_price_irr:
+          type: integer
+          maximum: 1000000000000000
+          minimum: 1
+          format: int64
+      required:
+      - unit_price_irr
+      - variant
+    PackInput:
+      type: object
+      properties:
+        code:
+          type: string
+          maxLength: 60
+          pattern: ^[-a-zA-Z0-9_]+$
+        name:
+          type: string
+          maxLength: 120
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SelectionItem'
+      required:
+      - code
+      - items
+      - name
+    PackInputRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 60
+          pattern: ^[-a-zA-Z0-9_]+$
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SelectionItemRequest'
+      required:
+      - code
+      - items
+      - name
+    PackageInput:
+      type: object
+      properties:
+        variant:
+          type: string
+          format: uuid
+        weight_g:
+          type: integer
+          maximum: 1000000000
+          minimum: 1
+        length_mm:
+          type: integer
+          maximum: 1000000
+          minimum: 1
+        width_mm:
+          type: integer
+          maximum: 1000000
+          minimum: 1
+        height_mm:
+          type: integer
+          maximum: 1000000
+          minimum: 1
+        package_count:
+          type: integer
+          maximum: 1000000
+          minimum: 1
+      required:
+      - height_mm
+      - length_mm
+      - package_count
+      - variant
+      - weight_g
+      - width_mm
+    PackageInputRequest:
+      type: object
+      properties:
+        variant:
+          type: string
+          format: uuid
+        weight_g:
+          type: integer
+          maximum: 1000000000
+          minimum: 1
+        length_mm:
+          type: integer
+          maximum: 1000000
+          minimum: 1
+        width_mm:
+          type: integer
+          maximum: 1000000
+          minimum: 1
+        height_mm:
+          type: integer
+          maximum: 1000000
+          minimum: 1
+        package_count:
+          type: integer
+          maximum: 1000000
+          minimum: 1
+      required:
+      - height_mm
+      - length_mm
+      - package_count
+      - variant
+      - weight_g
+      - width_mm
     PaginatedAttributeList:
       type: object
       required:
@@ -4926,6 +8812,75 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Product'
+    PaginatedProductQueueList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductQueue'
+    PaginatedProposalList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Proposal'
+    PaginatedPublicProductList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicProduct'
     PaginatedQueueList:
       type: object
       required:
@@ -4995,6 +8950,75 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RevisionQueue'
+    PaginatedRevisionQueueOutputList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/RevisionQueueOutput'
+    PaginatedServiceList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Service'
+    PaginatedTariffList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tariff'
     PaginatedVariantList:
       type: object
       required:
@@ -5039,7 +9063,7 @@ components:
         kind:
           $ref: '#/components/schemas/AttributeKindEnum'
         scope:
-          $ref: '#/components/schemas/ScopeEnum'
+          $ref: '#/components/schemas/AttributeScopeEnum'
         unit:
           type: string
           maxLength: 40
@@ -5053,6 +9077,11 @@ components:
           minimum: 0
         is_active:
           type: boolean
+        reason:
+          type: string
+          writeOnly: true
+          minLength: 1
+          maxLength: 2000
     PatchedCategoryRequest:
       type: object
       properties:
@@ -5078,6 +9107,11 @@ components:
           minimum: 0
         is_active:
           type: boolean
+        reason:
+          type: string
+          writeOnly: true
+          minLength: 1
+          maxLength: 2000
     PatchedOptionRequest:
       type: object
       properties:
@@ -5099,6 +9133,11 @@ components:
           minimum: 0
         is_active:
           type: boolean
+        reason:
+          type: string
+          writeOnly: true
+          minLength: 1
+          maxLength: 2000
     PatchedProductRequest:
       type: object
       properties:
@@ -5124,6 +9163,79 @@ components:
           maxLength: 120
         attributes: {}
         images: {}
+    PatchedRevisionProfileRequest:
+      type: object
+      properties:
+        category:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          minLength: 1
+          maxLength: 5000
+        brand:
+          type: string
+          maxLength: 120
+        manufacturer_model:
+          type: string
+          maxLength: 120
+        attributes: {}
+        images: {}
+    PatchedServiceRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        kind:
+          type: string
+          minLength: 1
+          maxLength: 60
+          pattern: ^[-a-zA-Z0-9_]+$
+        is_active:
+          type: boolean
+        operational:
+          type: boolean
+    PatchedTariffRequest:
+      type: object
+      properties:
+        service:
+          type: string
+          format: uuid
+        scope:
+          $ref: '#/components/schemas/TariffScopeEnum'
+        origin_province:
+          type: string
+          maxLength: 40
+        destination_province:
+          type: string
+          maxLength: 40
+        origin_city:
+          type: string
+          maxLength: 100
+        destination_city:
+          type: string
+          maxLength: 100
+        min_weight_g:
+          type: integer
+          maximum: 1000000000000
+          minimum: 1
+          format: int64
+        max_weight_g:
+          type: integer
+          maximum: 1000000000000
+          minimum: 1
+          format: int64
+        amount_irr:
+          type: integer
+          maximum: 1000000000000000
+          minimum: 1
+          format: int64
     PatchedVariantRequest:
       type: object
       properties:
@@ -5133,6 +9245,40 @@ components:
           maxLength: 100
         attributes: {}
         images: {}
+    PlanOutput:
+      type: object
+      properties:
+        free_mix_min:
+          type: integer
+          maximum: 1000000000
+          minimum: 1
+          nullable: true
+        packs:
+          type: array
+          items:
+            $ref: '#/components/schemas/PackInput'
+        tiers:
+          type: array
+          items:
+            $ref: '#/components/schemas/TierOutput'
+        currency:
+          type: string
+      required:
+      - currency
+      - free_mix_min
+      - packs
+      - tiers
+    PriceCell:
+      type: object
+      properties:
+        variant:
+          type: string
+          format: uuid
+        unit_price_irr:
+          type: integer
+      required:
+      - unit_price_irr
+      - variant
     Product:
       type: object
       properties:
@@ -5180,6 +9326,45 @@ components:
       - name
       - status
       - updated_at
+    ProductPublicationDecisionEnum:
+      enum:
+      - published
+      - changes_requested
+      - rejected
+      type: string
+      description: |-
+        * `published` - published
+        * `changes_requested` - changes_requested
+        * `rejected` - rejected
+    ProductQueue:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 200
+        business:
+          type: string
+          format: uuid
+        status:
+          type: string
+          readOnly: true
+        assigned_to:
+          type: string
+          format: uuid
+          nullable: true
+        submitted_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - business
+      - id
+      - name
+      - status
     ProductRequest:
       type: object
       properties:
@@ -5210,6 +9395,25 @@ components:
       - category
       - description
       - name
+    ProductRevisionDecisionEnum:
+      enum:
+      - approved
+      - changes_requested
+      - rejected
+      type: string
+      description: |-
+        * `approved` - approved
+        * `changes_requested` - changes_requested
+        * `rejected` - rejected
+    ProductRevisionInputRequest:
+      type: object
+      properties:
+        profile:
+          $ref: '#/components/schemas/PatchedRevisionProfileRequest'
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/RevisionVariantRequest'
     ProfileRequest:
       type: object
       properties:
@@ -5232,6 +9436,413 @@ components:
       - description
       - name
       - phone
+    Proposal:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        business:
+          type: string
+          format: uuid
+        kind:
+          $ref: '#/components/schemas/ProposalKindEnum'
+        category:
+          type: string
+          format: uuid
+          nullable: true
+        attribute:
+          type: string
+          format: uuid
+          nullable: true
+        name:
+          type: string
+          maxLength: 120
+        description:
+          type: string
+          maxLength: 1000
+        example:
+          type: string
+          maxLength: 1000
+        status:
+          type: string
+          readOnly: true
+        reason:
+          type: string
+          readOnly: true
+        reviewed_by:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        result_id:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - business
+      - created_at
+      - description
+      - example
+      - id
+      - kind
+      - name
+      - reason
+      - result_id
+      - reviewed_by
+      - status
+    ProposalKindEnum:
+      enum:
+      - category
+      - attribute
+      - option
+      type: string
+      description: |-
+        * `category` - دسته
+        * `attribute` - ویژگی
+        * `option` - مقدار
+    ProposalRequest:
+      type: object
+      properties:
+        business:
+          type: string
+          format: uuid
+        kind:
+          $ref: '#/components/schemas/ProposalKindEnum'
+        category:
+          type: string
+          format: uuid
+          nullable: true
+        attribute:
+          type: string
+          format: uuid
+          nullable: true
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+          minLength: 1
+          maxLength: 1000
+        example:
+          type: string
+          minLength: 1
+          maxLength: 1000
+      required:
+      - business
+      - description
+      - example
+      - kind
+      - name
+    ProposalReviewInputDecisionEnum:
+      enum:
+      - approved
+      - rejected
+      type: string
+      description: |-
+        * `approved` - approved
+        * `rejected` - rejected
+    ProposalReviewInputRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        decision:
+          $ref: '#/components/schemas/ProposalReviewInputDecisionEnum'
+        definition:
+          type: object
+          additionalProperties: {}
+      required:
+      - decision
+      - reason
+    ProvinceOutput:
+      type: object
+      properties:
+        provinces:
+          type: array
+          items:
+            type: string
+      required:
+      - provinces
+    PublicManufacturer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        verified:
+          type: boolean
+        province:
+          type: string
+          nullable: true
+        city:
+          type: string
+          nullable: true
+        joined_at:
+          type: string
+          format: date-time
+          nullable: true
+        logo_url:
+          type: string
+          format: uri
+          nullable: true
+        rating:
+          $ref: '#/components/schemas/RatingOutput'
+        product_count:
+          type: integer
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryPathOutput'
+      required:
+      - categories
+      - city
+      - description
+      - id
+      - joined_at
+      - logo_url
+      - name
+      - product_count
+      - province
+      - rating
+      - verified
+    PublicProduct:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        business:
+          type: string
+          format: uuid
+        category:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        brand:
+          type: string
+        manufacturer_model:
+          type: string
+        attributes:
+          type: object
+          additionalProperties: {}
+        image_urls:
+          type: array
+          items:
+            type: string
+            format: uri
+        wholesale:
+          $ref: '#/components/schemas/PlanOutput'
+        representative_price_irr:
+          type: integer
+          nullable: true
+        price_access_message:
+          type: string
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicVariantSummary'
+        published_at:
+          type: string
+          format: date-time
+        category_path:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryPathOutput'
+        manufacturer:
+          $ref: '#/components/schemas/ManufacturerOutput'
+        rating:
+          $ref: '#/components/schemas/RatingOutput'
+        shipping_services:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicShippingOutput'
+        orderable:
+          type: boolean
+        lead_time_days:
+          type: integer
+          nullable: true
+        supply_modes:
+          type: array
+          items:
+            type: string
+        sale_methods:
+          type: array
+          items:
+            type: string
+        minimum_order:
+          type: integer
+          nullable: true
+        free_mix_min:
+          type: integer
+          nullable: true
+        packs:
+          type: array
+          items:
+            $ref: '#/components/schemas/PackInput'
+      required:
+      - attributes
+      - brand
+      - business
+      - category
+      - category_path
+      - description
+      - free_mix_min
+      - id
+      - image_urls
+      - lead_time_days
+      - manufacturer
+      - manufacturer_model
+      - minimum_order
+      - name
+      - orderable
+      - packs
+      - published_at
+      - rating
+      - sale_methods
+      - shipping_services
+      - supply_modes
+      - variants
+    PublicShippingOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        kind:
+          type: string
+      required:
+      - id
+      - kind
+      - name
+    PublicVariantSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        sku:
+          type: string
+        attributes:
+          type: object
+          additionalProperties: {}
+        image_urls:
+          type: array
+          items:
+            type: string
+            format: uri
+        orderable:
+          type: boolean
+        supply:
+          allOf:
+          - $ref: '#/components/schemas/SupplyInput'
+          nullable: true
+      required:
+      - attributes
+      - id
+      - image_urls
+      - orderable
+      - sku
+      - supply
+    PublicationOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        business:
+          type: string
+          format: uuid
+          readOnly: true
+        category:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        description:
+          type: string
+          readOnly: true
+        brand:
+          type: string
+          readOnly: true
+        manufacturer_model:
+          type: string
+          readOnly: true
+        attributes:
+          readOnly: true
+        images:
+          readOnly: true
+        status:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        assigned_to:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        submitted_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        published_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        decision_code:
+          type: string
+          readOnly: true
+        decision_reason:
+          type: string
+          readOnly: true
+      required:
+      - assigned_to
+      - attributes
+      - brand
+      - business
+      - category
+      - created_at
+      - decision_code
+      - decision_reason
+      - description
+      - id
+      - images
+      - manufacturer_model
+      - name
+      - published_at
+      - status
+      - submitted_at
+      - updated_at
     PurposeEnum:
       enum:
       - identity
@@ -5266,6 +9877,100 @@ components:
       - assigned_to_id
       - business_id
       - id
+    QuoteInputRequest:
+      type: object
+      properties:
+        method:
+          $ref: '#/components/schemas/MethodEnum'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SelectionItemRequest'
+        pack_code:
+          type: string
+          minLength: 1
+          maxLength: 60
+          pattern: ^[-a-zA-Z0-9_]+$
+        pack_count:
+          type: integer
+          maximum: 1000000000
+          minimum: 1
+      required:
+      - method
+    QuoteLine:
+      type: object
+      properties:
+        variant:
+          type: string
+          format: uuid
+        sku:
+          type: string
+        quantity:
+          type: integer
+        unit_price_irr:
+          type: integer
+        total_irr:
+          type: integer
+        from_ready:
+          type: integer
+        from_production:
+          type: integer
+        lead_time_days:
+          type: integer
+      required:
+      - from_production
+      - from_ready
+      - lead_time_days
+      - quantity
+      - sku
+      - total_irr
+      - unit_price_irr
+      - variant
+    QuoteOutput:
+      type: object
+      properties:
+        currency:
+          type: string
+        quantity:
+          type: integer
+        tier_min_quantity:
+          type: integer
+        goods_total_irr:
+          type: integer
+        lead_time_days:
+          type: integer
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuoteLine'
+      required:
+      - currency
+      - goods_total_irr
+      - lead_time_days
+      - lines
+      - quantity
+      - tier_min_quantity
+    RatingOutput:
+      type: object
+      properties:
+        average:
+          type: number
+          format: double
+          nullable: true
+        count:
+          type: integer
+      required:
+      - average
+      - count
+    ReasonInputRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+      required:
+      - reason
     ReasonRequest:
       type: object
       properties:
@@ -5275,6 +9980,19 @@ components:
           maxLength: 2000
       required:
       - reason
+    ReassignInputRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        user_id:
+          type: string
+          format: uuid
+      required:
+      - reason
+      - user_id
     ReassignRequest:
       type: object
       properties:
@@ -5342,6 +10060,51 @@ components:
       required:
       - password
       - token
+    ReviewDetailOutput:
+      type: object
+      properties:
+        product:
+          $ref: '#/components/schemas/PublicationOutput'
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/Variant'
+        sales_plan:
+          allOf:
+          - $ref: '#/components/schemas/PlanOutput'
+          nullable: true
+        shipping:
+          allOf:
+          - $ref: '#/components/schemas/ShippingInput'
+          nullable: true
+        supplies:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupplyDetail'
+      required:
+      - product
+      - sales_plan
+      - shipping
+      - supplies
+      - variants
+    ReviewInputRequest:
+      type: object
+      properties:
+        decision:
+          $ref: '#/components/schemas/ProductPublicationDecisionEnum'
+        code:
+          type: string
+          minLength: 1
+          maxLength: 60
+          pattern: ^[-a-zA-Z0-9_]+$
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+      required:
+      - code
+      - decision
+      - reason
     ReviewRequest:
       type: object
       properties:
@@ -5352,7 +10115,7 @@ components:
         kind:
           $ref: '#/components/schemas/VerificationKindEnum'
         decision:
-          $ref: '#/components/schemas/DecisionEnum'
+          $ref: '#/components/schemas/ProductRevisionDecisionEnum'
       required:
       - decision
       - kind
@@ -5408,6 +10171,24 @@ components:
       - identity_status
       - proposed
       - status
+    RevisionDecisionRequest:
+      type: object
+      properties:
+        decision:
+          $ref: '#/components/schemas/ProductRevisionDecisionEnum'
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        code:
+          type: string
+          minLength: 1
+          maxLength: 60
+          pattern: ^[-a-zA-Z0-9_]+$
+      required:
+      - code
+      - decision
+      - reason
     RevisionInputRequest:
       type: object
       properties:
@@ -5417,6 +10198,49 @@ components:
           $ref: '#/components/schemas/IdentityRequest'
         activity:
           $ref: '#/components/schemas/ActivityRequest'
+    RevisionOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        product:
+          type: string
+          format: uuid
+          readOnly: true
+        status:
+          type: string
+          readOnly: true
+        before:
+          readOnly: true
+        proposed:
+          readOnly: true
+        assigned_to:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        reason:
+          type: string
+          readOnly: true
+        code:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - assigned_to
+      - before
+      - code
+      - created_at
+      - id
+      - product
+      - proposed
+      - reason
+      - status
     RevisionQueue:
       type: object
       properties:
@@ -5442,6 +10266,69 @@ components:
       - business_id
       - created_at
       - id
+    RevisionQueueOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        product:
+          type: string
+          format: uuid
+        status:
+          type: string
+          maxLength: 20
+        assigned_to:
+          type: string
+          format: uuid
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - product
+    RevisionVariantRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        sku:
+          type: string
+          minLength: 1
+          maxLength: 100
+        attributes: {}
+        images: {}
+        supply:
+          $ref: '#/components/schemas/SupplyInputRequest'
+        package:
+          $ref: '#/components/schemas/NewPackageRequest'
+      required:
+      - sku
+    SalesPlanInputRequest:
+      type: object
+      properties:
+        free_mix_min:
+          type: integer
+          maximum: 1000000000
+          minimum: 1
+          nullable: true
+        packs:
+          type: array
+          items:
+            $ref: '#/components/schemas/PackInputRequest'
+        tiers:
+          type: array
+          items:
+            $ref: '#/components/schemas/TierInputRequest'
+      required:
+      - free_mix_min
+      - packs
+      - tiers
     ScanStatusEnum:
       enum:
       - pending
@@ -5452,14 +10339,6 @@ components:
         * `pending` - Pending
         * `clean` - Clean
         * `rejected` - Rejected
-    ScopeEnum:
-      enum:
-      - product
-      - variant
-      type: string
-      description: |-
-        * `product` - محصول
-        * `variant` - تنوع
     Section:
       type: object
       properties:
@@ -5495,6 +10374,416 @@ components:
         * `approved` - approved
         * `changes_requested` - changes_requested
         * `rejected` - rejected
+    SelectionItem:
+      type: object
+      properties:
+        variant:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          maximum: 1000000000
+          minimum: 1
+      required:
+      - quantity
+      - variant
+    SelectionItemRequest:
+      type: object
+      properties:
+        variant:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          maximum: 1000000000
+          minimum: 1
+      required:
+      - quantity
+      - variant
+    Service:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 120
+        kind:
+          type: string
+          maxLength: 60
+          pattern: ^[-a-zA-Z0-9_]+$
+        is_active:
+          type: boolean
+        operational:
+          type: boolean
+      required:
+      - id
+      - kind
+      - name
+    ServiceRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        kind:
+          type: string
+          minLength: 1
+          maxLength: 60
+          pattern: ^[-a-zA-Z0-9_]+$
+        is_active:
+          type: boolean
+        operational:
+          type: boolean
+      required:
+      - kind
+      - name
+    ShippingInput:
+      type: object
+      properties:
+        origin:
+          type: string
+          format: uuid
+        services:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 100
+        packages:
+          type: array
+          items:
+            $ref: '#/components/schemas/PackageInput'
+      required:
+      - origin
+      - packages
+      - services
+    ShippingInputRequest:
+      type: object
+      properties:
+        origin:
+          type: string
+          format: uuid
+        services:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 100
+        packages:
+          type: array
+          items:
+            $ref: '#/components/schemas/PackageInputRequest'
+      required:
+      - origin
+      - packages
+      - services
+    ShippingQuoteInputRequest:
+      type: object
+      properties:
+        service:
+          type: string
+          format: uuid
+        destination_province:
+          type: string
+          minLength: 1
+          maxLength: 40
+        destination_city:
+          type: string
+          minLength: 1
+          maxLength: 100
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SelectionItemRequest'
+      required:
+      - destination_city
+      - destination_province
+      - items
+      - service
+    ShippingQuoteOutput:
+      type: object
+      properties:
+        service:
+          type: string
+          format: uuid
+        service_name:
+          type: string
+        tariff:
+          type: string
+          format: uuid
+        origin_province:
+          type: string
+        origin_city:
+          type: string
+        destination_province:
+          type: string
+        destination_city:
+          type: string
+        weight_g:
+          type: integer
+        min_weight_g:
+          type: integer
+        max_weight_g:
+          type: integer
+        shipping_amount_irr:
+          type: integer
+      required:
+      - destination_city
+      - destination_province
+      - max_weight_g
+      - min_weight_g
+      - origin_city
+      - origin_province
+      - service
+      - service_name
+      - shipping_amount_irr
+      - tariff
+      - weight_g
+    SupplyDetail:
+      type: object
+      properties:
+        mode:
+          $ref: '#/components/schemas/ModeEnum'
+        ready_stock:
+          type: integer
+          maximum: 1000000000
+          minimum: 0
+        production_cap:
+          type: integer
+          maximum: 1000000000
+          minimum: 0
+        lead_time_days:
+          type: integer
+          maximum: 3650
+          minimum: 0
+        variant:
+          type: string
+          format: uuid
+      required:
+      - lead_time_days
+      - mode
+      - production_cap
+      - ready_stock
+      - variant
+    SupplyInput:
+      type: object
+      properties:
+        mode:
+          $ref: '#/components/schemas/ModeEnum'
+        ready_stock:
+          type: integer
+          maximum: 1000000000
+          minimum: 0
+        production_cap:
+          type: integer
+          maximum: 1000000000
+          minimum: 0
+        lead_time_days:
+          type: integer
+          maximum: 3650
+          minimum: 0
+      required:
+      - lead_time_days
+      - mode
+      - production_cap
+      - ready_stock
+    SupplyInputRequest:
+      type: object
+      properties:
+        mode:
+          $ref: '#/components/schemas/ModeEnum'
+        ready_stock:
+          type: integer
+          maximum: 1000000000
+          minimum: 0
+        production_cap:
+          type: integer
+          maximum: 1000000000
+          minimum: 0
+        lead_time_days:
+          type: integer
+          maximum: 3650
+          minimum: 0
+      required:
+      - lead_time_days
+      - mode
+      - production_cap
+      - ready_stock
+    Tariff:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        service:
+          type: string
+          format: uuid
+        scope:
+          $ref: '#/components/schemas/TariffScopeEnum'
+        origin_province:
+          type: string
+          maxLength: 40
+        destination_province:
+          type: string
+          maxLength: 40
+        origin_city:
+          type: string
+          maxLength: 100
+        destination_city:
+          type: string
+          maxLength: 100
+        min_weight_g:
+          type: integer
+          maximum: 1000000000000
+          minimum: 1
+          format: int64
+        max_weight_g:
+          type: integer
+          maximum: 1000000000000
+          minimum: 1
+          format: int64
+        amount_irr:
+          type: integer
+          maximum: 1000000000000000
+          minimum: 1
+          format: int64
+        is_active:
+          type: boolean
+          readOnly: true
+        activated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        activated_by:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        replaces:
+          type: array
+          items:
+            type: string
+            format: uuid
+          readOnly: true
+        source:
+          type: string
+          readOnly: true
+      required:
+      - activated_at
+      - activated_by
+      - amount_irr
+      - id
+      - is_active
+      - max_weight_g
+      - min_weight_g
+      - replaces
+      - scope
+      - service
+      - source
+    TariffRequest:
+      type: object
+      properties:
+        service:
+          type: string
+          format: uuid
+        scope:
+          $ref: '#/components/schemas/TariffScopeEnum'
+        origin_province:
+          type: string
+          maxLength: 40
+        destination_province:
+          type: string
+          maxLength: 40
+        origin_city:
+          type: string
+          maxLength: 100
+        destination_city:
+          type: string
+          maxLength: 100
+        min_weight_g:
+          type: integer
+          maximum: 1000000000000
+          minimum: 1
+          format: int64
+        max_weight_g:
+          type: integer
+          maximum: 1000000000000
+          minimum: 1
+          format: int64
+        amount_irr:
+          type: integer
+          maximum: 1000000000000000
+          minimum: 1
+          format: int64
+      required:
+      - amount_irr
+      - max_weight_g
+      - min_weight_g
+      - scope
+      - service
+    TariffScopeEnum:
+      enum:
+      - city
+      - province
+      - national
+      type: string
+      description: |-
+        * `city` - شهر
+        * `province` - استان
+        * `national` - سراسری
+    TierInputRequest:
+      type: object
+      properties:
+        min_quantity:
+          type: integer
+          maximum: 1000000000
+          minimum: 1
+        unit_price_irr:
+          type: integer
+          maximum: 1000000000000000
+          minimum: 1
+          format: int64
+        overrides:
+          type: array
+          items:
+            $ref: '#/components/schemas/OverrideInputRequest'
+      required:
+      - min_quantity
+      - unit_price_irr
+    TierOutput:
+      type: object
+      properties:
+        min_quantity:
+          type: integer
+          maximum: 1000000000
+          minimum: 1
+        unit_price_irr:
+          type: integer
+          maximum: 1000000000000000
+          minimum: 1
+          format: int64
+        overrides:
+          type: array
+          items:
+            $ref: '#/components/schemas/OverrideInput'
+        max_quantity:
+          type: integer
+          nullable: true
+        effective_prices:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceCell'
+      required:
+      - effective_prices
+      - max_quantity
+      - min_quantity
+      - unit_price_irr
     TokenPair:
       type: object
       properties:
@@ -5576,11 +10865,35 @@ components:
           items:
             type: string
           readOnly: true
+        is_active:
+          type: boolean
+          readOnly: true
+        disabled_code:
+          type: string
+          readOnly: true
+        status_reason:
+          type: string
+          readOnly: true
       required:
+      - disabled_code
       - effective_images
       - id
+      - is_active
       - product
       - sku
+      - status_reason
+    VariantActivationInputRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        enabled:
+          type: boolean
+      required:
+      - enabled
+      - reason
     VariantRequest:
       type: object
       properties:

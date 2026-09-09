@@ -46,6 +46,11 @@ pytest دیتابیس جداگانهٔ `test_marketplace` را روی PostgreSQL
 
 ## پیش از staging
 از `config.settings.production` استفاده کنید؛ secrets مستقل، SMTP TLS، لینک HTTPS، PostgreSQL با verify-full، bucket خصوصی با رمزگذاری و ingress خصوصی Django لازم‌اند. BFF/CSRF، حذف کنترل‌شدهٔ مدارک و restore drill هنوز دروازه‌های بازند. این برش آمادهٔ پایلوت کامل بازارگاه نیست.
-## هستهٔ کاتالوگ
 
-APIهای دسته، ویژگی، محصول و تنوع زیر `/api/v1/catalog/` هستند؛ [راهنمای جریان](../../docs/technical/api/catalog-drafts.md). برای اعمال migration و کد جدید، launcher را متوقف و دوباره اجرا کنید. محصولات فعلاً پیش‌نویس خصوصی‌اند.
+## هستهٔ کاتالوگ
+APIهای دسته، ویژگی، محصول و تنوع زیر `/api/v1/catalog/` هستند؛ [راهنمای جریان](../../docs/technical/api/catalog-drafts.md). برای اعمال migration و کد جدید، launcher را متوقف و دوباره اجرا کنید. تولیدکننده پیش‌نویس خصوصی می‌سازد و فقط نسخهٔ تأییدشده در کاتالوگ عمومی دیده می‌شود.
+
+برنامهٔ فروش، قیمت پلکانی، عرضه و پیش‌نمایش تولیدکننده نیز آماده‌اند: [نمونهٔ درخواست‌ها](../../docs/technical/api/catalog-sales.md). پیش‌نمایش رزرو یا سفارش ایجاد نمی‌کند.
+حمل و انتشار اولیه نیز اضافه شده‌اند: [ترتیب ساخت خدمت، تعرفه و ارسال محصول برای بررسی](../../docs/technical/api/logistics-publication.md). endpoint عمومی `/api/v1/catalog/public/products/` است؛ هنوز پنل فرانت‌اند ساخته نشده.
+
+بازنگری محتوای محصول و قیمت خرده‌فروش تأییدشده: [راهنمای API](../../docs/technical/api/catalog-revisions.md). جست‌وجو، فیلتر، عملیات مستقل تنوع، پیشنهاد taxonomy، حذف پیش‌نویس و بازتخصیص صف: [تکمیل PRD-02](../../docs/technical/api/catalog-browsing-lifecycle.md). برای استفاده از این تغییر، launcher را با Ctrl+C متوقف و دوباره اجرا کنید تا image و migrationهای catalog تا 0006 با هم به‌روز شوند.

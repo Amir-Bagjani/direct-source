@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     "marketplace.accounts",
     "marketplace.operations",
     "marketplace.catalog",
+    "marketplace.logistics",
 ]
 MIDDLEWARE = [
     "marketplace.common.middleware.RequestContextMiddleware",
@@ -130,6 +131,8 @@ SPECTACULAR_SETTINGS = {
         "marketplace.common.schema.add_error_contract",
     ],
     "ENUM_NAME_OVERRIDES": {
+        "ProductPublicationDecisionEnum": ["published", "changes_requested", "rejected"],
+        "ProductRevisionDecisionEnum": ["approved", "changes_requested", "rejected"],
         "BusinessKindEnum": [("manufacturer", "تولیدکننده"), ("retailer", "خرده‌فروش")],
         "VerificationKindEnum": [("identity", "هویت"), ("activity", "فعالیت")],
     },

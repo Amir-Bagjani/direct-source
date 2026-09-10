@@ -17,7 +17,7 @@ from .permissions import active_user, require_owner
 
 @transaction.atomic
 def create_business(*, actor, address, **data):
-    user = User.objects.select_for_update().get(pk=actor.pk)
+    user = User.objects.select_for_update(no_key=True).get(pk=actor.pk)
     if not active_user(user):
         from rest_framework.exceptions import PermissionDenied
 
@@ -45,7 +45,7 @@ def create_business(*, actor, address, **data):
 
 @transaction.atomic
 def set_controlled_access(*, actor, business_id, enabled, reason):
-    actor = User.objects.select_for_update().get(pk=actor.pk)
+    actor = User.objects.select_for_update(no_key=True).get(pk=actor.pk)
     require_owner(actor)
     if not reason.strip():
         raise ValidationError({"reason": "دلیل الزامی است."})

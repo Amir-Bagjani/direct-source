@@ -3,7 +3,11 @@
 مبنای طراحی: هشت PRD پذیرفته‌شده، ADR-0002..0012 و واژه‌نامهٔ `CONTEXT.md`.
 این سند طراحی است؛ وجود نام یک مدل در آن به معنی پیاده‌سازی قابلیت نیست. وضعیت اجرا در برنامهٔ backend ثبت می‌شود.
 
+برش اجرایی آغاز PRD-04: `orders.Cart` به Business خرده‌فروش تعلق دارد و قید یکتای شرطی روی `retailer` برای `is_active=true` دارد. `destination` اطلاعات کامل تحویل و `version` شمارهٔ تغییرات سبد است. `CartSelection` برای هر `(cart, product)` یکتا و شامل انتخاب JSON روش/تعداد، ترکیب ثبت‌شدهٔ بسته و FK خدمت حمل است. ارجاع مستقیم به FixedPack وجود ندارد چون ویرایش برنامهٔ فروش بسته‌ها را بازسازی می‌کند. پیش‌نمایش سبد رزرو یا تعهد قیمت ایجاد نمی‌کند.
+
 ## مالکیت و مرز تراکنش
+
+ادامهٔ PRD-04: checkout در یک transaction، OrderGroup، Orderهای pending، OrderLine، Reservation و snapshot حمل را می‌سازد و Cart را می‌بندد. Reservation مقدار موجودی/تولید را در وضعیت reserved و allocated مصرف می‌کند؛ release نهایی است. CancellationRequest تصمیم لغو پس از پرداخت را مستقل نگه می‌دارد و فقط callback مالی مجاز آن را completed می‌کند. DeliveryAddress دفترچهٔ متعلق به retailer است؛ انتخاب آن یک کپی مستقل در Cart می‌سازد. قراردادها در `api/orders.md` ثبت شده‌اند.
 
 | Context / app | Aggregate root و اعضا | Commandهای اصلی | Event / invariant |
 |---|---|---|---|

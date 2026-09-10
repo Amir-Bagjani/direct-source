@@ -1,5 +1,31 @@
 # ERD منطقی
 
+ادامهٔ اجرایی PRD-04 (`orders/0003..0005`):
+
+```mermaid
+erDiagram
+    Business ||--o{ DeliveryAddress : retailer
+    Cart ||--o| OrderGroup : checkout
+    OrderGroup ||--|{ Order : manufacturers
+    Order ||--|{ OrderLine : snapshot
+    OrderLine ||--o| Reservation : allocation
+    Variant ||--o{ Reservation : capacity
+    Order ||--o| CancellationRequest : cancellation
+```
+
+روابط اختیاری OrderGroup/Reservation با سفارش‌های قرارداد قدیمی PRD-03 سازگارند؛ تمام سفارش‌های checkout جدید گروه و رزرو دارند.
+برش اجرایی آغاز PRD-04 (`orders/0002`):
+
+```mermaid
+erDiagram
+    Business ||--o{ Cart : retailer
+    Cart ||--o{ CartSelection : selections
+    Product ||--o{ CartSelection : product
+    ShippingService o|--o{ CartSelection : selected_service
+```
+
+قید شرطی، تنها یک Cart فعال برای هر retailer نگه می‌دارد؛ CartSelection برای cart/product یکتا است. نشانی کامل تحویل متعلق به Cart است.
+
 UUID کلید اصلی مدل‌های دامنه است؛ ارتباط‌های این نمودار ownership را نشان می‌دهند. نمودار نخست طرح کلان است؛ بخش‌های اجرایی و migrationهای تحویل‌شده در ادامه مشخص شده‌اند.
 
 ```mermaid
@@ -64,7 +90,6 @@ FKها پیش‌فرض `PROTECT` برای سابقهٔ دامنه‌اند. حذ
 Constraintهای دقیق و indexهای اولین migration در [فرهنگ داده](data-dictionary.md) تعریف شده‌اند. برای ماژول‌های بعدی، constraintهای جمع چند ردیف با lock aggregate و تست رقابت اعمال می‌شوند؛ `CHECK` عادی نمی‌تواند مجموع جدول دیگر را enforce کند.
 
 ## ERD اجرایی هستهٔ پیش‌نویس کاتالوگ — 2026-09-08
-
 نمودار کلان بالاتر شامل ماژول‌های آینده است؛ روابط واقعاً ایجادشدهٔ این برش:
 
 ```mermaid
@@ -135,7 +160,6 @@ erDiagram
 ```
 
 TaxonomyProposal برای خروجی مصوب `result_id` polymorphic نگه می‌دارد و kind نوع Category/Attribute/AttributeOption را تعیین می‌کند. پیشنهاد pending مشابه قید یکتای شرطی دارد. منشأ و دلیل وضعیت مستقل روی Variant ثبت می‌شوند؛ تاریخچهٔ کامل transition و بازتخصیص در AuditEvent است.
-
 
 ## مدل‌های اجرایی PRD-03 — 2026-09-10
 

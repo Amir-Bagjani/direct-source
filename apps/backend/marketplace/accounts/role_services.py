@@ -15,7 +15,9 @@ def set_operator(*, actor, user_id, enabled, reason):
     # Role changes and commands serialize against these same user locks.
     users = {
         u.pk: u
-        for u in User.objects.select_for_update().filter(pk__in=[actor.pk, user_id]).order_by("pk")
+        for u in User.objects.select_for_update(no_key=True)
+        .filter(pk__in=[actor.pk, user_id])
+        .order_by("pk")
     }
     require_owner(users[actor.pk])
     target = users.get(user_id)
@@ -95,7 +97,9 @@ def reassign(*, actor, business_id, user_id, reason):
         raise ValidationError({"reason": "دلیل الزامی است."})
     users = {
         u.pk: u
-        for u in User.objects.select_for_update().filter(pk__in=[actor.pk, user_id]).order_by("pk")
+        for u in User.objects.select_for_update(no_key=True)
+        .filter(pk__in=[actor.pk, user_id])
+        .order_by("pk")
     }
     require_owner(users[actor.pk])
     target = users.get(user_id)

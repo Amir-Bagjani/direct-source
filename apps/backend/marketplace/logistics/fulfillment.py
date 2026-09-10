@@ -74,6 +74,8 @@ def lock_request(actor, request_id, *, operator=False):
             raise PermissionDenied()
     if order.status != "active" or not order.paid_at:
         raise Conflict("فقط سفارش فعال و پرداخت‌شده قابل آماده‌سازی و ارسال است.")
+    if getattr(order, "cancellation", None) and order.cancellation.status == "refund_pending":
+        raise Conflict("سفارش در انتظار تکمیل بازپرداخت لغو است.")
     if request.status in ["completed", "cancelled"]:
         raise Conflict("درخواست حمل نهایی است.")
     return actor, order, request

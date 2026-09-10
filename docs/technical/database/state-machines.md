@@ -1,5 +1,13 @@
 # چرخه‌های وضعیت
 
+## برش اجرایی سفارش PRD-04
+
+`pending → accepted/rejected/expired/cancelled`؛ `accepted → active/expired/cancelled`؛ لغو پرداخت‌شدهٔ `active → cancelled` فقط پس از قرارداد مالی. deadline پاسخ از checkout و deadline پرداخت از پذیرش، هرکدام ۲۴ ساعت‌اند. تغییر snapshot و گذار غیرمجاز در PostgreSQL رد می‌شود. وضعیت تکمیل پس از مهلت مغایرت/تسویه به PRD-06/05 وابسته است.
+
+Reservation: `reserved → allocated/released` و `allocated → released` در لغو مالی مجاز؛ مقدار و تنوع ثابت و مجموع متعهدشده محدود به عرضه است. سبد بسته دوباره فعال نمی‌شود.
+
+CancellationRequest: پیش از آماده‌سازی `refund_pending`؛ پس از آماده‌سازی `pending → refund_pending/referred`؛ رد یا انقضای ۲۴ساعته ارجاع می‌دهد. اپراتور `referred → refund_pending/denied` و callback مالی `refund_pending → completed` را انجام می‌دهد. درخواست نهایی و مرجع بازپرداخت تغییرناپذیرند. تحویل به حمل‌کننده لغو مستقیم را مسدود می‌کند. وضعیت درخواست مستقل از Order است؛ در refund_pending سفارش تا بازپرداخت فعال ولی عملیات آماده‌سازی/ارسال متوقف است.
+
 تمام commandها باید actor، permission، وضعیت جاری و deadline را داخل transaction بازبینی کنند. تغییر وضعیت از PATCH عمومی یا Admin مجاز نیست. جدول زیر مبنای طراحی هر برش است؛ تست executable هر برش در ردیابی ثبت می‌شود.
 
 ## اعتماد کسب‌وکار — PRD-01

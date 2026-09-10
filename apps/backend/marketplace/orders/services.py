@@ -18,7 +18,11 @@ def accept_payment(*, order_id, payment_reference):
     """
     from marketplace.logistics.fulfillment import record_event
     from marketplace.logistics.models import ShippingRequest
+    from marketplace.logistics.services import lock_services
 
+    from .models import Reservation
+
+    lock_services()
     order = Order.objects.select_for_update().get(pk=order_id)
     if order.payment_reference:
         if str(order.payment_reference) != str(payment_reference):
@@ -26,6 +30,15 @@ def accept_payment(*, order_id, payment_reference):
         return order
     if order.status != "accepted":
         raise Conflict("سفارش در انتظار پرداخت نیست.")
+    if order.payment_deadline and timezone.now() >= order.payment_deadline:
+        raise Conflict("مهلت پرداخت پایان یافته است.")
+    if order.group_id:
+        if order.retailer.status == "suspended" or order.manufacturer.status == "suspended":
+            raise Conflict("سفارش طرف تعلیق‌شده قابل پرداخت نیست.")
+        reservations = Reservation.objects.filter(line__order=order, status="reserved")
+        if reservations.count() != order.lines.count():
+            raise Conflict("رزرو معتبر تمام اقلام لازم است.")
+        reservations.update(status="allocated")
     lines = {line.pk: line.quantity for line in order.lines.all()}
     groups = list(order.shipping_groups.prefetch_related("items"))
     grouped = {item.line_id: item.quantity for group in groups for item in group.items.all()}

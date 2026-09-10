@@ -1,7 +1,7 @@
 """Public catalogue projection. Never project private business fields or wholesale by default."""
 
 from django.core.files.storage import default_storage
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q, Sum
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.pagination import PageNumberPagination
@@ -58,7 +58,20 @@ def public_queryset():
         .prefetch_related(
             Prefetch(
                 "variants",
-                queryset=Variant.objects.filter(is_active=True).select_related("supply", "package"),
+                queryset=Variant.objects.filter(is_active=True)
+                .select_related("supply", "package")
+                .annotate(
+                    committed_ready=Sum(
+                        "reservation__ready_quantity",
+                        filter=Q(reservation__status__in=["reserved", "allocated"]),
+                        default=0,
+                    ),
+                    committed_production=Sum(
+                        "reservation__production_quantity",
+                        filter=Q(reservation__status__in=["reserved", "allocated"]),
+                        default=0,
+                    ),
+                ),
                 to_attr="public_variants",
             ),
             "sales_plan__tiers__overrides",
@@ -119,10 +132,24 @@ def category_path(category_id, categories):
     return path
 
 
+def public_supply(variant):
+    supply = getattr(variant, "supply", None)
+    if supply is None:
+        return None
+    return {
+        "mode": supply.mode,
+        "lead_time_days": supply.lead_time_days,
+        "ready_stock": max(0, supply.ready_stock - getattr(variant, "committed_ready", 0)),
+        "production_cap": max(
+            0, supply.production_cap - getattr(variant, "committed_production", 0)
+        ),
+    }
+
+
 def metrics(product):
     variants = product.public_variants
     available = {
-        v.pk: v.supply.ready_stock + v.supply.production_cap
+        v.pk: public_supply(v)["ready_stock"] + public_supply(v)["production_cap"]
         for v in variants
         if hasattr(v, "supply") and hasattr(v, "package")
     }
@@ -156,7 +183,8 @@ def metrics(product):
                     eligible.update(i.variant_id for i in items)
     orderable = [v for v in variants if v.pk in eligible]
     lead = min(
-        (0 if v.supply.ready_stock else v.supply.lead_time_days for v in orderable), default=None
+        (0 if public_supply(v)["ready_stock"] else v.supply.lead_time_days for v in orderable),
+        default=None,
     )
     tiers = list(plan.tiers.all()) if plan else []
     prices = []
@@ -400,12 +428,7 @@ def public_data(product, wholesale, categories, storage=default_storage):
                     product.business_id, v.images or product.images[:1], storage
                 ),
                 "orderable": v.pk in m["eligible"],
-                "supply": {
-                    key: getattr(supply, key)
-                    for key in ["mode", "ready_stock", "production_cap", "lead_time_days"]
-                }
-                if supply
-                else None,
+                "supply": public_supply(v) if supply else None,
             }
         )
     if wholesale:

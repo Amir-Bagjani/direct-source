@@ -161,6 +161,7 @@ CELERY_TASK_TIME_LIMIT = 30
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_TIMEZONE = "UTC"
 CELERY_BEAT_SCHEDULE = {
+    "expire-orders": {"task": "orders.expire_orders", "schedule": 60.0},
     "deliver-internal-outbox": {"task": "operations.deliver_outbox", "schedule": 10.0},
     "deliver-email-outbox": {"task": "operations.deliver_email_outbox", "schedule": 10.0},
 }

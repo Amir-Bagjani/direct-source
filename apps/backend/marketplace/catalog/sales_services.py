@@ -185,6 +185,9 @@ def save_supply(*, actor, product_id, pk, data):
     for key, value in data.items():
         setattr(supply, key, value)
     supply.full_clean()
+    from marketplace.orders.inventory import validate_supply
+
+    validate_supply(supply)
     supply.save()
     audit(
         actor=actor,
@@ -213,6 +216,11 @@ def read_supply(*, actor, product_id, pk):
 @transaction.atomic
 def quote(*, actor, product_id, data):
     _, product = locked_product(actor, product_id)
+    return quote_product(product=product, data=data)
+
+
+def quote_product(*, product, data):
+    """Current commercial estimate; caller owns authorization and transaction locks."""
     plan = get_object_or_404(SalesPlan, product=product)
     variants = {
         variant.pk: variant
@@ -250,9 +258,12 @@ def quote(*, actor, product_id, data):
     for pk, count in quantities.items():
         variant = variants[pk]
         supply = getattr(variant, "supply", None)
-        if supply is None or count > supply.ready_stock + supply.production_cap:
+        from marketplace.orders.inventory import available_supply
+
+        ready_stock, production_cap = available_supply(supply) if supply else (0, 0)
+        if supply is None or count > ready_stock + production_cap:
             raise Conflict("عرضهٔ یک یا چند تنوع کافی نیست.")
-        ready = min(count, supply.ready_stock)
+        ready = min(count, ready_stock)
         production = count - ready
         price = overrides.get(pk, tier.unit_price_irr)
         lines.append(

@@ -7,6 +7,7 @@ from marketplace.common.health import live, ready
 from marketplace.operations import api as operations
 
 urlpatterns = [
+    path("api/v1/orders/", include("marketplace.orders.urls")),
     path("api/v1/logistics/", include("marketplace.logistics.urls")),
     path("api/v1/catalog/", include("marketplace.catalog.urls")),
     path("api/v1/auth/email/", api.ChangeEmailView.as_view()),

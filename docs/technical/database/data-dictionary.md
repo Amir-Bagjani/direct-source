@@ -1,4 +1,18 @@
 # فرهنگ داده و طراحی PostgreSQL
+
+## برش سبد PRD-04
+
+ادامهٔ اجرایی `orders/0003..0005`: `DeliveryAddress(retailer, details)`، `OrderGroup(cart OneToOne, retailer, idempotency_key, request_hash)` با کلید یکتای Business/key؛ `Order.group/commercial/response_deadline/payment_deadline/decision_reason`، `OrderLine.commercial`؛ `Reservation(line OneToOne, variant, ready_quantity, production_quantity, status)` و `CancellationRequest(order OneToOne, status, reason, decision_reason, deadline, refund_reference unique)`.
+
+Triggerهای PostgreSQL مجموع رزرو/تخصیص را به عرضه محدود، تغییر مقدار رزرو و snapshot و سبد بسته را منع و گذارهای سفارش/لغو را کنترل می‌کنند. نرخ و مبلغ هر دو کارمزد در commercial ثابت است. عرضهٔ ذخیره‌شده مقدار کل شامل تعهدهاست؛ نمای قابل سفارش مقدار رزرو/تخصیص را کسر می‌کند. وضعیت لغو مستقل از وضعیت پرداخت است؛ refund_pending بازپرداخت انجام‌شده نیست.
+
+| جدول | فیلدهای مهم | constraint / حریم |
+| --- | --- | --- |
+| orders_cart | retailer FK، is_active، destination JSONB، version | حداکثر یک سبد فعال برای هر retailer؛ نشانی و مشخصات گیرنده فقط برای مالک سبد |
+| orders_cartselection | cart FK، product FK، selection JSONB، pack_composition JSONB، service FK nullable | یکتایی cart/product؛ انتخاب حداقلی روش و تعداد با ترکیب بسته برای تشخیص تغییر؛ FK محافظت‌شدهٔ محصول و خدمت |
+
+Migration: `orders/0002`. selection ورودی تایپ‌شدهٔ API است و در هر mutation و preview با کاتالوگ جاری اعتبارسنجی می‌شود؛ منبع موجودی، قیمت یا رزرو نیست.
+
 ## قرارداد عمومی
 مدل‌های دامنه: `id uuid PK`، `created_at/updated_at timestamptz`. تاریخ تولد `date` میلادی. مبلغ `bigint` با CHECK غیرمنفی و `_rial`؛ تعداد integer مثبت. JSONB فقط snapshot نسخه‌دار یا payload حداقلی، نه جایگزین relation جستجوشونده. تمام FKهای Django index دارند؛ uniqueها index دوم نمی‌خواهند.
 

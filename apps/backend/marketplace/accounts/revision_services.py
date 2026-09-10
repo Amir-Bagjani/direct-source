@@ -41,7 +41,7 @@ def validate_documents(actor, business, data):
 
 @transaction.atomic
 def propose(*, actor, business_id, changes):
-    actor = User.objects.select_for_update().get(pk=actor.pk)
+    actor = User.objects.select_for_update(no_key=True).get(pk=actor.pk)
     business = Business.objects.select_for_update().get(pk=business_id)
     require_business_owner(actor, business)
     if (
@@ -73,7 +73,7 @@ def propose(*, actor, business_id, changes):
 
 
 def locked_revision(actor, revision_id):
-    actor = User.objects.select_for_update().get(pk=actor.pk)
+    actor = User.objects.select_for_update(no_key=True).get(pk=actor.pk)
     business_id = BusinessRevision.objects.values_list("business_id", flat=True).get(pk=revision_id)
     business = Business.objects.select_for_update().get(pk=business_id)
     revision = BusinessRevision.objects.select_for_update().get(pk=revision_id)

@@ -100,7 +100,7 @@ def submit(*, actor, business_id):
 
 @transaction.atomic
 def claim(*, actor, business_id):
-    actor = User.objects.select_for_update().get(pk=actor.pk)
+    actor = User.objects.select_for_update(no_key=True).get(pk=actor.pk)
     require_operator(actor)
     business, app = locked_application(business_id)
     if (
@@ -116,7 +116,7 @@ def claim(*, actor, business_id):
 
 @transaction.atomic
 def review(*, actor, business_id, kind, decision, reason):
-    actor = User.objects.select_for_update().get(pk=actor.pk)
+    actor = User.objects.select_for_update(no_key=True).get(pk=actor.pk)
     if decision not in ["approved", "changes_requested", "rejected"]:
         raise ValidationError({"decision": "تصمیم معتبر نیست."})
     business, app = locked_application(business_id)
@@ -157,7 +157,7 @@ def review(*, actor, business_id, kind, decision, reason):
 
 @transaction.atomic
 def reopen(*, actor, business_id, reason):
-    actor = User.objects.select_for_update().get(pk=actor.pk)
+    actor = User.objects.select_for_update(no_key=True).get(pk=actor.pk)
     business, app = locked_application(business_id)
     require_assignee(actor, app)
     if not reason.strip():

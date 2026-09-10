@@ -146,7 +146,11 @@ def freeze_shipping(*, order_id, choices):
         or not can_start_trade(order.retailer)
     ):
         raise Conflict("طرف‌های سفارش باید کسب‌وکارهای مجاز تولیدکننده و خرده‌فروش باشند.")
-    if order.status != "accepted" or order.paid_at or order.shipping_groups.exists():
+    if (
+        order.status not in ["pending", "accepted"]
+        or order.paid_at
+        or order.shipping_groups.exists()
+    ):
         raise Conflict("snapshot حمل قبلاً تثبیت شده یا سفارش قابل ثبت نیست.")
     lines = list(order.lines.select_related("variant"))
     if {str(line.variant_id) for line in lines} != set(choices):

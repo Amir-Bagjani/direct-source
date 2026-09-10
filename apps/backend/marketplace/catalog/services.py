@@ -21,7 +21,9 @@ def snapshot(obj):
 
 
 def locked_actor(actor):
-    actor = User.objects.select_for_update().get(pk=actor.pk)
+    # Serialize actor commands without blocking FK references (for example an
+    # incoming order notification while this actor waits on a business lock).
+    actor = User.objects.select_for_update(no_key=True).get(pk=actor.pk)
     if not active_user(actor):
         raise PermissionDenied()
     return actor

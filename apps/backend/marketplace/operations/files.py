@@ -79,7 +79,10 @@ def scan(content):
 
 
 def upload_document(*, actor, business, purpose, consent, upload):
-    require_business_owner(actor, business)
+    from marketplace.accounts.permissions import has_role
+
+    if purpose != "shipping" or not has_role(actor, "owner", "operator"):
+        require_business_owner(actor, business)
     if consent != settings.DOCUMENT_CONSENT_VERSION:
         raise ValidationError({"consent_version": "رضایت‌نامهٔ جاری را بپذیرید."})
     content, extension = validate_file(upload)
@@ -138,6 +141,23 @@ def referenced_in_product_revision(actor, file):
 
 def download_document(*, actor, file):
     from marketplace.accounts.permissions import has_role
+
+    if file.purpose == "shipping":
+        from rest_framework.exceptions import NotFound
+
+        from marketplace.logistics.fulfillment import visible_orders
+
+        if (
+            file.deleted_at
+            or file.scan_status != "clean"
+            or not file.fulfillment_evidence.filter(
+                request__group__order__in=visible_orders(actor), action="file.uploaded"
+            ).exists()
+        ):
+            raise NotFound()
+        with transaction.atomic():
+            audit(actor=actor, action="file.download_authorized", target=file)
+        return default_storage.url(file.object_key)
 
     allowed = (
         file.owner_id == actor.pk

@@ -97,3 +97,25 @@ Variant.is_active پیش‌فرض true دارد؛ UNIQUE(product, combination) �
 حذف کامل فقط برای Product در draft بدون هرگونه زمان ارسال/انتشار و بدون ProductRevision مجاز است. ارجاع‌های داخلی برنامهٔ فروش پیش از cascade حذف می‌شوند؛ StoredFile به‌علت lifecycle مستقل حفظ می‌شود. وضعیت مستقل تنوع و بازتخصیص صف با قفل Userهای مرتب→Business→Category/Service→Product→Revision اجرا و همراه before/after حسابرسی می‌شوند.
 
 مرور عمومی در این فاز جدول read model جدا ندارد. query پایه با index وضعیت/زمان Product محدود و روابط لازم prefetch می‌شوند؛ نرمال‌سازی، relevance و metric نماینده روی مجموعهٔ منتشرشدهٔ MVP محاسبه می‌شوند. این سقف آگاهانه باید با ۱۰۰هزار SKU و `EXPLAIN (ANALYZE, BUFFERS)` سنجیده شود؛ در صورت عبور از بودجه، ستون‌های search نرمال‌شده و read model/index PostgreSQL جای این projection را می‌گیرند.
+
+
+## برش اجرایی لجستیک و تحویل — 2026-09-10
+
+| مدل | قرارداد فیزیکی |
+| --- | --- |
+| `orders.Order` | manufacturer/retailer، مقصد JSONB؛ مرجع پرداخت UUID یکتا، paid_at و شروع آماده‌سازی؛ delivered_at/deadline یک‌بار؛ هنوز فاقد قیمت، cart و reservation |
+| `orders.OrderLine` | Order/Variant با unique، SKU/quantity و production_quantity/lead_time_days تثبیت‌شده؛ prepared_quantity بین صفر و تعداد |
+| `ShippingService` | بازهٔ delivery_days_min/max و محدودیت اختیاری max_weight_g |
+| `Carrier` | name/kind/phone/is_active؛ M2M خدمات؛ بدون حساب کاربری |
+| `ShippingGroup` / `ShippingGroupItem` | unique(order,origin,service)؛ snapshot خدمت، بسته، مسیر، تعرفه و مبلغ؛ هر OrderLine در یک گروه با همان تعداد؛ trigger تغییرناپذیری |
+| `ShippingRequest` | OneToOne گروه؛ index(status,ready_at,id)؛ بسته/وزن واقعی، hold_reason، needs_assignment و ارجاع/نتیجهٔ لغو |
+| `CarrierAssignment` | درخواست، carrier، actor، reason، بازهٔ جمع‌آوری و snapshot حمل‌کننده/مأمور؛ append-only |
+| `Shipment` / `ShipmentItem` | درخواست/تخصیص، replaces، بسته و گیرنده و رهگیری؛ unique(shipment,group_item)، تعداد مثبت و constraint deferred منع اضافه‌تخصیص |
+| `FulfillmentEvent` | request و shipment اختیاری، actor/actor_kind، زمان، before/after، reason و evidence؛ append-only |
+| `DeliveryLink` | OneToOne مرسوله، hash توکن یکتا، expires_at و revoked_at؛ بدون ذخیرهٔ مقدار خام |
+| `DeliveryChallenge` | مرسوله، گیرنده، hash کد، انقضا و سقف/تعداد تلاش؛ unique شرطی یک challenge مصرف‌نشده برای هر مرسوله |
+| `DeliveryPolicy` | singleton با id=1؛ TTL، سقف تلاش، فاصله و سقف صدور؛ command مالک سامانه |
+
+ترتیب قفل fulfillment حساب‌دار User→Businessهای مرتب→Order→Request است؛ برای مأمور Order قفل می‌شود. قفل Request فقط خود جدول را شامل می‌شود و خدمت joinشده را قفل نمی‌کند. قیود deferred اقلام زیر همان Order، رقابت مرسوله‌ها و آغاز deadline را سری می‌کنند. snapshot checkout طبق ترتیب User/Business/Service/Product→Order فراخوانی می‌شود.
+
+Migrationهای `orders/0001`، `operations/0004` و `logistics/0004..0008` اجرایی‌اند. بندهای قبلی «هنوز ساخته نشده» تاریخچهٔ تحویل‌های قبلی‌اند. [قرارداد اتصال، امنیت کد و rollback](../api/fulfillment.md).

@@ -138,3 +138,24 @@ PRD-02 AC-CAT-35/36: ProductRevision، بازنگری یکتا، قفل نسخه
 
 ## تکمیل کاتالوگ — 2026-09-10
 PRD-02 CAP-CAT-01..13 در بک‌اند بسته شد. `catalog/browsing.py` projection عمومی و محرمانگی قیمت، `lifecycle.py` حذف/وضعیت تنوع/واگذاری و `proposals.py` پیشنهاد taxonomy را اجرا می‌کنند. migration 0006 منشأ و دلیل وضعیت تنوع و TaxonomyProposal با unique شرطی پیشنهاد باز را اضافه می‌کند. قرارداد: `api/catalog-browsing-lifecycle.md`. وابستگی‌های دادهٔ امتیاز، سبد/رزرو و frontend در PRDهای مالک خود باقی می‌مانند.
+
+
+## ردیابی executable PRD-03 — 2026-09-10
+
+مسیر آزمون‌های زیر `apps/backend/tests/test_fulfillment.py` است. هستهٔ تعرفه/مسیر/پوشش AC-LOG-01..07 و 19 همچنان با `test_logistics_publication.py` پوشش دارد. checkout/پرداخت/رزرو و UI وابستگی بیرونی‌اند؛ [قرارداد اتصال](../api/fulfillment.md) مرز این تحویل را تعریف می‌کند.
+
+| معیار | فرمان / خروجی | آزمون |
+| --- | --- | --- |
+| AC-LOG-08..10 | calculate_groups / freeze_shipping | test_group_quote_combines_weight_and_freezes_snapshot |
+| AC-LOG-11 | accept_payment / ShippingRequest یکتا | test_payment_idempotency_and_preparation_guards، test_concurrent_payment_creates_one_request |
+| AC-LOG-12..13؛ AC-FUL-01..03 | progress / ready، سهم تولید و موعد تثبیت‌شده | test_payment_idempotency_and_preparation_guards، test_unpaid_order_never_prepares، test_cancellation_contract_blocks_preparation_and_shipping |
+| AC-LOG-14..18 | Carrier / Assign / WeightReview / OperationalException | test_carrier_permissions_compatibility_and_assignment_snapshot، test_weight_review_preserves_price_and_blocks_assignment، test_unserviceable_actual_weight_refers_cancellation_without_financial_mutation، test_manual_assignment_exception_requires_reason_and_can_resume |
+| AC-FUL-04..06، 23 | ShipmentItem / manifest / hand-over | test_exact_manifest_partial_shipping_and_producer_lock، test_cross_order_lines_and_shipments_are_rejected، test_operator_batch_manifest_correction_is_atomic، test_weight_cannot_change_after_ready_by_changing_manifest، test_database_rejects_cross_group_and_oversend، test_concurrent_allocations_do_not_oversend |
+| AC-FUL-07..08 | Tracking / FulfillmentEvent / StoredFile | test_tracking_correction_reason_and_history، test_shipping_file_scan_upload_and_tenant_download |
+| AC-FUL-09..12، 20..22 | DeliveryLink/Challenge / InternalInbox | test_full_delivery_codes_only_in_recipient_inbox_and_deadline_once، test_failed_attempts_commit_and_disable_fifth_code، test_code_expiration_resend_limits_and_link_rotation، test_expired_code_never_delivers، test_delivery_policy_owner_only، test_concurrent_same_code_consumes_only_once |
+| AC-FUL-13..15 | unconfirmed / تصمیم با مدرک | test_unconfirmed_only_operator_with_scanned_order_evidence، test_failed_delivery_refund_referral_preserves_partial_delivery |
+| AC-FUL-16..19، 24 | وضعیت مشتق‌شده / resend / deadline | test_failure_resend_new_shipment_preserves_delivered_items، test_failed_delivery_refund_referral_preserves_partial_delivery، test_concurrent_last_delivery_starts_deadline_once |
+| مجوز، tenant و end-to-end | APIهای نقش‌دار و لینک محدود مأمور | test_private_requests_events_and_order_isolation، test_full_happy_path_through_api |
+| migration | reverse/forward و حفظ کاتالوگ قبلی | test_fulfillment_migrations_reverse_forward_preserve_existing_catalog |
+
+نتیجهٔ این تحویل: ۳۰ تست تازه، مجموع ۱۵۲ تست PostgreSQL پاس؛ پوشش ۹۲٫۰۹٪. providerهای S3/ClamAV در تست فایل mock هستند و نتیجه شامل ادعای آزمون runtime آن‌ها نیست.

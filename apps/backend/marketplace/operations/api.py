@@ -31,6 +31,13 @@ class QueueView(generics.ListAPIView):
 
 
 class InboxSerializer(serializers.ModelSerializer):
+    payload = serializers.SerializerMethodField()
+
+    def get_payload(self, obj) -> dict:
+        from marketplace.logistics.delivery import recipient_payload
+
+        return recipient_payload(obj)
+
     class Meta:
         model = InboxNotification
         fields = ["id", "topic", "payload", "created_at"]
@@ -38,6 +45,11 @@ class InboxSerializer(serializers.ModelSerializer):
 
 class InboxView(generics.ListAPIView):
     serializer_class = InboxSerializer
+
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        response["Cache-Control"] = "no-store"
+        return response
 
     def get_queryset(self):
         return InboxNotification.objects.filter(recipient_id=self.request.user.pk).order_by(

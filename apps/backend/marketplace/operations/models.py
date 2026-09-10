@@ -53,7 +53,12 @@ class StoredFile(BaseModel):
     business = models.ForeignKey("accounts.Business", on_delete=models.PROTECT)
     purpose = models.CharField(
         max_length=16,
-        choices=[("identity", "هویت"), ("activity", "فعالیت"), ("product_image", "تصویر محصول")],
+        choices=[
+            ("identity", "هویت"),
+            ("activity", "فعالیت"),
+            ("product_image", "تصویر محصول"),
+            ("shipping", "مدرک حمل"),
+        ],
     )
     object_key = models.CharField(max_length=300, unique=True)
     content_type = models.CharField(max_length=60)

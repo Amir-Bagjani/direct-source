@@ -17,7 +17,16 @@ from .models import ShippingService, Tariff
 class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShippingService
-        fields = ["id", "name", "kind", "is_active", "operational"]
+        fields = [
+            "id",
+            "name",
+            "kind",
+            "is_active",
+            "operational",
+            "delivery_days_min",
+            "delivery_days_max",
+            "max_weight_g",
+        ]
 
 
 class TariffSerializer(serializers.ModelSerializer):

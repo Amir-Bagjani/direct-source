@@ -1,6 +1,6 @@
 # ERD منطقی
 
-UUID کلید اصلی مدل‌های دامنه است؛ ارتباط‌های این نمودار ownership را نشان می‌دهند. جدول‌های ماژول‌های تجاری هنوز migration ندارند.
+UUID کلید اصلی مدل‌های دامنه است؛ ارتباط‌های این نمودار ownership را نشان می‌دهند. نمودار نخست طرح کلان است؛ بخش‌های اجرایی و migrationهای تحویل‌شده در ادامه مشخص شده‌اند.
 
 ```mermaid
 erDiagram
@@ -109,7 +109,7 @@ erDiagram
     User ||--o{ Product : reviews
 ```
 
-ProductRevision و Shipment هنوز مدل اجرایی ندارند. دادهٔ وضعیت و آخرین تصمیم انتشار روی Product و تاریخچهٔ تصمیم‌ها در AuditEvent نگهداری می‌شود.
+در تحویل اولیهٔ این بخش، ProductRevision و Shipment وجود نداشتند؛ هر دو اکنون مدل اجرایی دارند. دادهٔ وضعیت و آخرین تصمیم انتشار روی Product و تاریخچهٔ تصمیم‌ها در AuditEvent نگهداری می‌شود.
 
 ## بازنگری اجرایی محصول — 2026-09-09
 
@@ -135,3 +135,32 @@ erDiagram
 ```
 
 TaxonomyProposal برای خروجی مصوب `result_id` polymorphic نگه می‌دارد و kind نوع Category/Attribute/AttributeOption را تعیین می‌کند. پیشنهاد pending مشابه قید یکتای شرطی دارد. منشأ و دلیل وضعیت مستقل روی Variant ثبت می‌شوند؛ تاریخچهٔ کامل transition و بازتخصیص در AuditEvent است.
+
+
+## مدل‌های اجرایی PRD-03 — 2026-09-10
+
+```mermaid
+erDiagram
+    Order ||--|{ OrderLine : contains
+    Order ||--|{ ShippingGroup : freezes
+    OrderLine ||--|| ShippingGroupItem : covered_by
+    ShippingGroup ||--|{ ShippingGroupItem : includes
+    ShippingService ||--o{ ShippingGroup : selected
+    Carrier }o--o{ ShippingService : supports
+    ShippingGroup ||--o| ShippingRequest : requests_after_payment
+    ShippingRequest ||--o{ CarrierAssignment : assigns
+    Carrier ||--o{ CarrierAssignment : snapshots
+    ShippingRequest ||--o{ Shipment : executes
+    CarrierAssignment ||--o{ Shipment : coordinates
+    Shipment ||--|{ ShipmentItem : allocates
+    ShippingGroupItem ||--o{ ShipmentItem : distributed
+    Shipment ||--o| Shipment : replaces
+    ShippingRequest ||--o{ FulfillmentEvent : records
+    Shipment ||--o{ FulfillmentEvent : tracks
+    StoredFile ||--o{ FulfillmentEvent : evidences
+    Shipment ||--o| DeliveryLink : authorizes_agent
+    Shipment ||--o{ DeliveryChallenge : proves_delivery
+    User ||--o{ DeliveryChallenge : receives
+```
+
+Order/OrderLine در این برش فقط هستهٔ موردنیاز حمل‌اند؛ Cart، checkout، Reservation و Payment هنوز مدل اجرایی ندارند. نام اجرایی TransportRequest در طرح کلان ShippingRequest است. [قرارداد اتصال و API](../api/fulfillment.md).

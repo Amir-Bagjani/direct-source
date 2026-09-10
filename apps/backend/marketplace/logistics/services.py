@@ -200,7 +200,11 @@ def match_rows(
 def match_tariff(
     service, origin_province, origin_city, destination_province, destination_city, weight_g
 ):
-    if not service.is_active or not service.operational:
+    if (
+        not service.is_active
+        or not service.operational
+        or (service.max_weight_g and weight_g > service.max_weight_g)
+    ):
         return None
     return match_rows(
         list(service.tariffs.filter(is_active=True)),
@@ -252,12 +256,13 @@ def coverage(product):
     if origin not in PROVINCES:
         return False
     weights = orderable_weights(product)
-    rows = [
-        list(service.tariffs.filter(is_active=True))
+    services = [
+        (service.max_weight_g, list(service.tariffs.filter(is_active=True)))
         for service in shipping.services.filter(is_active=True, operational=True)
     ]
     # Conservative proof using minimum legal selections, not every possible mixed basket.
     for weight in weights:
+        rows = [rows for limit, rows in services if limit is None or weight <= limit]
         covered = True
         for destination in PROVINCES:
             cities = {""} | {

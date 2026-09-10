@@ -44,3 +44,15 @@ stateDiagram-v2
 | نشست / ADR-0005 | active→rotated یا revoked/expired | فقط refresh جاری؛ reuse خانواده را باطل؛ خروج access همان خانواده را هم قطع می‌کند | access ۵ دقیقه؛ session حداکثر ۷ روز |
 
 برای پیاده‌سازی هر ماژول، نام enum دقیق و transitionهای تفصیلی باید با سند اختصاصی همان PRD تطبیق داده شوند؛ این خلاصه جای تست معیارهای پذیرش آن ماژول نیست.
+
+
+## وضعیت‌های اجرایی PRD-03 — 2026-09-10
+
+نام‌های جدول طراحی بالا در کد به این شکل تثبیت شده‌اند:
+
+- ShippingRequest: `waiting → ready/spec_review → assigned → in_transit → completed`؛ اختلاف مشخصات، شکست یا توقف دستی به `attention` و نتیجهٔ لغو به `cancelled` می‌رود. دو وضعیت آخر completed/cancelled نهایی‌اند. ارسال مجدد به تخصیص و بازهٔ جمع‌آوری تازه نیاز دارد.
+- Shipment: `ready → handed_over → in_transit`؛ از handed_over/in_transit به delivered با کد، unconfirmed با ادعا یا failed با شکست؛ unconfirmed فقط با مدرک/تصمیم اپراتور به delivered/failed، failed فقط به returned. لغو تنها از ready. delivered/returned/cancelled نهایی‌اند.
+- Order fulfillment: وضعیت کلی از تعداد اقلام مشتق می‌شود؛ `no_shipments/partially_shipped/fully_shipped/partially_delivered/attention/fully_delivered`. پس از نتیجهٔ مالی ارجاع لغو، اقلام تحویل‌شده حفظ می‌شوند و سفارش فاقد تحویل کامل، fully_delivered نمی‌شود.
+- DeliveryLink: معتبر تا ۲۴ ساعت؛ بازصدور یا revoked_at یا وضعیت استثنایی/نهایی مرسوله اعتبار را پایان می‌دهد. DeliveryChallenge: ۱۰ دقیقه، پنج تلاش، فاصلهٔ صدور ۶۰ ثانیه و پنج صدور در ساعت؛ صدور تازه قبلی را مصرف/باطل می‌کند.
+
+قفل Order باعث می‌شود تحویل هم‌زمان آخرین مرسوله‌ها فقط یک `delivered_at`، یک `discrepancy_deadline` و یک اعلان بسازد. گذارها و وضعیت نهایی در PostgreSQL نیز محافظت شده‌اند. [جزئیات API و قرارداد لغو/مالی](../api/fulfillment.md).

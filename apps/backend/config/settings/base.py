@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     "marketplace.operations",
     "marketplace.catalog",
     "marketplace.logistics",
+    "marketplace.orders",
 ]
 MIDDLEWARE = [
     "marketplace.common.middleware.RequestContextMiddleware",
@@ -108,6 +109,7 @@ REST_FRAMEWORK = {
         "refresh": "60/min",
         "email": "5/hour",
         "upload": "20/hour",
+        "delivery_agent": "60/min",
     },
     "NUM_PROXIES": 0,
 }

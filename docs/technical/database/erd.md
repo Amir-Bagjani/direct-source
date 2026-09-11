@@ -1,4 +1,29 @@
 # ERD منطقی
+
+برش اجرایی PRD-06 (`disputes/0001..0002`، `support/0001`، `logistics/0009..0010`):
+
+```mermaid
+erDiagram
+    Order ||--o| DiscrepancyCase : dispute
+    DiscrepancyCase ||--|{ DiscrepancyLine : claims
+    OrderLine ||--o{ DiscrepancyLine : quantity
+    Shipment ||--o{ DiscrepancyLine : received_in
+    DiscrepancyLine ||--o{ DisputeDecision : decisions
+    DisputeDecision ||--o| Remedy : compensation
+    Remedy o|--o| Shipment : independent_shipment
+    Remedy o|--o| FinancialEvent : refund
+    DiscrepancyCase ||--o{ CaseNote : supplements
+    DiscrepancyCase o|--o| Ticket : referral
+    Business ||--o{ Ticket : owns
+    Ticket ||--|{ TicketMessage : messages
+    StoredFile ||--o| AttachmentScope : private_scope
+    TicketMessage }o--o{ StoredFile : attachments
+    DiscrepancyLine }o--|{ StoredFile : evidence
+    DisputeDecision }o--o{ StoredFile : reviewed_evidence
+```
+
+هر سفارش تنها یک پرونده و هر پرونده حداکثر یک تیکت ارجاع دارد. تصمیم و پیام تغییرناپذیرند؛ Remedy به تصمیم پذیرفته‌شده متصل است. purpose مرسوله، تخصیص اصلی را از جبران جدا می‌کند. [قرارداد اجرایی](../api/disputes-support.md).
+
 برش اجرایی PRD-05 (`finance/0001..0002`):
 
 ```mermaid
@@ -85,7 +110,7 @@ erDiagram
     Shipment ||--|{ ShipmentItem : allocates
     OrderLine ||--o{ ShipmentItem : includes
     Shipment ||--o{ DeliveryChallenge : proves
-    Order ||--o{ DiscrepancyCase : disputes
+    Order ||--o| DiscrepancyCase : disputes
     DiscrepancyCase ||--|{ DiscrepancyLine : claims
     DiscrepancyLine ||--o{ Resolution : resolves
     Resolution ||--o{ Compensation : executes

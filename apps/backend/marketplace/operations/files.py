@@ -81,7 +81,9 @@ def scan(content):
 def upload_document(*, actor, business, purpose, consent, upload):
     from marketplace.accounts.permissions import has_role
 
-    if purpose != "shipping" or not has_role(actor, "owner", "operator"):
+    if purpose not in ["shipping", "support", "discrepancy"] or not has_role(
+        actor, "owner", "operator"
+    ):
         require_business_owner(actor, business)
     if consent != settings.DOCUMENT_CONSENT_VERSION:
         raise ValidationError({"consent_version": "رضایت‌نامهٔ جاری را بپذیرید."})
@@ -141,6 +143,17 @@ def referenced_in_product_revision(actor, file):
 
 def download_document(*, actor, file):
     from marketplace.accounts.permissions import has_role
+
+    if file.purpose in ["support", "discrepancy"]:
+        from rest_framework.exceptions import NotFound
+
+        from marketplace.support.services import can_read_file
+
+        if not can_read_file(actor, file):
+            raise NotFound()
+        with transaction.atomic():
+            audit(actor=actor, action="file.download_authorized", target=file)
+        return default_storage.url(file.object_key)
 
     if file.purpose == "shipping":
         from rest_framework.exceptions import NotFound

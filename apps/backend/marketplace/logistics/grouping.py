@@ -189,7 +189,7 @@ def freeze_shipping(*, order_id, choices):
 def allocated_quantities(request):
     """Resolved failed attempts and cancelled drafts do not consume a second allocation."""
     totals: defaultdict[UUID, int] = defaultdict(int)
-    for shipment in request.shipments.prefetch_related("items"):
+    for shipment in request.shipments.filter(purpose="order").prefetch_related("items"):
         if shipment.status == "cancelled" or shipment.resolution == "resend":
             continue
         for item in shipment.items.all():

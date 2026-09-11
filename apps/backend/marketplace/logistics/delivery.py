@@ -118,7 +118,8 @@ def lock_link(raw):
     order = Order.objects.select_for_update().get(pk=link.shipment.request.group.order_id)
     link = DeliveryLink.objects.select_related("shipment__request__group").get(pk=link.pk)
     if (
-        link.revoked_at
+        link.shipment.purpose != "order"
+        or link.revoked_at
         or link.expires_at <= timezone.now()
         or link.shipment.status not in DELIVERABLE
         or order.status != "active"

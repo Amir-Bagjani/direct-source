@@ -507,9 +507,9 @@ def check_allocation(request, *, exact=False):
     if exact:
         weight = sum(
             validate_packages(shipment.packages)
-            for shipment in request.shipments.exclude(status="cancelled").exclude(
-                resolution="resend"
-            )
+            for shipment in request.shipments.filter(purpose="order")
+            .exclude(status="cancelled")
+            .exclude(resolution="resend")
         )
         if weight != request.actual_weight_g:
             raise Conflict("وزن مجموع مرسوله‌ها باید با مشخصات واقعی تأییدشده برابر باشد.")
@@ -584,7 +584,7 @@ def correct_manifests(*, actor, request_id, corrections, reason):
 
 def shipment_order_lock(actor, shipment_id, *, operator=False):
     reference = get_object_or_404(
-        Shipment, pk=shipment_id, request__group__order__in=visible_orders(actor)
+        Shipment, pk=shipment_id, purpose="order", request__group__order__in=visible_orders(actor)
     )
     actor, order, request = lock_request(actor, reference.request_id, operator=operator)
     return actor, order, request, Shipment.objects.get(pk=shipment_id)
@@ -778,7 +778,7 @@ def aggregate_status(order):
             (request.cancellation_referred_at and not request.cancellation_reference)
             or (request.hold_reason and request.status != "cancelled")
         )
-        for shipment in request.shipments.all():
+        for shipment in request.shipments.filter(purpose="order"):
             attention |= (
                 shipment.status in ["failed", "returned", "unconfirmed"]
                 and shipment.resolution != "resend"
@@ -812,7 +812,7 @@ def refresh_fulfillment(order, actor=None):
         shipments = [
             s
             for s in request.shipments.all()
-            if s.status != "cancelled" and s.resolution != "resend"
+            if s.purpose == "order" and s.status != "cancelled" and s.resolution != "resend"
         ]
         delivered: defaultdict[UUID, int] = defaultdict(int)
         for shipment in shipments:

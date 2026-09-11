@@ -237,6 +237,13 @@ class CarrierAssignment(BaseModel):
 
 
 class Shipment(BaseModel):
+    compensation = models.OneToOneField(
+        "disputes.Remedy", null=True, on_delete=models.PROTECT, related_name="shipment"
+    )
+    purpose = models.CharField(
+        max_length=12, default="order", choices=[(s, s) for s in ["order", "replacement", "return"]]
+    )
+
     class Status(models.TextChoices):
         READY = "ready", "آمادهٔ تحویل"
         HANDED = "handed_over", "تحویل‌شده به حمل‌کننده"

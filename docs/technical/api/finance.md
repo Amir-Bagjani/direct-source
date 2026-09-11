@@ -47,3 +47,6 @@ worker `finance.process_orders` هر ۶۰ ثانیه درخواست لغو `refu
 worker هر صف را در صفحه‌های ۱۰۰۰تایی بر UUID می‌خواند و با keyset continuation صفحهٔ بعد را در Celery زمان‌بندی می‌کند؛ سفارش‌های holdشدهٔ قدیمی مانع پردازش صفحه‌های بعد نمی‌شوند. شمارندهٔ پاسخ task فقط نتیجهٔ همان صفحه است. اجرای هم‌زمان/retry با قفل Order و قیود یکتا ایمن است. خطای اتصال PostgreSQL با backoff تا پنج retry دارد. تسویهٔ عادی نیازی به تأیید owner ندارد. تسویه در همان transaction از `orders.services.complete_financial_cycle` استفاده می‌کند و Order را به completed با completed_at تغییرناپذیر می‌برد. settled وضعیت مالی مشتق‌شده از رویداد یکتاست. entitlement در PRD-07 به این completion متصل خواهد شد.
 
 آزمون‌ها: `apps/backend/tests/test_finance.py`، شامل API/مجوز، واحد پول، immutability، rollback، idempotency و رقابت PostgreSQL، چند گروه حمل، استقلال دو تولیدکننده، نیم‌به‌بالا، نرخ آینده، worker، hold، جبران و checkout→OTP delivery→settlement. قرارداد OpenAPI در `openapi.yaml` است.
+
+
+اتصال PRD-06 اکنون در [disputes-support.md](disputes-support.md) پیاده شده است: پذیرش معتبر از DisputeDecision به CompensationDecision و FinancialEvent می‌رسد؛ عامل تصمیم در پرونده حفظ می‌شود و اجرای خودکار مالی actor سیستمی دارد. پروندهٔ باز مستقلاً مانع تسویه است. فقط Shipmentهای purpose=order در بررسی تحویل اقلام نگه‌داشته‌شده حساب می‌شوند؛ جبران جایگزینی/مرجوعی تحویل اصلی را دوباره نمی‌شمارد.

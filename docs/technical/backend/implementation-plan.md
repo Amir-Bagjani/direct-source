@@ -1,5 +1,5 @@
 # برنامهٔ مرحله‌ای توسعهٔ بک‌اند
-وضعیت: در حال اجرا — backend PRD-05 به checkout و لجستیک متصل است؛ پرداخت، بازپرداخت، تسویه و تکمیل سفارش پیاده شده‌اند. رابط مرورگر، پرونده‌های PRD-06/08 و entitlement هنوز بازند.
+وضعیت: در حال اجرا — backend PRD-05 به checkout و لجستیک متصل است؛ پرداخت، بازپرداخت، تسویه و تکمیل سفارش پیاده شده‌اند. backend PRD-06 شامل پرونده، داوری، تیکت و جبران داخلی متصل شده است؛ رابط مرورگر، PRD-08 و entitlement هنوز بازند.
 
 ## تحویل اجرایی 2026-09-07
 اسکیل‌های architecture، domain-modeling، database-architect، backend-architect، architecture-decision-records، django-pro و postgres-best-practices در این برش استفاده شدند. طرح دامنه و ERD کلان ایجاد و دیتابیس اولین برش به migration تبدیل شد؛ طراحی فیزیکی همهٔ ماژول‌های تجاری هنوز تکمیل نیست.
@@ -483,17 +483,17 @@ ProductRevision با draft/submit/claim/review/cancel، یک نسخهٔ باز �
 **وابستگی:** فاز ۶
 
 ### Task 7.1 — ثبت مغایرت
-- [ ] پرونده و ردیف در سطح قلم/تعداد/مرسوله با تصویر و deadline ساخته شوند.
+- [x] پرونده و ردیف در سطح قلم/تعداد/مرسوله با تصویر و deadline ساخته شوند.
 
-- [ ] پرونده فقط تسویهٔ همان Order را hold کند.
+- [x] پرونده فقط تسویهٔ همان Order را hold کند.
 
 ### Task 7.2 — پاسخ و داوری
-- [ ] پاسخ جزئی تولیدکننده و deadline ۴۸ساعته پیاده شود.
+- [x] پاسخ جزئی تولیدکننده و deadline ۴۸ساعته پیاده شود.
 
-- [ ] بخش رد/بی‌پاسخ تیکت مرتبط بسازد و تصمیم اپراتور reason/evidence داشته باشد.
+- [x] بخش رد/بی‌پاسخ تیکت مرتبط بسازد و تصمیم اپراتور reason/evidence داشته باشد.
 
 ### Task 7.3 — جبران و تعدیل مالی
-- [ ] partial refund، replacement و return workflow داخلی ساخته شوند.
+- [x] partial refund، replacement و return workflow داخلی ساخته شوند.
 
 - [x] کارمزد از snapshot اقلام نگه‌داشته‌شده دوباره محاسبه شود.
 
@@ -615,5 +615,12 @@ ProductRevision با draft/submit/claim/review/cancel، یک نسخهٔ باز �
 ### تحویل backend PRD-05 — 2026-09-11
 CAP-FIN-01..05: FinancialEvent نوع‌دار، Invoice و تعدیل append-only، دفتر متوازن با سرفصل مستقل حمل، پرداخت اتمیک و idempotent، نرخ نسخه‌دار owner-only با snapshot، بازپرداخت کامل لغو و جزئیِ مبتنی بر تصمیم، اصلاح کاهشی دستی، hold علت‌دار و worker تسویه پیاده شدند. `orders/0006` تکمیل سفارش را همراه تسویه ثبت می‌کند. آزمون چندتولیدکننده (رد یکی، پرداخت دیگری) و مسیر checkout→تحویل OTP→تسویه از serviceهای واقعی استفاده می‌کنند.
 
-Task 7.3 فقط در بخش مالی بسته است؛ مدل/داوری DiscrepancyCase، replacement و return workflow هنوز PRD-06 هستند. Checkpointهای مرورگر و داشبورد با تست backend بسته نمی‌شوند. قرارداد و مرز تکمیل پرونده‌ها در [finance.md](../api/finance.md) و ردیابی معیارها در requirements-traceability ثبت شده‌اند.
+Task 7.3 اکنون در backend شامل پرونده، داوری و گردش داخلی replacement/return است؛ قرارداد آن در [disputes-support.md](../api/disputes-support.md) ثبت شده است. Checkpointهای مرورگر و داشبورد با تست backend بسته نمی‌شوند. قرارداد و مرز تکمیل پرونده‌ها در [finance.md](../api/finance.md) و ردیابی معیارها در requirements-traceability ثبت شده‌اند.
 اعتبارسنجی نهایی PRD-05: **203 passed، پوشش 92.80%** روی PostgreSQL؛ **31 آزمون اختصاصی مالی**. Ruff، format (۱۱۲ فایل)، mypy (۹۱ فایل)، Django check، نبود migration drift، OpenAPI با `--validate --fail-on-warn` و تست قرارداد committed همگی پاس شدند. فرمان بازاجرای مجموعه: `pytest -q --cov=marketplace` در apps/backend؛ آزمون‌های مالی: `pytest tests/test_finance.py -q`. migrationهای orders/0006 و finance/0001..0002 روی PostgreSQL توسعه اعمال شدند. imageهای Compose این نوبت rebuild نشدند؛ برای اجرای برنامهٔ تازه launcher را دوباره اجرا کنید. فایل handoff بنا به درخواست کاربر تغییر نکرد و وضعیت تازه در همین مستندات فنی ثبت شده است.
+
+### تأیید برش backend PRD-06 — 2026-09-12
+
+- مجموعهٔ کامل PostgreSQL: ۲۲۳ تست موفق، پوشش ۹۲٫۴۱٪؛ پس از اصلاح نهایی بارگذاری مدرک تولیدکننده در تیکت مشترک، هر ۲۲ تست اختصاصی PRD-06 دوباره پاس شد.
+- Ruff، بررسی قالب، mypy (۱۰۳ فایل)، Django check، تطابق migrationها و اعتبارسنجی OpenAPI بدون خطا هستند. آزمون تطابق قرارداد ذخیره‌شده در مجموعهٔ کامل پاس شد.
+- migrationهای operations/0005، disputes/0001..0002، support/0001 و logistics/0009..0010 روی پایگاه دادهٔ توسعه اعمال شدند.
+- قرارداد API، ERD، فرهنگ داده و چرخهٔ وضعیت به‌روز شدند. فایل handoff و own.md تغییر نکردند. Checkpoint مرورگر همچنان باز است؛ این تحویل backend و اجرای داخلی جبران است.

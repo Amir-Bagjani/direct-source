@@ -58,6 +58,8 @@ class StoredFile(BaseModel):
             ("activity", "فعالیت"),
             ("product_image", "تصویر محصول"),
             ("shipping", "مدرک حمل"),
+            ("support", "پیوست پشتیبانی"),
+            ("discrepancy", "مدرک مغایرت"),
         ],
     )
     object_key = models.CharField(max_length=300, unique=True)

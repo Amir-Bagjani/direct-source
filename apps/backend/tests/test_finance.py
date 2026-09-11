@@ -637,10 +637,11 @@ def test_finance_invariant_migration_preserves_issued_invoice(client, cart_world
 
     order, payment = paid(client, cart_world)
     number = payment.document.number
+    latest = MigrationExecutor(connection).loader.graph.leaf_nodes()
     try:
         MigrationExecutor(connection).migrate([("finance", "0001_initial")])
     finally:
-        MigrationExecutor(connection).migrate([("finance", "0002_finance_invariants")])
+        MigrationExecutor(connection).migrate(latest)
     assert Invoice.objects.get(event=payment).number == number
     with pytest.raises(DatabaseError), transaction.atomic():
         Invoice.objects.filter(event=payment).update(lines=[])

@@ -59,3 +59,10 @@ APIهای دسته، ویژگی، محصول و تنوع زیر `/api/v1/catalog
 ## پرداخت، بازپرداخت و تسویه
 
 [قرارداد مالی PRD-05](../../docs/technical/api/finance.md) مسیر پرداخت سفارش پذیرفته‌شده، صورتحساب، نرخ کارمزد، جبران و تسویه را توضیح می‌دهد. worker/beat فرمان `finance.process_orders` را هر ۶۰ ثانیه اجرا می‌کنند؛ اصل سند مالی ثابت است و تعدیل سند جدا می‌سازد. تسویهٔ معتبر، سفارش را هم به completed می‌برد. برای اجرای کد تازه در Compose، imageهای web/worker/beat را با launcher بازسازی کنید.
+
+
+## PRD-06: مغایرت و پشتیبانی
+
+APIهای `/api/v1/disputes/` و `/api/v1/support/` شامل پرونده، پاسخ جزئی، داوری، تیکت و پیوست خصوصی‌اند. جبران به مالی PRD-05 و مرسولهٔ مستقل لجستیک متصل است. Celery beat هر دقیقه `disputes.process_cases` را برای ارجاع ردیف منقضی‌شده و بستن پروندهٔ کامل اجرا می‌کند. برای دریافت اعلان‌ها و تسویه، worker و beat موجود باید فعال باشند.
+
+[قرارداد و محدودیت اجرای داخلی](../../docs/technical/api/disputes-support.md)، [ERD](../../docs/technical/database/erd.md). آزمون اختصاصی: `.venv/bin/pytest tests/test_disputes_support.py -q`؛ PostgreSQL لازم است. رابط مرورگر و جابه‌جایی واقعی/پرداخت بیرونی در این تحویل نیستند.

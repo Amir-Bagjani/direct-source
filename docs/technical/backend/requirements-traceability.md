@@ -187,3 +187,22 @@ PRD-02 CAP-CAT-01..13 در بک‌اند بسته شد. `catalog/browsing.py` pr
 | استقلال Order | test_payment_independent_after_other_manufacturer_rejects |
 
 CAP-FIN-01..05 در backend پیاده‌اند. تصمیم دامنه‌ای معتبر مغایرت و تعلیق، UI/داشبورد و entitlement هنوز مالکیت PRD-06/08/07 و frontend هستند؛ تست مالیِ hook جای آزمون پروندهٔ آینده نیست. اجرای مالی دستی مجوز عبور از سقف بازپرداخت یا hold تسویه نمی‌دهد.
+
+
+## PRD-06 — برش backend
+
+پیاده‌سازی در marketplace/disputes، marketplace/support و logistics/remedies است. [قرارداد API](../api/disputes-support.md) مرز اجرا را مشخص می‌کند. پرونده و hold اکنون به PRD-05 متصل‌اند؛ اشاره‌های بخش PRD-05 به اتصال آیندهٔ PRD-06 با این برش تکمیل شده‌اند. نام‌های زیر در `tests/test_disputes_support.py` هستند.
+
+| معیارها | شاهد آزمون |
+| --- | --- |
+| AC-DSP-01..04،17..18 | test_claim_immutable_scoped_idempotent_and_deadlines، test_invalid_claim_rolls_back_without_hold، test_claim_before_delivery_has_no_case_or_hold |
+| AC-DSP-05..07،12..13 | test_manufacturer_partial_response_atomic_refund_and_single_referral، test_manufacturer_response_forbidden_to_stranger_and_at_deadline، test_operator_decision_permissions_quantities_and_close_window |
+| AC-DSP-08..09 | test_row_timeout_does_not_shorten_late_row_response_window |
+| AC-DSP-10..11،15..16 | test_operator_decision_permissions_quantities_and_close_window |
+| AC-DSP-14..16 | test_independent_remedy_shipment_then_completion، test_waiver_needs_reason_and_preserves_history |
+| AC-DSP-03،09،13 (هم‌زمانی) | test_concurrent_claim_and_decision_exactly_once، test_distinct_concurrent_claims_cannot_overclaim |
+| AC-SUP-01..04،06..12 | test_ticket_lifecycle_link_privacy_and_no_financial_effect |
+| AC-SUP-02،05..06 | test_ticket_rejects_foreign_links_and_invalid_message_atomically، test_files_scoped_scan_gate_and_operator_download، test_manufacturer_can_upload_evidence_to_shared_referral |
+| AC-SUP-11 (نقش هم‌زمان) | test_business_owner_with_operator_role_can_reply_to_own_ticket |
+
+این شواهد backend هستند؛ نمایش خطای موضعی، گردش صفحه‌ها و آزمون مرورگر همچنان به frontend نیاز دارند. بازپرداخت و حمل جبرانی مطابق محدودهٔ MVP داخلی‌اند.

@@ -151,3 +151,20 @@ Variant.is_active پیش‌فرض true دارد؛ UNIQUE(product, combination) �
 ترتیب قفل fulfillment حساب‌دار User→Businessهای مرتب→Order→Request است؛ برای مأمور Order قفل می‌شود. قفل Request فقط خود جدول را شامل می‌شود و خدمت joinشده را قفل نمی‌کند. قیود deferred اقلام زیر همان Order، رقابت مرسوله‌ها و آغاز deadline را سری می‌کنند. snapshot checkout طبق ترتیب User/Business/Service/Product→Order فراخوانی می‌شود.
 
 Migrationهای `orders/0001`، `operations/0004` و `logistics/0004..0008` اجرایی‌اند. بندهای قبلی «هنوز ساخته نشده» تاریخچهٔ تحویل‌های قبلی‌اند. [قرارداد اتصال، امنیت کد و rollback](../api/fulfillment.md).
+
+
+## برش اجرایی PRD-06
+
+| مدل | داده‌های اصلی | قید اجرایی |
+| --- | --- | --- |
+| DiscrepancyCase | order، closed_at | یک پرونده برای هر سفارش؛ بسته‌شدن مشروط به deadline و پایان رسیدگی/جبران |
+| DiscrepancyLine | case، line، shipment، quantity، kind، description، evidence، response_deadline، referred_at | ادعای تغییرناپذیر؛ سقف تعداد قلم و مرسوله؛ deadline مستقل |
+| DisputeDecision | claim، actor، source، accepted، rejected، remedy، reason، evidence | یک پاسخ تولیدکننده؛ تصمیم اپراتور روی باقی‌مانده؛ append-only |
+| Remedy | decision، completed_at، waived_at، waiver_reason، financial_event | یک جبران برای تصمیم؛ پایان یا منتفی‌شدن؛ مرجع یکتای refund |
+| CaseNote | case، claim اختیاری، actor، text، evidence | توضیح تکمیلی append-only |
+| Ticket | number، business، creator، category، status، assigned_to، related_type/id، case، previous، last_reply_at | شماره یکتا؛ حداکثر یک ارجاع هر پرونده؛ closed نهایی |
+| TicketMessage | ticket، actor، text، files، command_key | پیام تغییرناپذیر و ارسال idempotent |
+| AttachmentScope | file، business، order، ticket | محدودهٔ خصوصی فایل؛ یک scope برای هر فایل |
+| Shipment (افزوده) | purpose، compensation | order/replacement/return؛ جبران مستقل از تخصیص اصلی |
+
+کلیدهای command_key و request_hash تکرار درخواست و تعارض محتوای آن را تشخیص می‌دهند. روابط evidence و files به StoredFile خصوصی و اسکن‌شده اشاره دارند. triggerهای PostgreSQL در disputes/0002 و logistics/0010 از تاریخچه و جمع تخصیص حفاظت می‌کنند.

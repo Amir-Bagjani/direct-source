@@ -467,6 +467,9 @@ def hold_reasons(order):
     reasons = list(
         order.finance_holds.filter(released_at__isnull=True).values_list("reason", flat=True)
     )
+    case = getattr(order, "discrepancy", None)
+    if case and not case.closed_at:
+        reasons.append("پروندهٔ مغایرت هنوز بسته نشده است")
     if any(
         b.status == "suspended" or not b.membership.user.is_active or b.membership.user.is_suspended
         for b in [order.retailer, order.manufacturer]
@@ -502,7 +505,9 @@ def retained_delivered(order, snapshot):
     from marketplace.logistics.models import ShipmentItem
 
     delivered = dict(
-        ShipmentItem.objects.filter(group_item__group__order=order, shipment__status="delivered")
+        ShipmentItem.objects.filter(
+            group_item__group__order=order, shipment__status="delivered", shipment__purpose="order"
+        )
         .values("group_item__line_id")
         .annotate(quantity=Sum("quantity"))
         .values_list("group_item__line_id", "quantity")

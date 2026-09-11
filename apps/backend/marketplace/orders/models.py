@@ -76,6 +76,7 @@ class Order(BaseModel):
             ("expired", "منقضی‌شده"),
             ("accepted", "پذیرفته‌شده"),
             ("active", "فعال"),
+            ("completed", "تکمیل‌شده"),
             ("cancelled", "لغوشده"),
         ],
     )
@@ -83,6 +84,7 @@ class Order(BaseModel):
     paid_at = models.DateTimeField(null=True, blank=True)
     payment_reference = models.UUIDField(null=True, blank=True, unique=True)
     preparation_started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
     delivered_at = models.DateTimeField(null=True, blank=True)
     discrepancy_deadline = models.DateTimeField(null=True, blank=True)
 
@@ -93,7 +95,15 @@ class Order(BaseModel):
             ),
             models.CheckConstraint(
                 condition=Q(
-                    status__in=["pending", "rejected", "expired", "accepted", "active", "cancelled"]
+                    status__in=[
+                        "pending",
+                        "rejected",
+                        "expired",
+                        "accepted",
+                        "active",
+                        "completed",
+                        "cancelled",
+                    ]
                 ),
                 name="order_status_valid",
             ),
@@ -101,6 +111,16 @@ class Order(BaseModel):
                 condition=~Q(status="active")
                 | Q(paid_at__isnull=False, payment_reference__isnull=False),
                 name="order_active_paid",
+            ),
+            models.CheckConstraint(
+                condition=Q(
+                    status="completed",
+                    completed_at__isnull=False,
+                    paid_at__isnull=False,
+                    payment_reference__isnull=False,
+                )
+                | (~Q(status="completed") & Q(completed_at__isnull=True)),
+                name="order_completion_valid",
             ),
             models.UniqueConstraint(
                 fields=["group", "manufacturer"], name="group_manufacturer_unique"

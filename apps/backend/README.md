@@ -1,5 +1,5 @@
 # بک‌اند Django
-Python 3.13.14، Django 5.2.17 و تمام dependencyها در `uv.lock` قفل‌اند. PostgreSQL تنها دیتابیس است. کد فعلی برش هویت/کسب‌وکار/بررسی را پیاده می‌کند؛ وضعیت کل MVP در [برنامهٔ اجرا](../../docs/technical/backend/implementation-plan.md) است.
+Python 3.13.14، Django 5.2.17 و تمام dependencyها در `uv.lock` قفل‌اند. PostgreSQL تنها دیتابیس است. کد فعلی هویت، کاتالوگ، لجستیک، سفارش و مالی PRD-05 را پیاده می‌کند؛ وضعیت کل MVP در [برنامهٔ اجرا](../../docs/technical/backend/implementation-plan.md) است.
 
 ## اجرای محلی با یک دستور
 فقط Docker Desktop باید نصب باشد. از ریشهٔ پروژه اجرا کنید:
@@ -54,3 +54,8 @@ APIهای دسته، ویژگی، محصول و تنوع زیر `/api/v1/catalog
 حمل و انتشار اولیه نیز اضافه شده‌اند: [ترتیب ساخت خدمت، تعرفه و ارسال محصول برای بررسی](../../docs/technical/api/logistics-publication.md). endpoint عمومی `/api/v1/catalog/public/products/` است؛ هنوز پنل فرانت‌اند ساخته نشده.
 
 بازنگری محتوای محصول و قیمت خرده‌فروش تأییدشده: [راهنمای API](../../docs/technical/api/catalog-revisions.md). جست‌وجو، فیلتر، عملیات مستقل تنوع، پیشنهاد taxonomy، حذف پیش‌نویس و بازتخصیص صف: [تکمیل PRD-02](../../docs/technical/api/catalog-browsing-lifecycle.md). برای استفاده از این تغییر، launcher را با Ctrl+C متوقف و دوباره اجرا کنید تا image و migrationهای catalog تا 0006 با هم به‌روز شوند.
+
+
+## پرداخت، بازپرداخت و تسویه
+
+[قرارداد مالی PRD-05](../../docs/technical/api/finance.md) مسیر پرداخت سفارش پذیرفته‌شده، صورتحساب، نرخ کارمزد، جبران و تسویه را توضیح می‌دهد. worker/beat فرمان `finance.process_orders` را هر ۶۰ ثانیه اجرا می‌کنند؛ اصل سند مالی ثابت است و تعدیل سند جدا می‌سازد. تسویهٔ معتبر، سفارش را هم به completed می‌برد. برای اجرای کد تازه در Compose، imageهای web/worker/beat را با launcher بازسازی کنید.

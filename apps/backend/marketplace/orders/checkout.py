@@ -2,7 +2,6 @@ import hashlib
 import json
 from datetime import timedelta
 
-from django.conf import settings
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -41,6 +40,7 @@ def order_data(order):
         "manufacturer": str(order.manufacturer_id),
         "retailer": str(order.retailer_id),
         "status": order.status,
+        "completed_at": order.completed_at,
         "destination": order.destination,
         "commercial": order.commercial,
         "response_deadline": order.response_deadline,
@@ -93,7 +93,7 @@ def submit(*, actor, cart_id, idempotency_key, quote_fingerprint):
     )
     choices = {str(row.product_id): row.service_id for row in basket.selections.all()}
     for manufacturer in estimate["manufacturers"]:
-        rate = getattr(settings, "MANUFACTURER_COMMISSION_BPS", 200)
+        rate = manufacturer["manufacturer_commission_bps"]
         commercial = {
             **manufacturer,
             "currency": "IRR",

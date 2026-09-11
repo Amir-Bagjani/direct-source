@@ -1,8 +1,17 @@
 # چرخه‌های وضعیت
 
+## اجرای مالی PRD-05
+
+وضعیت مالی از FinancialEventها مشتق می‌شود: بدون payment→pending، payment→reserved، refund/adjustment→مبلغ خالص تازه، settlement→final. حالت پرداخت ناموفق و PATCH وضعیت مالی وجود ندارد. رویدادها و اسناد صادرشده ثابت‌اند؛ جبران رویداد تازه با سند شماره‌دار است.
+
+`CancellationRequest.refund_pending → completed` و `Order.active → cancelled` همراه بازپرداخت کامل در یک transaction رخ می‌دهند. پس از تحویل و پایان مهلت یا بسته‌شدن تمام پرونده‌ها و تحویل اقلام باقی‌مانده، settlement یکتا طلب تولیدکننده و کارمزد نهایی را ثبت می‌کند. `orders/0006_order_completion` گذار active→completed و completed_at تغییرناپذیر را اضافه می‌کند؛ تکمیل و تسویه اتمیک‌اند. entitlement در PRD-07 به این زمان متصل می‌شود.
+
+FinanceHold مرجع‌دار از باز به released_at می‌رود؛ مرجع بسته دوباره باز نمی‌شود. تعلیق مؤثر، پروندهٔ لجستیکی یا لغو باز و تصمیم مالی اعمال‌نشده نیز مانع تسویه هستند. [جزئیات](../api/finance.md).
+
+
 ## برش اجرایی سفارش PRD-04
 
-`pending → accepted/rejected/expired/cancelled`؛ `accepted → active/expired/cancelled`؛ لغو پرداخت‌شدهٔ `active → cancelled` فقط پس از قرارداد مالی. deadline پاسخ از checkout و deadline پرداخت از پذیرش، هرکدام ۲۴ ساعت‌اند. تغییر snapshot و گذار غیرمجاز در PostgreSQL رد می‌شود. وضعیت تکمیل پس از مهلت مغایرت/تسویه به PRD-06/05 وابسته است.
+`pending → accepted/rejected/expired/cancelled`؛ `accepted → active/expired/cancelled`؛ لغو پرداخت‌شدهٔ `active → cancelled` فقط پس از قرارداد مالی. deadline پاسخ از checkout و deadline پرداخت از پذیرش، هرکدام ۲۴ ساعت‌اند. تغییر snapshot و گذار غیرمجاز در PostgreSQL رد می‌شود. گذار active→completed با تسویهٔ PRD-05 و ثبت completed_at انجام می‌شود.
 
 Reservation: `reserved → allocated/released` و `allocated → released` در لغو مالی مجاز؛ مقدار و تنوع ثابت و مجموع متعهدشده محدود به عرضه است. سبد بسته دوباره فعال نمی‌شود.
 

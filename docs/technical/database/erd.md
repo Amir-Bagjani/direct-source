@@ -1,4 +1,19 @@
 # ERD منطقی
+برش اجرایی PRD-05 (`finance/0001..0002`):
+
+```mermaid
+erDiagram
+    Order ||--o{ FinancialEvent : finance
+    FinancialEvent ||--o| Invoice : document
+    Invoice o|--o{ Invoice : adjustments
+    FinancialEvent ||--|{ LedgerEntry : journal
+    ShippingGroup o|--o{ LedgerEntry : logistics
+    Order ||--o{ CompensationDecision : valid_outcomes
+    Order ||--o{ FinanceHold : holds
+    User ||--o{ CommissionRate : activates
+```
+
+FinancialEvent به‌جای مدل‌های تکراری Payment/Refund/Settlement، نوع رویداد را صریح و payment/settlement را هرکدام برای Order یکتا نگه می‌دارد. Invoice برای پرداخت و هر جبران مستقل است؛ settlement صورتحساب تازه نمی‌سازد. نرخ‌ها و تصمیم‌ها مانند رویدادها append-only هستند. طرح‌های کلان قدیمی پایین این سند نام‌های پیشنهادی دارند؛ این بخش نام‌های اجرایی فعلی است.
 
 ادامهٔ اجرایی PRD-04 (`orders/0003..0005`):
 

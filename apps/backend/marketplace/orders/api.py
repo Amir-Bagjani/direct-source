@@ -135,6 +135,7 @@ class OrderOutput(serializers.Serializer):
     manufacturer = serializers.UUIDField()
     retailer = serializers.UUIDField()
     status = serializers.CharField()
+    completed_at = serializers.DateTimeField(allow_null=True)
     destination = DestinationInput()
     commercial = serializers.JSONField()
     response_deadline = serializers.DateTimeField(allow_null=True)

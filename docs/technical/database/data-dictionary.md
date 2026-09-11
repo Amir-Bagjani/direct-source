@@ -1,5 +1,23 @@
 # فرهنگ داده و طراحی PostgreSQL
 
+## برش اجرایی مالی PRD-05 — 2026-09-11
+
+Migrationهای `finance/0001..0002` و `orders/0006_order_completion` (status=completed، completed_at و حفاظت نهایی‌شدن سفارش):
+
+| جدول | فیلدها و قیود |
+| --- | --- |
+| finance_financialevent | Order FK؛ kind payment/refund/adjustment/settlement؛ کلید UUID و request_hash؛ مرجع/دلیل/actor؛ currency=IRR و execution_mode=simulated؛ bigint اجزای کالا/دو کارمزد/حمل/جمع؛ snapshot نتیجهٔ باقی‌مانده |
+| finance_invoice | event OneToOne؛ number یکتا؛ original FK برای تعدیل؛ lines؛ اصل و تعدیل append-only |
+| finance_ledgerentry | event FK؛ account؛ amount_irr امضادار؛ ShippingGroup FK فقط برای logistics؛ جمع رویداد صفر و سرفصل‌ها منطبق بر اجزای رویداد |
+| finance_commissionrate | نرخ صحیح basis points دو طرف، actor و reason؛ نسخهٔ جدید فعال، نسخهٔ قبلی ثابت |
+| finance_compensationdecision | Order، مرجع یکتا در Order، source، actor/reason، retained تجمعی، refunded_groups، goods_override_irr فقط اصلاح دستی owner؛ append-only |
+| finance_financehold | Order، مرجع یکتا، kind discrepancy/suspension/operational، reason، released_at؛ باز/رفع در service حسابرسی می‌شود |
+
+payment و settlement هرکدام در Order یکتا هستند؛ `(order,kind,key)` و `(order,kind,reference)` نیز یکتا است. PostgreSQL تغییر/حذف event، invoice، ledger، نرخ و تصمیم را رد می‌کند. triggerهای deferred، پرداخت منطبق با snapshot و payment_reference سفارش، سند لازم، توازن دفتر، تعلق گروه حمل، سقف تجمعی بازپرداخت و کارمزدها، سقف ماندهٔ هر گروه و مبلغ نهایی تسویه را کنترل می‌کنند. تعدیل فقط به صورتحساب پرداخت همان Order ارجاع می‌دهد. مبلغ مالی و واحد API پسوند `_irr` دارد.
+
+قفل مالی: User عامل → Businessهای دو طرف مرتب → ShippingService → Order. معیارهای eligibility/مجوز و اعتبار تصمیم در service اجرا می‌شوند؛ دسترسی مستقیم نوشتن به جداول مجاز نیست. [قرارداد اجرایی](../api/finance.md).
+
+
 ## برش سبد PRD-04
 
 ادامهٔ اجرایی `orders/0003..0005`: `DeliveryAddress(retailer, details)`، `OrderGroup(cart OneToOne, retailer, idempotency_key, request_hash)` با کلید یکتای Business/key؛ `Order.group/commercial/response_deadline/payment_deadline/decision_reason`، `OrderLine.commercial`؛ `Reservation(line OneToOne, variant, ready_quantity, production_quantity, status)` و `CancellationRequest(order OneToOne, status, reason, decision_reason, deadline, refund_reference unique)`.

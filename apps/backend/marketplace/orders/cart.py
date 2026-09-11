@@ -5,7 +5,6 @@ import json
 from collections import defaultdict
 from uuid import UUID
 
-from django.conf import settings
 from django.db import transaction
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -17,6 +16,7 @@ from marketplace.catalog.models import FixedPack, Product
 from marketplace.catalog.sales_services import quote_product
 from marketplace.catalog.services import locked_actor
 from marketplace.common.exceptions import Conflict
+from marketplace.finance.services import rates
 from marketplace.logistics.grouping import calculate_groups
 from marketplace.logistics.services import lock_services
 
@@ -327,9 +327,11 @@ def preview(*, actor):
             not item["errors"] for group in manufacturers.values() for item in group["products"]
         )
     )
-    rate = getattr(settings, "RETAILER_COMMISSION_BPS", 200)
+    commission_rates = rates()
+    rate = commission_rates["retailer_bps"]
     for group in manufacturers.values():
         group["retailer_commission_bps"] = rate
+        group["manufacturer_commission_bps"] = commission_rates["manufacturer_bps"]
         group["retailer_commission_irr"] = (
             ((group["goods_total_irr"] * rate + 50_000) // 100_000) * 10 if valid else None
         )

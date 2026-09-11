@@ -7,7 +7,8 @@ CAP-ORD-01 و CAP-ORD-02 در بخش سبد پایدار، انتخاب/ادغا
 
 ادامهٔ PRD-04: دفترچهٔ آدرس و حمل گروهی (CAP-ORD-03)، checkout اتمیک و snapshot و رزرو و idempotency (CAP-ORD-04)، پاسخ تولیدکننده و مهلت‌ها (CAP-ORD-05/06)، لغو پرداخت‌نشده و تصمیم لغو پرداخت‌شده همراه قرارداد بازپرداخت (CAP-ORD-07)، نمای مستقل سفارش/گروه (CAP-ORD-08) و افزودن دوبارهٔ صریح سفارش رد/منقضی پیاده شدند. مرجع: [orders.md](../api/orders.md)، `orders/checkout.py`، `lifecycle.py`، `cancellation.py`، `tasks.py` و `tests/test_checkout.py`. تست‌های رقابت دو خریدار، retry هم‌زمان و استقلال سفارش‌های دو تولیدکننده وجود دارند.
 
-مرز باقی‌مانده: UI و نمایش هشدار/تأیید مبلغ، PaymentEvent/Invoice/ledger و اجرای واقعی callback بازپرداخت در PRD-05 و سناریوی runtime ثبت تا تحویل. سفارش لغوشدهٔ پرداختی فقط پس از callback معتبر مالی نهایی می‌شود؛ وجود hook به معنی پیاده‌سازی PRD-05 نیست. تعلیق پرداخت‌نشده در task سفارش اعمال می‌شود؛ تصمیم و hold مالی سفارش پرداخت‌شده متعلق به PRD-08/05 است.
+مرز باقی‌مانده: UI و نمایش هشدار/تأیید مبلغ و سناریوی مرورگر. PRD-05 اکنون پرداخت/صورتحساب/دفتر، بازپرداخت callback و تسویه/تکمیل را پیاده می‌کند؛ جبران مغایرت و hold پرونده از قرارداد داخلی به PRD-06/08 متصل می‌شوند. آزمون backend از checkout تا OTP تحویل و settlement در test_finance.py وجود دارد؛ فایل own.md گزارش تاریخی کاربر است.
+
 
 این سند مشخص می‌کند هر بخش بک‌اند از کدام سند محصول آمده، در کدام ماژول قرار می‌گیرد و در چه فازی طراحی یا پیاده‌سازی می‌شود. هدف، جلوگیری از ساخت قابلیت بر اساس برداشت حافظه‌ای یا گزارش جلسهٔ قدیمی است.
 
@@ -167,3 +168,22 @@ PRD-02 CAP-CAT-01..13 در بک‌اند بسته شد. `catalog/browsing.py` pr
 | migration | reverse/forward و حفظ کاتالوگ قبلی | test_fulfillment_migrations_reverse_forward_preserve_existing_catalog |
 
 نتیجهٔ این تحویل: ۳۰ تست تازه، مجموع ۱۵۲ تست PostgreSQL پاس؛ پوشش ۹۲٫۰۹٪. providerهای S3/ClamAV در تست فایل mock هستند و نتیجه شامل ادعای آزمون runtime آن‌ها نیست.
+
+
+## ردیابی executable PRD-05 — 2026-09-11
+
+قرارداد [finance.md](../api/finance.md)، اجرا `marketplace/finance/{models,services,api,tasks}.py`، migrationهای finance/0001..0002 و orders/0006؛ تمام نام‌های آزمون جدول در `tests/test_finance.py` هستند.
+
+| معیار | command / شاهد آزمون |
+| --- | --- |
+| AC-FIN-01..05، 24 | pay، invoice و ledger اتمیک؛ test_payment_atomic_snapshot_invoice_ledger_and_retry، test_payment_invalid_lifecycle، test_concurrent_payment_exactly_once |
+| AC-FIN-06..07، 11، 14 | read_finance و owner-only commands؛ test_finance_permissions_and_strict_amounts، test_financial_api_presentation_and_owner_commands، test_payment_requires_current_trade_access |
+| AC-FIN-08..10، 23 | نرخ نسخه‌دار و snapshot، محاسبهٔ سطح Order؛ test_new_rates_affect_only_future_checkout، test_rate_activation_invalidates_preview |
+| AC-FIN-12، 15، 22 | refund_cancellation و apply_decision؛ test_cancellation_worker_full_refund_atomic_and_idempotent، test_concurrent_refund_and_database_journal_guard، test_finance_invariant_migration_preserves_issued_invoice |
+| AC-FIN-13، 21 | جبران تعداد تجمعی و گروه کامل؛ test_partial_refund_recomputes_fees_preserves_shipping_and_caps، test_multiple_groups_refund_whole_group_only |
+| AC-FIN-16 | اصلاح دستی کاهشی با reason و قبل/بعد؛ test_owner_manual_correction_requires_reason_and_audits |
+| AC-FIN-17..20 | settle/complete_financial_cycle، hold و worker؛ test_settlement_deadline_holds_and_final_net، test_settlement_holds، test_worker_processes_decision_then_settles_after_deadline، test_closed_discrepancy_cannot_settle_undelivered_retained_goods |
+| AC-FIN-25 | سرفصل logistics مستقل؛ test_multiple_groups_refund_whole_group_only، test_checkout_to_delivery_and_concurrent_settlement |
+| استقلال Order | test_payment_independent_after_other_manufacturer_rejects |
+
+CAP-FIN-01..05 در backend پیاده‌اند. تصمیم دامنه‌ای معتبر مغایرت و تعلیق، UI/داشبورد و entitlement هنوز مالکیت PRD-06/08/07 و frontend هستند؛ تست مالیِ hook جای آزمون پروندهٔ آینده نیست. اجرای مالی دستی مجوز عبور از سقف بازپرداخت یا hold تسویه نمی‌دهد.

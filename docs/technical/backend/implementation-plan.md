@@ -1,5 +1,5 @@
 # برنامهٔ مرحله‌ای توسعهٔ بک‌اند
-وضعیت: در حال اجرا — بک‌اند سبد، checkout، رزرو و چرخهٔ سفارش PRD-04 به PRD-03 متصل شده؛ رابط مرورگر و عملیات مالی PRD-05 و سناریوی runtime ثبت تا تحویل بازند
+وضعیت: در حال اجرا — backend PRD-05 به checkout و لجستیک متصل است؛ پرداخت، بازپرداخت، تسویه و تکمیل سفارش پیاده شده‌اند. رابط مرورگر، پرونده‌های PRD-06/08 و entitlement هنوز بازند.
 
 ## تحویل اجرایی 2026-09-07
 اسکیل‌های architecture، domain-modeling، database-architect، backend-architect، architecture-decision-records، django-pro و postgres-best-practices در این برش استفاده شدند. طرح دامنه و ERD کلان ایجاد و دیتابیس اولین برش به migration تبدیل شد؛ طراحی فیزیکی همهٔ ماژول‌های تجاری هنوز تکمیل نیست.
@@ -401,8 +401,8 @@ ProductRevision با draft/submit/claim/review/cancel، یک نسخهٔ باز �
 **وابستگی:** فاز ۴
 
 ### Task 5.1 — سبد و اعتبارسنجی قیمت/تعداد
-
 اعتبارسنجی ادامهٔ PRD-04 در 2026-09-10: **۱۷۲ تست پاس با پوشش ۹۲٫۴۹٪** روی PostgreSQL؛ Ruff، format، mypy، Django check، migration drift و قرارداد OpenAPI پاس شدند. تست‌ها شامل رقابت checkout/آماده‌سازی، دو خریدار برای موجودی محدود، retry هم‌زمان، استقلال سفارش‌های تولیدکنندگان، تصمیم/ارجاع لغو و reverse→forward migration هستند.
+
 - [x] cart پایدار کسب‌وکار با انتخاب fixed pack/free mix، ادغام و تأیید تغییر روش ساخته شد؛ API و تست رقابت PostgreSQL در `orders/cart.py` و `tests/test_cart.py`.
 
 - [x] آدرس کامل گیرنده در سبد، انتخاب خدمت هر محصول و preview جاری قیمت، عرضه، فاصلهٔ پله، حمل گروهی و کارمزد خرده‌فروش پیاده شد؛ قرارداد: [cart.md](../api/cart.md).
@@ -420,7 +420,7 @@ ProductRevision با draft/submit/claim/review/cancel، یک نسخهٔ باز �
 
 - [x] قیمت، آدرس، SKU، انتخاب روش و گروه حمل همراه خدمت، اقلام، وزن، تعرفه، مبلغ حمل و کارمزد دو طرف snapshot می‌شوند؛ DB از تغییر جلوگیری می‌کند.
 
-- [x] موجودی/ظرفیت در ثبت رزرو، در رد/لغو/انقضا یک‌بار آزاد و در hook پرداخت به تخصیص تبدیل می‌شوند؛ ثبت PaymentEvent وابسته به PRD-05 است.
+- [x] موجودی/ظرفیت در ثبت رزرو، در رد/لغو/انقضا یک‌بار آزاد و در hook پرداخت به تخصیص تبدیل می‌شوند؛ ثبت FinancialEvent(kind=payment) در PRD-05 انجام می‌شود.
 
 - [x] idempotency کسب‌وکار با hash فرمان و قید یکتا جلوی checkout تکراری را می‌گیرد.
 
@@ -430,11 +430,11 @@ ProductRevision با draft/submit/claim/review/cancel، یک نسخهٔ باز �
 - [x] رقابت checkout چند خریدار و retry یک درخواست، و آزادسازی idempotent روی PostgreSQL آزموده شدند.
 
 ### Task 5.4 — پرداخت و صورتحساب
-- [ ] payment event با execution mode شبیه‌سازی‌شده و تفکیک مبلغ کالا، کارمزد و هزینهٔ حمل ثبت شود.
+- [x] payment event با execution mode شبیه‌سازی‌شده و تفکیک مبلغ کالا، کارمزد و هزینهٔ حمل ثبت شود.
 
-- [ ] invoice یکتا و commission reserved جدا برای هر Order ساخته شود.
+- [x] invoice یکتا و commission reserved جدا برای هر Order ساخته شود.
 
-- [ ] هیچ ادعای بانکی یا واژهٔ ممنوع در API presentation تولید نشود.
+- [x] هیچ ادعای بانکی یا واژهٔ ممنوع در API presentation تولید نشود.
 
 **Verification فاز:** سناریوی چندتولیدکننده، رد یکی، پرداخت دیگری و عدم اثر متقابل end-to-end پاس شود.
 
@@ -448,7 +448,8 @@ ProductRevision با draft/submit/claim/review/cancel، یک نسخهٔ باز �
 - [x] شروع، پیشرفت و آماده‌ارسال‌شدن با مجوز و transition معتبر ثبت شوند.
 
 - [x] تصمیم لغو قبل/بعد از آماده‌سازی، مهلت ۲۴ساعته، ارجاع و صف اپراتور و منع لغو پس از ارسال پیاده شدند.
-- [ ] ثبت مالی بازپرداخت و حذف کارمزد در PRD-05 به `orders.cancellation.complete_refund` متصل شود؛ لغو نهایی تنها پس از callback مالی است.
+
+- [x] ثبت مالی بازپرداخت و حذف کارمزد در PRD-05 به `orders.cancellation.complete_refund` متصل شود؛ لغو نهایی تنها پس از callback مالی است.
 
 ### Task 6.2 — مرسوله و اقلام
 - [x] پرداخت هر گروه حمل یک درخواست حمل idempotent بسازد و تا اعلام آمادگی کامل، تخصیص را مسدود کند.
@@ -494,18 +495,18 @@ ProductRevision با draft/submit/claim/review/cancel، یک نسخهٔ باز �
 ### Task 7.3 — جبران و تعدیل مالی
 - [ ] partial refund، replacement و return workflow داخلی ساخته شوند.
 
-- [ ] کارمزد از snapshot اقلام نگه‌داشته‌شده دوباره محاسبه شود.
+- [x] کارمزد از snapshot اقلام نگه‌داشته‌شده دوباره محاسبه شود.
 
-- [ ] تعدیل ناشی از نتیجهٔ معتبر به‌صورت سیستمی اجرا شود؛ اپراتور اجازهٔ ورود مبلغ دستی نداشته باشد.
+- [x] تعدیل ناشی از نتیجهٔ معتبر به‌صورت سیستمی اجرا شود؛ اپراتور اجازهٔ ورود مبلغ دستی نداشته باشد.
 
-- [ ] endpoint بازپرداخت/تسویه/اصلاح مالی دستی فقط برای مالک سامانه، با reason و audit مقدار قبلی/جدید باشد.
+- [x] endpoint بازپرداخت/تسویه/اصلاح مالی دستی فقط برای مالک سامانه، با reason و audit مقدار قبلی/جدید باشد.
 
 ### Task 7.4 — پایان مهلت و تسویه
-- [ ] پایان ۷۲ ساعت بدون پرونده، Order را complete و settlement شبیه‌سازی‌شده ایجاد کند.
+- [x] پایان ۷۲ ساعت بدون پرونده، Order را complete و settlement شبیه‌سازی‌شده ایجاد کند.
 
-- [ ] task تکراری یا retry هیچ settlement دوگانه‌ای نسازد.
+- [x] task تکراری یا retry هیچ settlement دوگانه‌ای نسازد.
 
-- [ ] تسویهٔ عادی خودکار باشد و برای هر سفارش تأیید دستی مالک نخواهد.
+- [x] تسویهٔ عادی خودکار باشد و برای هر سفارش تأیید دستی مالک نخواهد.
 
 **Verification فاز:** no-dispute، partial dispute، operator decision و full refund invariant مالی پاس کنند.
 
@@ -609,4 +610,10 @@ ProductRevision با draft/submit/claim/review/cancel، یک نسخهٔ باز �
 
 راستی‌آزمایی: ۱۵۲ تست PostgreSQL پاس، شامل ۳۰ تست تازه و چهار سناریوی رقابت پرداخت/تخصیص/مصرف کد/تحویل نهایی؛ پوشش ۹۲٫۰۹٪. migration از صفر و reverse→forward با حفظ کاتالوگ قبلی پوشش دارد. OpenAPI بدون هشدار و snapshot قرارداد، Ruff، formatter، mypy روی ۷۷ فایل، Django check و migration drift پاس شدند؛ migrationهای جدید روی دیتابیس توسعه نیز اعمال شدند.
 
-به‌روزرسانی ادامهٔ PRD-04: Cart/OrderGroup/Reservation، اعتبارسنجی قیمت و تأیید fingerprint، پذیرش/رد/انقضا و تصمیم‌های لغو به hookهای لجستیک متصل شدند. فاز ۵ به‌خاطر PaymentEvent/Invoice/ledger و اجرای مالی بازپرداخت PRD-05 باز است؛ Checkpoint 6 تا اتصال مرورگر و سناریوی runtime ثبت تا تحویل باز می‌ماند. قرارداد: [orders.md](../api/orders.md).
+گزارش تاریخی پیش از PRD-05 — ادامهٔ PRD-04: Cart/OrderGroup/Reservation، اعتبارسنجی قیمت و تأیید fingerprint، پذیرش/رد/انقضا و تصمیم‌های لغو به hookهای لجستیک متصل شدند. فاز ۵ به‌خاطر PaymentEvent/Invoice/ledger و اجرای مالی بازپرداخت PRD-05 باز است؛ Checkpoint 6 تا اتصال مرورگر و سناریوی runtime ثبت تا تحویل باز می‌ماند. قرارداد: [orders.md](../api/orders.md).
+
+### تحویل backend PRD-05 — 2026-09-11
+CAP-FIN-01..05: FinancialEvent نوع‌دار، Invoice و تعدیل append-only، دفتر متوازن با سرفصل مستقل حمل، پرداخت اتمیک و idempotent، نرخ نسخه‌دار owner-only با snapshot، بازپرداخت کامل لغو و جزئیِ مبتنی بر تصمیم، اصلاح کاهشی دستی، hold علت‌دار و worker تسویه پیاده شدند. `orders/0006` تکمیل سفارش را همراه تسویه ثبت می‌کند. آزمون چندتولیدکننده (رد یکی، پرداخت دیگری) و مسیر checkout→تحویل OTP→تسویه از serviceهای واقعی استفاده می‌کنند.
+
+Task 7.3 فقط در بخش مالی بسته است؛ مدل/داوری DiscrepancyCase، replacement و return workflow هنوز PRD-06 هستند. Checkpointهای مرورگر و داشبورد با تست backend بسته نمی‌شوند. قرارداد و مرز تکمیل پرونده‌ها در [finance.md](../api/finance.md) و ردیابی معیارها در requirements-traceability ثبت شده‌اند.
+اعتبارسنجی نهایی PRD-05: **203 passed، پوشش 92.80%** روی PostgreSQL؛ **31 آزمون اختصاصی مالی**. Ruff، format (۱۱۲ فایل)، mypy (۹۱ فایل)، Django check، نبود migration drift، OpenAPI با `--validate --fail-on-warn` و تست قرارداد committed همگی پاس شدند. فرمان بازاجرای مجموعه: `pytest -q --cov=marketplace` در apps/backend؛ آزمون‌های مالی: `pytest tests/test_finance.py -q`. migrationهای orders/0006 و finance/0001..0002 روی PostgreSQL توسعه اعمال شدند. imageهای Compose این نوبت rebuild نشدند؛ برای اجرای برنامهٔ تازه launcher را دوباره اجرا کنید. فایل handoff بنا به درخواست کاربر تغییر نکرد و وضعیت تازه در همین مستندات فنی ثبت شده است.

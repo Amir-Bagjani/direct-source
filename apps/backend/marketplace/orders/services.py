@@ -118,3 +118,28 @@ def cancel_fulfillment(*, order_id, reason):
     order.save(update_fields=["status", "updated_at"])
     audit(actor=None, action="order.fulfillment_cancelled", target=order, reason=reason)
     return order
+
+
+@transaction.atomic
+def complete_financial_cycle(*, order_id, settlement_reference):
+    """Finance owns eligibility and calls with its settlement event in the same transaction."""
+    from marketplace.finance.models import FinancialEvent
+
+    order = Order.objects.select_for_update().get(pk=order_id)
+    if not FinancialEvent.objects.filter(
+        pk=settlement_reference, order=order, kind="settlement"
+    ).exists():
+        raise Conflict("رویداد تسویهٔ معتبر لازم است.")
+    if order.status == "completed":
+        return order
+    if order.status != "active":
+        raise Conflict("سفارش فعال لازم است.")
+    order.status, order.completed_at = "completed", timezone.now()
+    order.save(update_fields=["status", "completed_at", "updated_at"])
+    audit(
+        actor=None,
+        action="order.completed",
+        target=order,
+        after={"settlement_reference": str(settlement_reference)},
+    )
+    return order

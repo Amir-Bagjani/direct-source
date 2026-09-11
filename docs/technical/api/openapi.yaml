@@ -6479,6 +6479,398 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/finance/orders/{id}/:
+    get:
+      operationId: finance_orders_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - finance
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinanceOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/finance/orders/{id}/pay/:
+    post:
+      operationId: finance_orders_pay_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - finance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/finance/orders/{id}/refund/:
+    post:
+      operationId: finance_orders_refund_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - finance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/finance/orders/{id}/settle/:
+    post:
+      operationId: finance_orders_settle_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - finance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SettlementInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/finance/rates/:
+    post:
+      operationId: finance_rates_create
+      tags:
+      - finance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RateInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
   /api/v1/inbox/:
     get:
       operationId: inbox_list
@@ -12318,6 +12710,39 @@ components:
         plate:
           type: string
           maxLength: 30
+    AmountOutput:
+      type: object
+      properties:
+        goods_irr:
+          type: integer
+        retailer_fee_irr:
+          type: integer
+        manufacturer_fee_irr:
+          type: integer
+        shipping_irr:
+          type: integer
+        total_irr:
+          type: integer
+        manufacturer_payable_irr:
+          type: integer
+        retained:
+          type: object
+          additionalProperties:
+            type: integer
+        shipping_groups:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - goods_irr
+      - manufacturer_fee_irr
+      - manufacturer_payable_irr
+      - retailer_fee_irr
+      - retained
+      - shipping_groups
+      - shipping_irr
+      - total_irr
     Assignment:
       type: object
       properties:
@@ -13174,6 +13599,23 @@ components:
       - action
       - created_at
       - id
+    EventOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+        currency:
+          type: string
+        total_irr:
+          type: integer
+      required:
+      - currency
+      - id
+      - kind
+      - total_irr
     EvidenceTypeEnum:
       enum:
       - license
@@ -13217,6 +13659,43 @@ components:
         * `activity` - فعالیت
         * `product_image` - تصویر محصول
         * `shipping` - مدرک حمل
+    FinanceOutput:
+      type: object
+      properties:
+        order:
+          type: string
+          format: uuid
+        currency:
+          type: string
+        original:
+          $ref: '#/components/schemas/AmountOutput'
+        net:
+          $ref: '#/components/schemas/AmountOutput'
+        retailer_commission_bps:
+          type: integer
+        manufacturer_commission_bps:
+          type: integer
+        events:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        holds:
+          type: array
+          items:
+            type: string
+        commission_status:
+          type: string
+      required:
+      - commission_status
+      - currency
+      - events
+      - holds
+      - manufacturer_commission_bps
+      - net
+      - order
+      - original
+      - retailer_commission_bps
     FulfillmentReasonInputRequest:
       type: object
       properties:
@@ -13663,6 +14142,10 @@ components:
           format: uuid
         status:
           type: string
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
         destination:
           $ref: '#/components/schemas/DestinationInput'
         commercial: {}
@@ -13684,6 +14167,7 @@ components:
       required:
       - cancellation
       - commercial
+      - completed_at
       - decision_reason
       - destination
       - group
@@ -14559,6 +15043,14 @@ components:
           maxLength: 100
         attributes: {}
         images: {}
+    PaymentInputRequest:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          format: uuid
+      required:
+      - idempotency_key
     PlanOutput:
       type: object
       properties:
@@ -15320,6 +15812,35 @@ components:
       - lines
       - quantity
       - tier_min_quantity
+    RateInputRequest:
+      type: object
+      properties:
+        retailer_bps:
+          type: integer
+          maximum: 10000
+          minimum: 0
+        manufacturer_bps:
+          type: integer
+          maximum: 10000
+          minimum: 0
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+      required:
+      - manufacturer_bps
+      - reason
+      - retailer_bps
+    RateOutput:
+      type: object
+      properties:
+        retailer_bps:
+          type: integer
+        manufacturer_bps:
+          type: integer
+      required:
+      - manufacturer_bps
+      - retailer_bps
     RatingOutput:
       type: object
       properties:
@@ -15385,6 +15906,33 @@ components:
           maxLength: 4096
       required:
       - refresh
+    RefundInputRequest:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        retained:
+          type: object
+          additionalProperties:
+            type: integer
+            minimum: 0
+        refunded_groups:
+          type: array
+          items:
+            type: string
+            format: uuid
+        goods_override_irr:
+          type: integer
+          minimum: 0
+      required:
+      - idempotency_key
+      - reason
+      - retained
     RegisterRequest:
       type: object
       properties:
@@ -15951,6 +16499,15 @@ components:
       required:
       - kind
       - name
+    SettlementInputRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+      required:
+      - reason
     Shipment:
       type: object
       properties:

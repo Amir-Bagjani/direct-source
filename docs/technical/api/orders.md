@@ -23,7 +23,7 @@
 
 ثبت، مالکیت سبد و مجوز طرف‌ها را بررسی و همان preview را زیر قفل بازسازی می‌کند. سبد نامعتبر یا fingerprint متفاوت پاسخ 409 همراه preview تازه می‌دهد؛ هیچ سفارش یا رزروی باقی نمی‌ماند. تأیید برآورد تازه با ارسال fingerprint تازه انجام می‌شود.
 
-در یک transaction، OrderGroup، یک Order در وضعیت `pending` برای هر تولیدکننده، OrderLine، Reservation و snapshot گروه‌های حمل ساخته و سبد بسته می‌شود. JSON `commercial` شامل انتخاب روش، پله و قیمت، سهم موجودی/تولید، کارمزد دو طرف و مبالغ ریالی است. نرخ تولیدکننده از `MANUFACTURER_COMMISSION_BPS` با پیش‌فرض ۲۰۰ و خرده‌فروش از `RETAILER_COMMISSION_BPS` با همان پیش‌فرض می‌آید. هر سهم بر مبلغ کالای همان سفارش و با half-up به ۱۰ ریال محاسبه می‌شود.
+در یک transaction، OrderGroup، یک Order در وضعیت `pending` برای هر تولیدکننده، OrderLine، Reservation و snapshot گروه‌های حمل ساخته و سبد بسته می‌شود. JSON `commercial` شامل انتخاب روش، پله و قیمت، سهم موجودی/تولید، کارمزد دو طرف و مبالغ ریالی است. نرخ هر دو طرف از آخرین CommissionRate فعال PRD-05 می‌آید؛ تا پیش از نخستین نسخه از تنظیمات با پیش‌فرض ۲۰۰ استفاده می‌شود. هر سهم بر مبلغ کالای همان سفارش و با half-up به ۱۰ ریال محاسبه می‌شود.
 
 قفل‌ها: User خرده‌فروش → همهٔ Businessهای طرف معامله مرتب بر UUID (همان ترتیب لجستیک) → خدمات حمل → محصولات → سفارش. کلید idempotency در دامنهٔ Business یکتا و با cart/fingerprint مقید است؛ retry همان فرمان همان شناسه‌های گروه/سفارش را با وضعیت فعلی برمی‌گرداند. استفادهٔ مجدد کلید با payload متفاوت 409 است. GET یا افزودن بعدی سبد فعال تازه می‌سازد. سبد بسته و snapshotهای سفارش در DB تغییرناپذیرند.
 
@@ -37,7 +37,7 @@
 
 task دوره‌ای `orders.expire_orders` هر ۶۰ ثانیه، حداکثر ۱۰۰۰ سفارش موعدرسیده و ۱۰۰۰ درخواست لغو موعدرسیده را بررسی می‌کند. پاسخ در مرز deadline نیز سفارش را منقضی می‌کند. پرداخت دیرهنگام رد می‌شود؛ task رزرو آن را آزاد می‌کند. سفارش پرداخت‌نشدهٔ دارای طرف تعلیق‌شده هم در همین task لغو می‌شود. بررسی و hold سفارش پرداخت‌شده در تعلیق همچنان وابسته به PRD-08/05 است.
 
-PRD-05 باید `orders.services.accept_payment(order_id, payment_reference)` را در همان transaction ثبت پرداخت معتبر فراخوانی کند و قفل خدمت را پیش از Order بگیرد. hook رزرو را `allocated`، سفارش را `active` و ShippingRequestها را ایجاد می‌کند. احراز پرداخت و مبلغ، PaymentEvent، Invoice و ledger هنوز وظیفهٔ پیاده‌نشدهٔ PRD-05 هستند. یک سفارش پذیرفته‌شده بدون انتظار برای سفارش دیگر گروه قابل پرداخت است.
+PRD-05 باید `orders.services.accept_payment(order_id, payment_reference)` را در همان transaction ثبت پرداخت معتبر فراخوانی کند و قفل خدمت را پیش از Order بگیرد. hook رزرو را `allocated`، سفارش را `active` و ShippingRequestها را ایجاد می‌کند. احراز پرداخت و مبلغ، FinancialEvent(kind=payment)، Invoice و ledger اکنون در ماژول finance پیاده شده‌اند؛ endpoint پرداخت در [finance.md](finance.md) آمده است. یک سفارش پذیرفته‌شده بدون انتظار برای سفارش دیگر گروه قابل پرداخت است.
 
 ## لغو پس از پرداخت
 
@@ -48,3 +48,8 @@ PRD-05 باید `orders.services.accept_payment(order_id, payment_reference)` ر
 PRD-05 پس از ثبت بازپرداخت کامل و حذف کارمزد، در **همان transaction** باید `orders.cancellation.complete_refund(order_id, refund_reference)` را فراخوانی کند. hook، لغو لجستیک، آزادسازی تخصیص، `Order.cancelled` و `CancellationRequest.completed` را اتمیک ثبت می‌کند. مرجع یکسان idempotent و مرجع متفاوت رد می‌شود. این hook endpoint عمومی ندارد و به‌تنهایی سند مالی نمی‌سازد.
 
 تست‌های `tests/test_checkout.py` و `tests/test_cart.py`: rollback، تغییر قیمت، snapshot، idempotency و رقابت واقعی، جلوگیری از oversell، استقلال تولیدکنندگان، مالکیت، دفترچهٔ آدرس، حمل گروهی، deadline و چرخهٔ لغو/قرارداد مالی. رابط کاربری و سناریوی پرداخت واقعی برنامه تا تحویل، پس از PRD-05 تکمیل می‌شوند.
+
+
+## تکمیل مالی PRD-05
+
+OrderOutput اکنون completed_at nullable دارد. تسویهٔ معتبر در همان transaction، `complete_financial_cycle(order_id, settlement_reference)` را فراخوانی می‌کند؛ hook وجود FinancialEvent(kind=settlement) همان Order را کنترل و active→completed را ثبت می‌کند. migration `0006_order_completion` وضعیت و زمان تکمیل را نهایی و تغییرناپذیر می‌کند. این hook endpoint عمومی ندارد و مالک eligibility همچنان finance است. پرداخت، جبران و تسویهٔ واقعی برنامه همراه checkout و لجستیک در `tests/test_finance.py` آزموده می‌شوند؛ منظور جابه‌جایی وجه واقعی نیست.

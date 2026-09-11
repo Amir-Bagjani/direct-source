@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     "marketplace.catalog",
     "marketplace.logistics",
     "marketplace.orders",
+    "marketplace.finance",
 ]
 MIDDLEWARE = [
     "marketplace.common.middleware.RequestContextMiddleware",
@@ -161,6 +162,7 @@ CELERY_TASK_TIME_LIMIT = 30
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_TIMEZONE = "UTC"
 CELERY_BEAT_SCHEDULE = {
+    "process-finance": {"task": "finance.process_orders", "schedule": 60.0},
     "expire-orders": {"task": "orders.expire_orders", "schedule": 60.0},
     "deliver-internal-outbox": {"task": "operations.deliver_outbox", "schedule": 10.0},
     "deliver-email-outbox": {"task": "operations.deliver_email_outbox", "schedule": 10.0},

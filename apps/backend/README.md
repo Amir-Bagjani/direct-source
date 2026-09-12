@@ -1,5 +1,5 @@
 # بک‌اند Django
-Python 3.13.14، Django 5.2.17 و تمام dependencyها در `uv.lock` قفل‌اند. PostgreSQL تنها دیتابیس است. کد فعلی هویت، کاتالوگ، لجستیک، سفارش و مالی PRD-05 را پیاده می‌کند؛ وضعیت کل MVP در [برنامهٔ اجرا](../../docs/technical/backend/implementation-plan.md) است.
+Python 3.13.14، Django 5.2.17 و تمام dependencyها در `uv.lock` قفل‌اند. PostgreSQL تنها دیتابیس است. کد فعلی هویت، کاتالوگ، لجستیک، سفارش، مالی، مغایرت/پشتیبانی و امتیاز/نظر PRD-07 را پیاده می‌کند؛ وضعیت کل MVP در [برنامهٔ اجرا](../../docs/technical/backend/implementation-plan.md) است.
 
 ## اجرای محلی با یک دستور
 فقط Docker Desktop باید نصب باشد. از ریشهٔ پروژه اجرا کنید:
@@ -66,3 +66,6 @@ APIهای دسته، ویژگی، محصول و تنوع زیر `/api/v1/catalog
 APIهای `/api/v1/disputes/` و `/api/v1/support/` شامل پرونده، پاسخ جزئی، داوری، تیکت و پیوست خصوصی‌اند. جبران به مالی PRD-05 و مرسولهٔ مستقل لجستیک متصل است. Celery beat هر دقیقه `disputes.process_cases` را برای ارجاع ردیف منقضی‌شده و بستن پروندهٔ کامل اجرا می‌کند. برای دریافت اعلان‌ها و تسویه، worker و beat موجود باید فعال باشند.
 
 [قرارداد و محدودیت اجرای داخلی](../../docs/technical/api/disputes-support.md)، [ERD](../../docs/technical/database/erd.md). آزمون اختصاصی: `.venv/bin/pytest tests/test_disputes_support.py -q`؛ PostgreSQL لازم است. رابط مرورگر و جابه‌جایی واقعی/پرداخت بیرونی در این تحویل نیستند.
+
+## امتیاز و نظر PRD-07
+قرارداد مسیرهای entitlement، انتشار کور، پاسخ و moderation در [reviews.md](../../docs/technical/api/reviews.md) است. `reviews.process_reviews` هر دقیقه حق سفارش‌های تکمیل‌شدهٔ قبلی و deadlineها را پردازش می‌کند. `REVIEW_WINDOW_DAYS` پیش‌فرض ۱۴ روز دارد و فقط روی حق‌های جدید اثر می‌گذارد. اجرای آزمون‌ها: `.venv/bin/pytest tests/test_reviews.py -q`.

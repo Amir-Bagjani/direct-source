@@ -98,7 +98,11 @@ def upload_document(*, actor, business, purpose, consent, upload):
         with Image.open(io.BytesIO(content)) as picture:
             if min(picture.size) < 800:
                 raise ValidationError({"file": "حداقل ابعاد تصویر ۸۰۰ در ۸۰۰ پیکسل است."})
-    key = f"private/{business.pk}/{uuid.uuid4()}{extension}"
+    key = (
+        f"private/reviews/{uuid.uuid4()}{extension}"
+        if purpose == "review_image"
+        else f"private/{business.pk}/{uuid.uuid4()}{extension}"
+    )
     key = default_storage.save(key, ContentFile(content))
     with transaction.atomic():
         file = StoredFile.objects.create(
@@ -143,6 +147,21 @@ def referenced_in_product_revision(actor, file):
 
 def download_document(*, actor, file):
     from marketplace.accounts.permissions import has_role
+
+    if file.purpose == "review_image":
+        from rest_framework.exceptions import NotFound
+
+        # Published images have a dedicated projection. This route is draft-owner only.
+        from marketplace.reviews.services import own_rights
+
+        if (
+            file.owner_id != actor.pk
+            or file.deleted_at
+            or file.scan_status != "clean"
+            or not own_rights(actor).filter(reviewimage__file=file).exists()
+        ):
+            raise NotFound()
+        return default_storage.url(file.object_key)
 
     if file.purpose in ["support", "discrepancy"]:
         from rest_framework.exceptions import NotFound

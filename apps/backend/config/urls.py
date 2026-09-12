@@ -7,6 +7,7 @@ from marketplace.common.health import live, ready
 from marketplace.operations import api as operations
 
 urlpatterns = [
+    path("api/v1/reviews/", include("marketplace.reviews.urls")),
     path("api/v1/support/", include("marketplace.support.urls")),
     path("api/v1/disputes/", include("marketplace.disputes.urls")),
     path("api/v1/finance/", include("marketplace.finance.urls")),

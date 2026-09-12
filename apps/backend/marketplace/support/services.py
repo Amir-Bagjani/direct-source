@@ -65,6 +65,23 @@ def related(actor, kind, pk, business):
     if kind == "product":
         get_object_or_404(Product, pk=pk, business=business)
         return None
+    if kind in ["review", "reply"]:
+        from marketplace.reviews.models import Reply, Review
+        from marketplace.reviews.services import own_rights, visible_to_actor
+
+        own = Review.objects.filter(entitlement__in=own_rights(actor))
+        accessible = Review.objects.filter(
+            Q(pk__in=own.values("pk")) | Q(pk__in=visible_to_actor(actor).values("pk"))
+        )
+        if kind == "reply":
+            reply = get_object_or_404(Reply, pk=pk, review__in=accessible)
+            if reply.submitted_at is None and reply.actor_id != actor.pk:
+                raise NotFound()
+            review = reply.review
+        else:
+            review = get_object_or_404(accessible, pk=pk)
+        # Public readers may raise a content ticket, but receive no access to its Order.
+        return visible_orders(actor).filter(pk=review.entitlement.order_id).first()
     if kind == "order":
         return get_object_or_404(visible_orders(actor), pk=pk)
     if kind == "shipment":

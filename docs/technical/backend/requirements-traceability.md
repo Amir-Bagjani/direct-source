@@ -206,3 +206,26 @@ CAP-FIN-01..05 در backend پیاده‌اند. تصمیم دامنه‌ای م
 | AC-SUP-11 (نقش هم‌زمان) | test_business_owner_with_operator_role_can_reply_to_own_ticket |
 
 این شواهد backend هستند؛ نمایش خطای موضعی، گردش صفحه‌ها و آزمون مرورگر همچنان به frontend نیاز دارند. بازپرداخت و حمل جبرانی مطابق محدودهٔ MVP داخلی‌اند.
+
+## ردیابی executable امتیاز و نظر PRD-07
+
+مرجع: [قرارداد reviews](../api/reviews.md)، `marketplace/reviews/` و `tests/test_reviews.py`. هر ردیف زیر به آزمون backend اشاره دارد؛ رابط مرورگر و dashboard مدیریتی PRD-08 جدا هستند.
+
+| معیار پذیرش | پیاده‌سازی و آزمون |
+| --- | --- |
+| AC-REV-01..03 | Entitlement / completion hook و worker؛ `test_entitlement_completion_retry_and_snapshot`، `test_no_entitlement_without_completion`، `test_open_dispute_blocks_rights_until_real_closure`، `test_backfill_uses_completion_deadline_and_pagination` |
+| AC-REV-04..06 | موضوع و تنوع snapshot، معیارهای سه‌گانه و فایل scoped؛ `test_product_draft_final_and_anonymous_projection`، `test_invalid_scores_atomic`، `test_images_scoped_and_hidden_download`، `test_database_rejects_forged_subject_and_incomplete_scores` |
+| AC-REV-07..11 | دو جهت همکاری و projection کور؛ `test_blind_until_both_submit_including_existence`، `test_outsider_suspension_and_mode_separation`، `test_concurrent_blind_submission_and_entitlement_retry` |
+| AC-REV-12 | deadline دقیق، انقضای draft و انتشار یک‌باره؛ `test_deadline_publishes_once_expires_drafts_and_rejects_late` |
+| AC-REV-13..16 | AVG/COUNT مستقل موضوع و mode، null برای نبود سابقه؛ `test_average_counts_multiple_orders_without_double_counting`، `test_moderation_restoration_aggregate_audit_and_no_financial_effect`، `test_outsider_suspension_and_mode_separation` |
+| AC-REV-17..18 | Reply یک‌به‌یک، draft خصوصی و final immutable؛ `test_reply_draft_lock_recipient_and_public_projection`، `test_immutable_final_records_even_with_direct_database_writes` |
+| AC-REV-19..21 | گزارش یکتا و پنهان‌سازی/بازگردانی بدون حذف امتیاز؛ `test_moderation_restoration_aggregate_audit_and_no_financial_effect` |
+| AC-REV-22..23 | ورودی strict، moderation مستدل، بدون اثر مالی؛ `test_strict_commands_and_moderation_permissions`، `test_review_support_ticket_preserves_financial_state` |
+| AC-REV-24..25 | نهایی‌سازی قفل‌شده و منع حذف/تغییر/بازگشت؛ `test_product_draft_final_and_anonymous_projection`، `test_immutable_final_records_even_with_direct_database_writes`، `test_concurrent_duplicate_submission_is_one_final_review` |
+| AC-REV-26..27 | ناشناس‌بودن محصول و نام Business همکاری؛ `test_product_draft_final_and_anonymous_projection`، `test_blind_until_both_submit_including_existence` |
+| AC-REV-28..29 | invalidate/revalidate مستقل از hide؛ نوع/دلیل/actor/before/after و retry؛ `test_moderation_restoration_aggregate_audit_and_no_financial_effect`، `test_strict_commands_and_moderation_permissions` |
+| AC-REV-30 | گزارش و moderation پاسخ بدون اثر در امتیاز؛ `test_reply_reporting_and_moderation` |
+| قیود PostgreSQL و مهاجرت | `test_database_prevents_early_nonatomic_publication`، `test_review_invariant_migration_roundtrip_preserves_final_content`؛ ساخت از صفر در مجموعهٔ PostgreSQL |
+| مرز فایل خصوصی | `test_image_upload_scanning_type_and_download_permissions`؛ S3 و ClamAV در آزمون mock هستند، آزمون provider واقعی جداست |
+
+مدل‌ها و serviceهای این برش از PostgreSQL یکتایی nulls-not-distinct، قفل Order، trigger محتوای نهایی و publication deferred استفاده می‌کنند. کوئیری عمومی همیشه execution_mode=live دارد و هیچ پارامتر کاربر آن را به simulated تبدیل نمی‌کند. جبران مالی که بدون تحویل کامل سفارش تسویه شود حق نمی‌گیرد.

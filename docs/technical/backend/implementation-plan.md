@@ -1,5 +1,5 @@
 # برنامهٔ مرحله‌ای توسعهٔ بک‌اند
-وضعیت: در حال اجرا — backend PRD-05 به checkout و لجستیک متصل است؛ پرداخت، بازپرداخت، تسویه و تکمیل سفارش پیاده شده‌اند. backend PRD-06 شامل پرونده، داوری، تیکت و جبران داخلی متصل شده است؛ رابط مرورگر، PRD-08 و entitlement هنوز بازند.
+وضعیت: در حال اجرا — backend PRD-05 به checkout و لجستیک متصل است؛ پرداخت، بازپرداخت، تسویه و تکمیل سفارش پیاده شده‌اند. backend PRD-06 شامل پرونده، داوری، تیکت و جبران داخلی متصل شده است؛ backend PRD-07 شامل entitlement، نظر محصول، همکاری کور، پاسخ و moderation متصل شده است؛ رابط مرورگر و PRD-08 هنوز بازند.
 
 ## تحویل اجرایی 2026-09-07
 اسکیل‌های architecture، domain-modeling، database-architect، backend-architect، architecture-decision-records، django-pro و postgres-best-practices در این برش استفاده شدند. طرح دامنه و ERD کلان ایجاد و دیتابیس اولین برش به migration تبدیل شد؛ طراحی فیزیکی همهٔ ماژول‌های تجاری هنوز تکمیل نیست.
@@ -517,14 +517,14 @@ ProductRevision با draft/submit/claim/review/cancel، یک نسخهٔ باز �
 **وابستگی:** فاز ۷
 
 ### Task 8.1 — review entitlement و انتشار
-- [ ] entitlement فقط پس از تکمیل و بسته‌شدن مغایرت ایجاد شود.
+- [x] entitlement فقط پس از تکمیل مالی، تحویل کامل و بسته‌شدن مغایرت ایجاد می‌شود؛ hook اتمیک و worker بازیابی PRD-07.
 
-- [ ] امتیاز محصول و همکاری جدا و انتشار دوطرفه/۱۴روزه پیاده شود.
+- [x] امتیاز محصول و همکاری جدا، پیش‌نویس/ارسال immutable و انتشار دوطرفه/۱۴روزه در backend پیاده شد.
 
-- [ ] دادهٔ MVP از aggregate عمومی آینده جدا بماند.
+- [x] execution mode از settlement حفظ می‌شود؛ query و aggregate عمومی فقط live و نمای کنترل‌شده فقط simulated است.
 
 ### Task 8.2 — moderation نظر
-- [ ] report، hide/unhide، دلیل، actor و پاسخ عمومی ساخته شوند.
+- [x] report، hide/unhide، invalidate/revalidate، دلیل، actor، تاریخچه و پاسخ عمومی immutable در backend ساخته شدند؛ پنل مرورگر باز است.
 
 ### Task 8.3 — تعلیق شخص/کسب‌وکار
 - [ ] دو نوع تعلیق مستقل و دسترسی محدود پس از تعلیق اعمال شوند.
@@ -624,3 +624,11 @@ Task 7.3 اکنون در backend شامل پرونده، داوری و گردش 
 - Ruff، بررسی قالب، mypy (۱۰۳ فایل)، Django check، تطابق migrationها و اعتبارسنجی OpenAPI بدون خطا هستند. آزمون تطابق قرارداد ذخیره‌شده در مجموعهٔ کامل پاس شد.
 - migrationهای operations/0005، disputes/0001..0002، support/0001 و logistics/0009..0010 روی پایگاه دادهٔ توسعه اعمال شدند.
 - قرارداد API، ERD، فرهنگ داده و چرخهٔ وضعیت به‌روز شدند. فایل handoff و own.md تغییر نکردند. Checkpoint مرورگر همچنان باز است؛ این تحویل backend و اجرای داخلی جبران است.
+
+### تحویل backend PRD-07 — 2026-09-12
+
+CAP-REV-01..06 در `marketplace.reviews` پیاده شدند: entitlement یکتا از تکمیل مالی و تحویل کامل بدون مغایرت باز، snapshot موضوع/تنوع/deadline/mode، نظر محصول، همکاری کور دوطرفه، پیش‌نویس و ارسال تغییرناپذیر، تصاویر خصوصی اسکن‌شده، پاسخ یکتا، گزارش و moderation مستدل با بازگردانی. انتشار همکاری و انقضا task تکرارپذیر دارند؛ aggregate سادهٔ PostgreSQL براساس موضوع و execution mode جداست. پیوند تیکت PRD-06 به نظر/پاسخ اضافه شده و هیچ اثر مالی مستقیم ندارد. [قرارداد و محدودیت‌ها](../api/reviews.md).
+
+اعتبارسنجی نهایی: **۲۵۶ تست PostgreSQL موفق، پوشش ۹۲٫۸۴٪**؛ **۳۱ تست اختصاصی PRD-07** شامل ارسال هم‌زمان، منع افشای کور، انقضا، moderation، فایل خصوصی، چرخهٔ واقعی بستن مغایرت→تسویه→حق و reverse→forward قیود با حفظ محتوای نهایی. Ruff، format (۱۳۲ فایل)، mypy (۱۰۹ فایل)، Django check، migration-drift و OpenAPI با validate/fail-on-warn پاس شدند؛ تست تطابق قرارداد ذخیره‌شده نیز در مجموعهٔ کامل موفق بود.
+
+migrationهای `operations/0006`، `reviews/0001..0002` و `support/0002` روی PostgreSQL توسعه اعمال شدند. برای جلوگیری از بن‌بست worker بازیابی با retry تسویه، ایجاد حق از ترتیب قفل مشترک Finance استفاده می‌کند. کنترل زمانی trigger از timestamp ثبت رویداد استفاده می‌کند تا با ساعت workflow یکسان باشد. فایل‌های handoff و own.md تغییر نکردند. پنل مرورگر/داشبورد، PRD-08 و frontend بازند؛ provider فایل در تست‌ها mock است و imageهای Compose این نوبت rebuild نشده‌اند.

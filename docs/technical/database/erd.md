@@ -119,7 +119,13 @@ erDiagram
     Order ||--o{ Entitlement : grants
     Entitlement ||--o| Review : uses
     Review ||--o| Reply : answers
-    Review ||--o{ ModerationAction : moderates
+    Business ||--o{ Entitlement : authors_or_receives
+    Product ||--o{ Entitlement : subject
+    Entitlement ||--o{ ReviewImage : scopes
+    StoredFile ||--o| ReviewImage : stores
+    Review ||--o{ Report : reported
+    Reply ||--o{ Report : reported
+    Report ||--o{ ModerationAction : resolves
     User ||--o{ AuditEvent : acts
     User ||--o{ WorkItem : claims
     OutboxEvent ||--o| InboxNotification : delivers
@@ -228,3 +234,4 @@ erDiagram
 ```
 
 Order/OrderLine در این برش فقط هستهٔ موردنیاز حمل‌اند؛ Cart، checkout، Reservation و Payment هنوز مدل اجرایی ندارند. نام اجرایی TransportRequest در طرح کلان ShippingRequest است. [قرارداد اتصال و API](../api/fulfillment.md).
+PRD-07 اجرایی: Entitlement/Review/Reply/ReviewImage/Report/ModerationAction در `marketplace.reviews` قرار دارند؛ تصاویر و تنوع‌ها snapshot انتخاب‌اند و هویت شخص در actor داخلی حفظ می‌شود. جزئیات قیود در [فرهنگ داده](data-dictionary.md) و [قرارداد reviews](../api/reviews.md).

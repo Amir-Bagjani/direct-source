@@ -57,6 +57,7 @@ class StoredFile(BaseModel):
             ("identity", "هویت"),
             ("activity", "فعالیت"),
             ("product_image", "تصویر محصول"),
+            ("review_image", "تصویر نظر"),
             ("shipping", "مدرک حمل"),
             ("support", "پیوست پشتیبانی"),
             ("discrepancy", "مدرک مغایرت"),

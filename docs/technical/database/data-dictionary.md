@@ -168,3 +168,16 @@ Migrationهای `orders/0001`، `operations/0004` و `logistics/0004..0008` اج
 | Shipment (افزوده) | purpose، compensation | order/replacement/return؛ جبران مستقل از تخصیص اصلی |
 
 کلیدهای command_key و request_hash تکرار درخواست و تعارض محتوای آن را تشخیص می‌دهند. روابط evidence و files به StoredFile خصوصی و اسکن‌شده اشاره دارند. triggerهای PostgreSQL در disputes/0002 و logistics/0010 از تاریخچه و جمع تخصیص حفاظت می‌کنند.
+
+## برش اجرایی PRD-07
+
+| مدل | داده‌های اصلی و invariant |
+| --- | --- |
+| reviews.Entitlement | order، author/recipient Business، topic (product/manufacturer/retailer)، product اختیاری، variants JSONB، deadline مشترک، execution_mode و expired_at؛ unique(order,author,topic,product) با NULLS NOT DISTINCT؛ snapshot تغییرناپذیر |
+| reviews.Review | entitlement یک‌به‌یک، actor داخلی، scores/text/images، submitted_at/published_at، content_hidden و invalidated مستقل؛ final immutable؛ نمرات صحیح ۱..۵ و موضوع‌دار با trigger |
+| reviews.Reply | review یک‌به‌یک، actor، text، submitted_at، content_hidden؛ فقط دریافت‌کننده، انتشار پیش‌نیاز و final immutable |
+| reviews.ReviewImage | entitlement و file یک‌به‌یک؛ scope تغییرناپذیر، StoredFile با purpose=review_image؛ انتخاب تصویر فقط از همین حق |
+| reviews.Report | review، reply اختیاری، actor، reason، resolved_at؛ یکتا برای هر actor و هدف، متن گزارش تغییرناپذیر |
+| reviews.ModerationAction | report، actor، action، reason، before/after، command_key یکتا و request_hash؛ append-only |
+
+Index deadline حق‌های منقضی‌نشده و index صف گزارش موجود است. worker صفحه‌بندی keyset دارد؛ aggregate از PostgreSQL AVG/COUNT محاسبه می‌شود و جدول cache جدا ندارد. ترتیب قفل فرمان ثبت/پاسخ/نظارت User(no_key)→Order است؛ ایجاد حق از ترتیب مشترک Finance یعنی Businessهای مرتب→Service→Order استفاده می‌کند تا درج FKهای Business در worker با retry تسویه بن‌بست نسازد. worker مهلت فقط Order را قفل می‌کند. `reviews/0002_invariants` انتشار زودهنگام تک‌طرفه را با constraint trigger deferred رد می‌کند و حالت‌های اصلی/تاریخچه را نگه می‌دارد. هویت کامل actor تنها در حسابرسی مجاز دیده می‌شود.

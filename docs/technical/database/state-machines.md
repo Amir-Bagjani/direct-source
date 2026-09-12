@@ -82,3 +82,11 @@ stateDiagram-v2
 مرسولهٔ جبرانی: ready → handed_over → in_transit → delivered؛ handed_over → delivered نیز مجاز است. فقط ready می‌تواند با منتفی‌شدن مستدل جبران cancelled شود. delivered جایگزینی، جبران را کامل می‌کند؛ delivered مرجوعی، بازپرداخت داخلی PRD-05 را اجرا می‌کند. مرسوله‌های purpose≠order در محاسبهٔ تحویل سفارش و آغاز deadline دخالت ندارند.
 
 تیکت ارجاعی تا بسته‌شدن پرونده closed نمی‌شود؛ resolved آن با پیام کاربر یا ارجاع تازه به in_review بازمی‌گردد. بستن پرونده تیکت را خودکار نمی‌بندد.
+
+## اجرای PRD-07
+
+- Entitlement: available→submitted یا available/draft→expired؛ مهلت دقیق از completed_at و تنظیم REVIEW_WINDOW_DAYS ثبت می‌شود. برای یک Order همهٔ موضوع‌ها deadline یکسان دارند. submitted منقضی نمی‌شود.
+- Review: draft→submitted؛ محصول در همان لحظه published، همکاری در ارسال دوم یا deadline با یک timestamp مشترک published می‌شود. پس از submitted محتوا تغییرناپذیر و published برگشت‌ناپذیر است؛ حذف مجاز نیست.
+- content_hidden و invalidated دو محور مستقل‌اند؛ hide/unhide متن/تصویر را کنترل می‌کند، invalidate/revalidate کل نمایش و سهم aggregate را. هیچ‌کدام state مالی یا Order را تغییر نمی‌دهد.
+- Reply: draft→submitted؛ فقط Business دریافت‌کننده و فقط برای نظر منتشرشدهٔ معتبر. پاسخ نهایی تغییرناپذیر، گزارش‌پذیر و صرفاً مشمول hide/unhide محتواست.
+- Report: باز→resolved با hide/unhide/invalidate/revalidate/dismiss مستدل. اقدام بعدی برای بازگردانی از همان Report امکان‌پذیر است؛ هر اقدام before/after و کلید idempotency دارد، متن اولیهٔ گزارش حفظ می‌شود.

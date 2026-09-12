@@ -41,7 +41,7 @@
 | `tickets/{id}/status/` | POST | تغییر وضعیت با دلیل و پیام قابل‌مشاهده |
 | `files/` | POST multipart | بارگذاری مدرک در محدودهٔ سفارش یا تیکت |
 
-تیکت دارای title، category، text، files و idempotency_key است. دسته‌ها account/catalog/order/shipping/technical/other هستند. پیوند اختیاری related_type/related_id به business/product/order/shipment/discrepancy با کنترل مالکیت اعمال می‌شود. `previous` فقط به تیکت بسته‌شدهٔ مجاز اشاره می‌کند. شماره، مسئول و زمان آخرین پاسخ در خروجی هستند.
+تیکت دارای title، category، text، files و idempotency_key است. دسته‌ها account/catalog/order/shipping/technical/reviews/other هستند. پیوند اختیاری related_type/related_id به business/product/order/shipment/discrepancy/review/reply با کنترل مالکیت یا مجوز مشاهده اعمال می‌شود. `previous` فقط به تیکت بسته‌شدهٔ مجاز اشاره می‌کند. شماره، مسئول و زمان آخرین پاسخ در خروجی هستند.
 
 گردش: `new → in_review → waiting_user / resolved → closed`. پاسخ کاربر به waiting_user یا resolved، تیکت را به in_review می‌برد؛ closed نهایی است و پیام تازه نمی‌پذیرد. تیکت ارجاعی پروندهٔ باز قابل‌بستن نیست. بستن خودکار تیکت وجود ندارد. پیام یا تغییر وضعیت هیچ اثر مالی ندارد.
 

@@ -134,6 +134,8 @@ def complete_financial_cycle(*, order_id, settlement_reference):
         return order
     if order.status != "active":
         raise Conflict("سفارش فعال لازم است.")
+    from marketplace.reviews.services import create_entitlements
+
     order.status, order.completed_at = "completed", timezone.now()
     order.save(update_fields=["status", "completed_at", "updated_at"])
     audit(
@@ -142,4 +144,5 @@ def complete_financial_cycle(*, order_id, settlement_reference):
         target=order,
         after={"settlement_reference": str(settlement_reference)},
     )
+    create_entitlements(order_id=order.pk)
     return order

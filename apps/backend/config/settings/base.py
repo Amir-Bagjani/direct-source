@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "marketplace.finance",
     "marketplace.disputes",
     "marketplace.support",
+    "marketplace.reviews",
 ]
 MIDDLEWARE = [
     "marketplace.common.middleware.RequestContextMiddleware",
@@ -163,7 +164,9 @@ CELERY_TASK_SOFT_TIME_LIMIT = 25
 CELERY_TASK_TIME_LIMIT = 30
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_TIMEZONE = "UTC"
+REVIEW_WINDOW_DAYS = env.int("REVIEW_WINDOW_DAYS", default=14)
 CELERY_BEAT_SCHEDULE = {
+    "process-reviews": {"task": "reviews.process_reviews", "schedule": 60.0},
     "process-disputes": {"task": "disputes.process_cases", "schedule": 60.0},
     "process-finance": {"task": "finance.process_orders", "schedule": 60.0},
     "expire-orders": {"task": "orders.expire_orders", "schedule": 60.0},

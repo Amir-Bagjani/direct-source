@@ -4,9 +4,9 @@ from django.db.models import Q
 
 from marketplace.common.models import BaseModel
 
-CATEGORIES = ["account", "catalog", "order", "shipping", "technical", "other"]
+CATEGORIES = ["account", "catalog", "order", "shipping", "technical", "reviews", "other"]
 STATUSES = ["new", "in_review", "waiting_user", "resolved", "closed"]
-LINK_TYPES = ["", "business", "product", "order", "shipment", "discrepancy"]
+LINK_TYPES = ["", "business", "product", "order", "shipment", "discrepancy", "review", "reply"]
 
 
 class Ticket(BaseModel):

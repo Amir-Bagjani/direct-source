@@ -13313,6 +13313,1445 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/reviews/{id}/audit/:
+    get:
+      operationId: reviews_audit_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reviews
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/reviews/{id}/reply/:
+    get:
+      operationId: reviews_reply_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reviews
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReplyOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    put:
+      operationId: reviews_reply_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReplyInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReplyOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/reviews/{id}/reports/:
+    post:
+      operationId: reviews_reports_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/reviews/entitlements/:
+    get:
+      operationId: reviews_entitlements_list
+      tags:
+      - reviews
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntitlementPage'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/reviews/entitlements/{id}/:
+    get:
+      operationId: reviews_entitlements_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reviews
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntitlementOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    put:
+      operationId: reviews_entitlements_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntitlementOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/reviews/entitlements/{id}/images/:
+    post:
+      operationId: reviews_entitlements_images_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reviews
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ImageInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ImageInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/reviews/internal/:
+    get:
+      operationId: reviews_internal_list
+      parameters:
+      - in: query
+        name: business
+        schema:
+          type: string
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      - in: query
+        name: product
+        schema:
+          type: string
+      - in: query
+        name: topic
+        schema:
+          type: string
+      tags:
+      - reviews
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewPage'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/reviews/internal/{id}/:
+    get:
+      operationId: reviews_internal_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reviews
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/reviews/internal/{id}/images/{file_id}/:
+    get:
+      operationId: reviews_internal_images_retrieve
+      parameters:
+      - in: path
+        name: file_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reviews
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageLink'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/reviews/internal/aggregate/:
+    get:
+      operationId: reviews_internal_aggregate_retrieve
+      parameters:
+      - in: query
+        name: business
+        schema:
+          type: string
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      - in: query
+        name: product
+        schema:
+          type: string
+      - in: query
+        name: topic
+        schema:
+          type: string
+      tags:
+      - reviews
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AggregateOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/reviews/public/:
+    get:
+      operationId: reviews_public_list
+      parameters:
+      - in: query
+        name: business
+        schema:
+          type: string
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      - in: query
+        name: product
+        schema:
+          type: string
+      - in: query
+        name: topic
+        schema:
+          type: string
+      tags:
+      - reviews
+      security:
+      - bearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewPage'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/reviews/public/{id}/:
+    get:
+      operationId: reviews_public_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reviews
+      security:
+      - bearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/reviews/public/{id}/images/{file_id}/:
+    get:
+      operationId: reviews_public_images_retrieve
+      parameters:
+      - in: path
+        name: file_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reviews
+      security:
+      - bearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageLink'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/reviews/public/aggregate/:
+    get:
+      operationId: reviews_public_aggregate_retrieve
+      parameters:
+      - in: query
+        name: business
+        schema:
+          type: string
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      - in: query
+        name: product
+        schema:
+          type: string
+      - in: query
+        name: topic
+        schema:
+          type: string
+      tags:
+      - reviews
+      security:
+      - bearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AggregateOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/reviews/reports/:
+    get:
+      operationId: reviews_reports_retrieve
+      tags:
+      - reviews
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportPage'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/reviews/reports/{id}/moderation/:
+    post:
+      operationId: reviews_reports_moderation_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModerationInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModerationOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
   /api/v1/support/files/:
     post:
       operationId: support_files_create
@@ -13863,6 +15302,20 @@ paths:
                 $ref: '#/components/schemas/ErrorEnvelope'
 components:
   schemas:
+    ActionEnum:
+      enum:
+      - hide_content
+      - unhide_content
+      - invalidate
+      - revalidate
+      - dismiss
+      type: string
+      description: |-
+        * `hide_content` - hide_content
+        * `unhide_content` - unhide_content
+        * `invalidate` - invalidate
+        * `revalidate` - revalidate
+        * `dismiss` - dismiss
     ActivationInputRequest:
       type: object
       properties:
@@ -13971,6 +15424,19 @@ components:
         plate:
           type: string
           maxLength: 30
+    AggregateOutput:
+      type: object
+      properties:
+        product:
+          $ref: '#/components/schemas/TopicAggregate'
+        manufacturer:
+          $ref: '#/components/schemas/TopicAggregate'
+        retailer:
+          $ref: '#/components/schemas/TopicAggregate'
+      required:
+      - manufacturer
+      - product
+      - retailer
     AmountOutput:
       type: object
       properties:
@@ -14192,6 +15658,35 @@ components:
       description: |-
         * `product` - محصول
         * `variant` - تنوع
+    AuditOutput:
+      type: object
+      properties:
+        review:
+          $ref: '#/components/schemas/EntitlementOutput'
+        actor:
+          type: string
+          format: uuid
+        author:
+          type: string
+          format: uuid
+        execution_mode:
+          type: string
+        reply:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        history:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - actor
+      - author
+      - execution_mode
+      - history
+      - reply
+      - review
     BlankEnum:
       enum:
       - ''
@@ -14606,6 +16101,7 @@ components:
       - order
       - shipping
       - technical
+      - reviews
       - other
       type: string
       description: |-
@@ -14614,6 +16110,7 @@ components:
         * `order` - order
         * `shipping` - shipping
         * `technical` - technical
+        * `reviews` - reviews
         * `other` - other
     CategoryPathOutput:
       type: object
@@ -14740,6 +16237,18 @@ components:
       - items
       - packages
       - reason
+    CriterionOutput:
+      type: object
+      properties:
+        mean:
+          type: number
+          format: double
+          nullable: true
+        count:
+          type: integer
+      required:
+      - count
+      - mean
     DecisionInputDecisionEnum:
       enum:
       - continue
@@ -15039,6 +16548,70 @@ components:
           maxLength: 128
       required:
       - token
+    EntitlementOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        order:
+          type: string
+          format: uuid
+        topic:
+          $ref: '#/components/schemas/TopicEnum'
+        product:
+          type: string
+          format: uuid
+          nullable: true
+        recipient:
+          type: string
+          format: uuid
+        variants:
+          type: array
+          items:
+            type: string
+            format: uuid
+        deadline:
+          type: string
+          format: date-time
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        review:
+          allOf:
+          - $ref: '#/components/schemas/OwnReviewOutput'
+          nullable: true
+      required:
+      - deadline
+      - id
+      - order
+      - product
+      - recipient
+      - review
+      - state
+      - topic
+      - variants
+    EntitlementPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+          nullable: true
+        previous:
+          type: string
+          format: uri
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntitlementOutput'
+      required:
+      - count
+      - next
+      - previous
+      - results
     Event:
       type: object
       properties:
@@ -15130,6 +16703,7 @@ components:
       - identity
       - activity
       - product_image
+      - review_image
       - shipping
       - support
       - discrepancy
@@ -15138,6 +16712,7 @@ components:
         * `identity` - هویت
         * `activity` - فعالیت
         * `product_image` - تصویر محصول
+        * `review_image` - تصویر نظر
         * `shipping` - مدرک حمل
         * `support` - پیوست پشتیبانی
         * `discrepancy` - مدرک مغایرت
@@ -15255,6 +16830,27 @@ components:
       - card_front
       - national_id
       - selfie
+    ImageInputRequest:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+        consent_version:
+          type: string
+          minLength: 1
+          maxLength: 40
+      required:
+      - consent_version
+      - file
+    ImageLink:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+      required:
+      - url
     Inbox:
       type: object
       properties:
@@ -15457,6 +17053,41 @@ components:
         * `ready` - ready
         * `production` - production
         * `hybrid` - hybrid
+    ModerationInputRequest:
+      type: object
+      properties:
+        action:
+          $ref: '#/components/schemas/ActionEnum'
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        idempotency_key:
+          type: string
+          format: uuid
+      required:
+      - action
+      - idempotency_key
+      - reason
+    ModerationOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        action:
+          $ref: '#/components/schemas/ActionEnum'
+        before:
+          type: object
+          additionalProperties: {}
+        after:
+          type: object
+          additionalProperties: {}
+      required:
+      - action
+      - after
+      - before
+      - id
     NewPackageRequest:
       type: object
       properties:
@@ -15773,6 +17404,38 @@ components:
       required:
       - unit_price_irr
       - variant
+    OwnReviewOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        scores:
+          type: object
+          additionalProperties:
+            type: integer
+        text:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+            format: uuid
+        submitted_at:
+          type: string
+          format: date-time
+          nullable: true
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - id
+      - images
+      - published_at
+      - scores
+      - submitted_at
+      - text
     PackInput:
       type: object
       properties:
@@ -17260,6 +18923,28 @@ components:
       - status
       - submitted_at
       - updated_at
+    PublishedReply:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        text:
+          type: string
+        submitted_at:
+          type: string
+          format: date-time
+          nullable: true
+        content_hidden:
+          type: boolean
+        author_label:
+          type: string
+      required:
+      - author_label
+      - content_hidden
+      - id
+      - submitted_at
+      - text
     Queue:
       type: object
       properties:
@@ -17386,6 +19071,25 @@ components:
       required:
       - manufacturer_bps
       - retailer_bps
+    RatingInputRequest:
+      type: object
+      properties:
+        scores: {}
+        text:
+          type: string
+          default: ''
+          maxLength: 8000
+        images:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 10
+        submit:
+          type: boolean
+          default: false
+      required:
+      - scores
     RatingOutput:
       type: object
       properties:
@@ -17515,9 +19219,12 @@ components:
       - order
       - shipment
       - discrepancy
+      - review
+      - reply
       type: string
       description: "* `` - \n* `business` - business\n* `product` - product\n* `order`
-        - order\n* `shipment` - shipment\n* `discrepancy` - discrepancy"
+        - order\n* `shipment` - shipment\n* `discrepancy` - discrepancy\n* `review`
+        - review\n* `reply` - reply"
     RemedyEnum:
       enum:
       - refund
@@ -17568,6 +19275,97 @@ components:
         confirm_method_change:
           type: boolean
           default: false
+    ReplyInputRequest:
+      type: object
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 8000
+        submit:
+          type: boolean
+          default: false
+      required:
+      - text
+    ReplyOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        text:
+          type: string
+        submitted_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - id
+      - submitted_at
+      - text
+    ReportInputRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        reply_id:
+          type: string
+          format: uuid
+      required:
+      - reason
+    ReportOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        review:
+          type: string
+          format: uuid
+        reply:
+          type: string
+          format: uuid
+          nullable: true
+        reason:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - created_at
+      - id
+      - reason
+      - reply
+      - resolved_at
+      - review
+    ReportPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+          nullable: true
+        previous:
+          type: string
+          format: uri
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportOutput'
+      required:
+      - count
+      - next
+      - previous
+      - results
     Request:
       type: object
       properties:
@@ -17763,6 +19561,81 @@ components:
       - code
       - decision
       - reason
+    ReviewOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        topic:
+          $ref: '#/components/schemas/TopicEnum'
+        product:
+          type: string
+          format: uuid
+          nullable: true
+        variants:
+          type: array
+          items:
+            type: string
+            format: uuid
+        author_label:
+          type: string
+        scores:
+          type: object
+          additionalProperties:
+            type: integer
+            maximum: 5
+            minimum: 1
+        text:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+            format: uuid
+        content_hidden:
+          type: boolean
+        published_at:
+          type: string
+          format: date-time
+        reply:
+          allOf:
+          - $ref: '#/components/schemas/PublishedReply'
+          nullable: true
+      required:
+      - author_label
+      - content_hidden
+      - id
+      - images
+      - product
+      - published_at
+      - reply
+      - scores
+      - text
+      - topic
+      - variants
+    ReviewPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+          nullable: true
+        previous:
+          type: string
+          format: uri
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewOutput'
+      required:
+      - count
+      - next
+      - previous
+      - results
     ReviewRequest:
       type: object
       properties:
@@ -18341,6 +20214,16 @@ components:
       - shipping_amount_irr
       - tariff
       - weight_g
+    StateEnum:
+      enum:
+      - available
+      - submitted
+      - expired
+      type: string
+      description: |-
+        * `available` - available
+        * `submitted` - submitted
+        * `expired` - expired
     StatusInputRequest:
       type: object
       properties:
@@ -18863,6 +20746,31 @@ components:
       required:
       - access
       - refresh
+    TopicAggregate:
+      type: object
+      properties:
+        count:
+          type: integer
+        message:
+          type: string
+        criteria:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/CriterionOutput'
+      required:
+      - count
+      - criteria
+      - message
+    TopicEnum:
+      enum:
+      - product
+      - manufacturer
+      - retailer
+      type: string
+      description: |-
+        * `product` - product
+        * `manufacturer` - manufacturer
+        * `retailer` - retailer
     TrackingInputRequest:
       type: object
       properties:

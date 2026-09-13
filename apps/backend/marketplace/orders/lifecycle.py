@@ -11,6 +11,7 @@ from marketplace.catalog.services import locked_actor
 from marketplace.common.exceptions import Conflict
 from marketplace.common.pagination import StandardPagination
 from marketplace.logistics.services import lock_services
+from marketplace.operations.policy import value as policy_value
 from marketplace.operations.services import audit, notify
 
 from .checkout import group_data, order_data
@@ -75,7 +76,7 @@ def respond(*, actor, pk, decision, reason=""):
         finish_unpaid(order, "rejected", reason, actor)
     else:
         order.status = "accepted"
-        order.payment_deadline = timezone.now() + timedelta(hours=24)
+        order.payment_deadline = timezone.now() + timedelta(hours=policy_value("payment_hours"))
         order.save(update_fields=["status", "payment_deadline", "updated_at"])
         audit(actor=actor, action="order.accepted", target=order)
         notify(

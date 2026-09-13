@@ -122,7 +122,6 @@ def test_finance_permissions_and_strict_amounts(client, cart_world, user_factory
     for actor in [
         cart_world[0],
         cart_world[2].business.membership.user,
-        user_factory(role="operator"),
     ]:
         client.force_authenticate(actor)
         assert client.get(url).status_code == 200

@@ -1,6 +1,20 @@
 # ردیابی نیازمندی‌های بک‌اند
 وضعیت: پیش‌نویس فنی
 
+## برش بک‌اند PRD-08 — 2026-09-13
+
+مرجع: [قرارداد عملیات و آمار](../api/operations-analytics.md). فرانت‌اند عملیات و داشبوردها طبق محدودهٔ فعلی به Next.js در مرحلهٔ بعد موکول است.
+
+| قابلیت | پیاده‌سازی و آزمون بک‌اند |
+| --- | --- |
+| CAP-OPS-01 | work.py، claim/reassign و آزادسازی؛ test_queue_claim_reassign_and_disable، test_concurrent_claim_has_one_winner، test_queue_includes_old_open_work |
+| CAP-OPS-02..03 | commands.py، allowlist نقش/فرمان و idempotency؛ آزمون‌های operations، operations_analytics و permissionهای دامنه |
+| CAP-OPS-04..05 | PolicyVersion، CommissionRate، snapshot تحویل و audit append-only؛ test_policy_future_effect_and_immutable_history، test_audit_redaction_preserves_trace و آزمون‌های مالی/تحویل موجود |
+| CAP-OPS-06 | suspensions.py و OrderDisposition؛ آزمون‌های لغو unpaid، continue/refund برای paid، حفظ تحویل shipped و تعلیق مستقل User |
+| CAP-ANA-01..03 | analytics.py و dashboard/drill-down؛ test_paid_goods_are_not_completed_sales، test_operator_dashboard_cannot_read_money_or_other_tenant، test_operator_finance_requires_related_assignment |
+
+اجرای کامل: ۲۶۸ تست موفق، پوشش ۹۱٫۸۷٪. پس از اصلاحات نهایی، ۲۱ تست operations/analytics/contract و سپس هر ۱۳ تست پذیرش operations_analytics شامل سناریوی ارسال‌شده گذشتند. Ruff، mypy، Django check، نبود migration معوقِ مدل و قرارداد OpenAPI تأیید شدند. Migrationهای operations/0007..0009 روی PostgreSQL محلی اعمال شدند. Load test ظرفیت و frontend جزو این تأیید نیستند.
+
 ## تحویل آغاز PRD-04 — سبد و پیش‌نمایش
 
 CAP-ORD-01 و CAP-ORD-02 در بخش سبد پایدار، انتخاب/ادغام fixed pack و free mix، تأیید تغییر روش، قیمت و عرضهٔ جاری و حفظ انتخاب نامعتبر پیاده شدند. CAP-ORD-03 در بخش آدرس کامل داخل سبد، خدمت هر محصول و برآورد حمل گروهی پیاده شد. مرجع اجرا `orders/cart.py`، قرارداد [cart.md](../api/cart.md) و تست `tests/test_cart.py` است. قید یکتایی سبد فعال و رقابت افزایش تعداد روی PostgreSQL آزموده شده‌اند.

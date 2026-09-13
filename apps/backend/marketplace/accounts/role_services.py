@@ -81,6 +81,10 @@ def set_operator(*, actor, user_id, enabled, reason):
                 before={"assignee": str(target.pk)},
                 after={"assignee": None},
             )
+    if not enabled:
+        from marketplace.operations.work import release
+
+        release(actor=actor, target=target, reason=reason)
     audit(
         actor=actor,
         action="operator.access_changed",

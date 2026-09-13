@@ -61,6 +61,17 @@ def configure_policy(*, actor, data, reason):
         setattr(policy, field, value)
     policy.full_clean()
     policy.save()
+    from marketplace.operations.models import PolicyVersion
+
+    PolicyVersion.objects.create(
+        scope="delivery",
+        actor=actor,
+        reason=reason,
+        values={
+            field: getattr(policy, field)
+            for field in ["ttl_seconds", "max_attempts", "cooldown_seconds", "hourly_limit"]
+        },
+    )
     # AuditEvent identifies UUID aggregates; use the responsible owner for this singleton.
     audit(
         actor=actor,

@@ -1,5 +1,22 @@
 # ERD منطقی
 
+برش اجرایی بک‌اند PRD-08:
+
+```mermaid
+erDiagram
+    User ||--o{ WorkItem : assigned
+    User ||--o{ PolicyVersion : configures
+    User ||--o{ OperationCommand : executes
+    User ||--o{ Suspension : proposes
+    Business o|--o{ Suspension : business_scope
+    User o|--o{ Suspension : user_scope
+    Suspension ||--o{ OrderDisposition : determines
+    Order ||--o{ OrderDisposition : receives
+    Suspension }o--o{ StoredFile : evidence
+```
+
+WorkItem با زوج kind/target_id به رکورد دامنه اشاره دارد. هر Suspension دقیقاً یک scope کاربر یا کسب‌وکار دارد. [قیود و قرارداد](data-dictionary.md).
+
 برش اجرایی PRD-06 (`disputes/0001..0002`، `support/0001`، `logistics/0009..0010`):
 
 ```mermaid

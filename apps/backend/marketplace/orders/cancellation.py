@@ -11,6 +11,7 @@ from marketplace.common.exceptions import Conflict
 from marketplace.common.pagination import StandardPagination
 from marketplace.logistics.models import Shipment
 from marketplace.logistics.services import lock_services
+from marketplace.operations.policy import value as policy_value
 from marketplace.operations.services import audit, notify
 
 from .checkout import order_data
@@ -35,7 +36,9 @@ def request_paid_cancellation(*, order, actor, reason):
         order=order,
         reason=reason,
         status="pending" if order.preparation_started_at else "refund_pending",
-        deadline=timezone.now() + timedelta(hours=24) if order.preparation_started_at else None,
+        deadline=timezone.now() + timedelta(hours=policy_value("cancellation_hours"))
+        if order.preparation_started_at
+        else None,
     )
     audit(
         actor=actor,
@@ -78,6 +81,9 @@ def decide(*, actor, pk, decision, reason="", operator=False):
         require_operator(actor)
         lock_services()
         order = get_object_or_404(Order.objects.select_for_update(), pk=pk)
+        from marketplace.operations.work import enforce
+
+        enforce(actor, "order", pk)
     else:
         order = owned_order(actor, pk, "manufacturer")
     request = get_object_or_404(CancellationRequest, order=order)

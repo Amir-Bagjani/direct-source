@@ -1,6 +1,5 @@
 from datetime import timedelta
 
-from django.conf import settings
 from django.db import transaction
 from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404
@@ -14,6 +13,7 @@ from marketplace.finance import services as finance
 from marketplace.logistics.fulfillment import visible_orders
 from marketplace.logistics.models import Shipment, ShipmentItem
 from marketplace.operations.models import StoredFile
+from marketplace.operations.policy import value as policy_value
 from marketplace.operations.services import audit, notify
 from marketplace.support import services as support
 
@@ -229,7 +229,7 @@ def add_claim(
         command_key=idempotency_key,
         request_hash=finance.digest(payload),
         response_deadline=timezone.now()
-        + timedelta(hours=getattr(settings, "DISCREPANCY_RESPONSE_HOURS", 48)),
+        + timedelta(hours=policy_value("discrepancy_response_hours")),
     )
     claim.evidence.set(files)
     audit(

@@ -3,7 +3,6 @@
 from datetime import timedelta
 from uuid import UUID
 
-from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db import transaction
 from django.db.models import Avg, Count, FloatField, Q
@@ -18,6 +17,7 @@ from marketplace.common.exceptions import Conflict
 from marketplace.finance.services import digest, lock_order, required_reason
 from marketplace.operations.files import upload_document
 from marketplace.operations.models import AuditEvent, StoredFile
+from marketplace.operations.policy import value as policy_value
 from marketplace.operations.services import audit
 from marketplace.orders.models import Order
 
@@ -51,7 +51,7 @@ def create_entitlements(*, order_id):
         or (not case and now < order.discrepancy_deadline)
     ):
         return []
-    deadline = order.completed_at + timedelta(days=settings.REVIEW_WINDOW_DAYS)
+    deadline = order.completed_at + timedelta(days=policy_value("review_days"))
     subjects: list[tuple[str, UUID, UUID, UUID | None, list[str]]] = [
         ("manufacturer", order.retailer_id, order.manufacturer_id, None, []),
         ("retailer", order.manufacturer_id, order.retailer_id, None, []),
@@ -347,6 +347,9 @@ def moderate(*, actor, pk, action, reason, idempotency_key):
     item = get_object_or_404(Report, pk=pk)
     Order.objects.select_for_update().get(pk=item.review.entitlement.order_id)
     item = Report.objects.select_related("review", "reply").get(pk=pk)
+    from marketplace.operations.work import enforce
+
+    enforce(actor, "review", item.pk)
     payload = digest(
         {"report": str(pk), "actor": str(actor.pk), "action": action, "reason": reason}
     )

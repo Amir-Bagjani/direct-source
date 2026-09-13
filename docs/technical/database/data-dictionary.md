@@ -1,5 +1,18 @@
 # فرهنگ داده و طراحی PostgreSQL
 
+## برش اجرایی عملیات PRD-08 — 2026-09-13
+
+| جدول | قرارداد |
+| --- | --- |
+| operations_workitem | نوع صف و UUID موجودیت یکتا؛ مسئول nullable؛ وضعیت دامنه در این جدول کپی نمی‌شود |
+| operations_policyversion | scope مهلت/تحویل، snapshot تنظیمات، effective_at، actor و reason؛ append-only |
+| operations_operationcommand | کلید UUID یکتا، hash درخواست و نتیجه؛ تکرار همسان idempotent، append-only |
+| operations_suspension | دقیقاً یکی از User/Business؛ پیشنهاددهنده، مدارک، علت و وضعیت؛ حداکثر یک بررسی/تعلیق باز برای هر scope |
+| operations_orderdisposition | زوج Suspension/Order یکتا؛ مرحله unpaid/paid/shipped، تصمیم، دلیل، عامل و مرجع مالی؛ تصمیم نهایی تغییرناپذیر |
+| operations_auditevent | افزوده‌های actor_role، command_source و correlation_id؛ before/after و دلیل redacted |
+
+Migrationهای `operations/0007..0009` ساختار و guardها را اعمال می‌کنند. نرخ کارمزد همچنان در `finance_commissionrate` نسخه‌دار است. [قرارداد عملیات و آمار](../api/operations-analytics.md).
+
 ## برش اجرایی مالی PRD-05 — 2026-09-11
 
 Migrationهای `finance/0001..0002` و `orders/0006_order_completion` (status=completed، completed_at و حفاظت نهایی‌شدن سفارش):

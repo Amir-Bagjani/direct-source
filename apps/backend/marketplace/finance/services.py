@@ -470,10 +470,12 @@ def hold_reasons(order):
     case = getattr(order, "discrepancy", None)
     if case and not case.closed_at:
         reasons.append("پروندهٔ مغایرت هنوز بسته نشده است")
+    from marketplace.operations.suspensions import permitted_to_continue
+
     if any(
         b.status == "suspended" or not b.membership.user.is_active or b.membership.user.is_suspended
         for b in [order.retailer, order.manufacturer]
-    ):
+    ) and not permitted_to_continue(order):
         reasons.append("تعلیق مؤثر طرف سفارش")
     if (
         order.shipping_groups.exclude(request__status__in=["completed", "cancelled"])
@@ -593,10 +595,18 @@ def read_finance(*, actor, pk):
     query = Order.objects.all()
     if not has_role(actor, "operator", "owner"):
         query = query.filter(
-            Q(retailer__membership__user=actor, retailer__status="verified")
-            | Q(manufacturer__membership__user=actor, manufacturer__status="verified")
+            Q(retailer__membership__user=actor, retailer__status__in=["verified", "suspended"])
+            | Q(
+                manufacturer__membership__user=actor,
+                manufacturer__status__in=["verified", "suspended"],
+            )
         )
     order = get_object_or_404(query, pk=pk)
+    if has_role(actor, "operator") and not has_role(actor, "owner"):
+        from marketplace.operations.work import assigned_order
+
+        if not assigned_order(actor, order):
+            raise PermissionDenied("اطلاعات مالی فقط در پروندهٔ واگذارشده قابل مشاهده است.")
     events = []
     for event in FinancialEvent.objects.filter(order=order).order_by("created_at", "pk"):
         doc = getattr(event, "document", None)

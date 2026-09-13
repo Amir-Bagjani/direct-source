@@ -10,6 +10,7 @@ from marketplace.accounts.models import Business
 from marketplace.catalog.services import locked_actor
 from marketplace.common.exceptions import Conflict
 from marketplace.logistics.grouping import freeze_shipping
+from marketplace.operations.policy import value as policy_value
 from marketplace.operations.services import audit, notify
 
 from . import cart
@@ -110,7 +111,7 @@ def submit(*, actor, cart_id, idempotency_key, quote_fingerprint):
             status="pending",
             destination=basket.destination,
             commercial=commercial,
-            response_deadline=timezone.now() + timedelta(hours=24),
+            response_deadline=timezone.now() + timedelta(hours=policy_value("order_hours")),
         )
         services = {}
         for product in manufacturer["products"]:

@@ -15,6 +15,7 @@ from marketplace.accounts.permissions import active_user, has_role, require_oper
 from marketplace.catalog.services import locked_actor, snapshot
 from marketplace.common.exceptions import Conflict
 from marketplace.operations.models import StoredFile
+from marketplace.operations.policy import value as policy_value
 from marketplace.operations.services import audit, notify
 from marketplace.orders.models import Order
 
@@ -45,7 +46,7 @@ def visible_orders(actor):
     )
 
 
-def lock_request(actor, request_id, *, operator=False):
+def lock_request(actor, request_id, *, operator=False, delivery_id=None):
     actor = locked_actor(actor)
     if operator:
         require_operator(actor)
@@ -67,11 +68,16 @@ def lock_request(actor, request_id, *, operator=False):
         .get(pk=request_id)
     )
     if not operator:
-        if (
-            order.manufacturer.membership.user_id != actor.pk
-            or order.manufacturer.status == "suspended"
+        from marketplace.operations.suspensions import permitted_to_continue
+
+        if order.manufacturer.membership.user_id != actor.pk or (
+            order.manufacturer.status == "suspended" and not permitted_to_continue(order)
         ):
             raise PermissionDenied()
+    else:
+        from marketplace.operations.work import enforce
+
+        enforce(actor, "delivery" if delivery_id else "shipping", delivery_id or request.pk)
     if order.status != "active" or not order.paid_at:
         raise Conflict("فقط سفارش فعال و پرداخت‌شده قابل آماده‌سازی و ارسال است.")
     if getattr(order, "cancellation", None) and order.cancellation.status == "refund_pending":
@@ -586,7 +592,9 @@ def shipment_order_lock(actor, shipment_id, *, operator=False):
     reference = get_object_or_404(
         Shipment, pk=shipment_id, purpose="order", request__group__order__in=visible_orders(actor)
     )
-    actor, order, request = lock_request(actor, reference.request_id, operator=operator)
+    actor, order, request = lock_request(
+        actor, reference.request_id, operator=operator, delivery_id=shipment_id
+    )
     return actor, order, request, Shipment.objects.get(pk=shipment_id)
 
 
@@ -838,7 +846,9 @@ def refresh_fulfillment(order, actor=None):
     status = aggregate_status(order)
     if status == "fully_delivered" and order.delivered_at is None:
         order.delivered_at = timezone.now()
-        order.discrepancy_deadline = order.delivered_at + timedelta(hours=72)
+        order.discrepancy_deadline = order.delivered_at + timedelta(
+            hours=policy_value("discrepancy_hours")
+        )
         order.save(update_fields=["delivered_at", "discrepancy_deadline", "updated_at"])
         audit(
             actor=actor,

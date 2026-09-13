@@ -1,5 +1,9 @@
 # برنامهٔ مرحله‌ای توسعهٔ بک‌اند
-وضعیت: در حال اجرا — backend PRD-05 به checkout و لجستیک متصل است؛ پرداخت، بازپرداخت، تسویه و تکمیل سفارش پیاده شده‌اند. backend PRD-06 شامل پرونده، داوری، تیکت و جبران داخلی متصل شده است؛ backend PRD-07 شامل entitlement، نظر محصول، همکاری کور، پاسخ و moderation متصل شده است؛ رابط مرورگر و PRD-08 هنوز بازند.
+وضعیت: در حال اجرا — backend PRD-05 به checkout و لجستیک متصل است؛ پرداخت، بازپرداخت، تسویه و تکمیل سفارش پیاده شده‌اند. backend PRD-06 شامل پرونده، داوری، تیکت و جبران داخلی متصل شده است؛ backend PRD-07 شامل entitlement، نظر محصول، همکاری کور، پاسخ و moderation متصل شده است. APIهای عملیات، تعلیق و داشبورد PRD-08 اضافه شده‌اند. طبق تعیین محدودهٔ 2026-09-13، رابط عملیات و تمام frontend بعداً با Next.js پیاده می‌شوند.
+
+## برش بک‌اند PRD-08 — 2026-09-13
+
+صف جاری و claim/reassign اتمیک، آزادسازی مسئولیت اپراتور، فرمان‌های محدود دامنه و idempotency، تنظیمات نسخه‌دار، audit با correlation و redaction، تعلیق مستقل User/Business و تصمیم هر Order، داشبورد محدود به نقش/Business و drill-down اضافه شدند. جزئیات مالی اپراتور به پروندهٔ مرتبط واگذارشده محدود است. قرارداد در [operations-analytics.md](../api/operations-analytics.md) و آزمون‌ها در `tests/test_operations_analytics.py` قرار دارند. قالب‌ها و مسیرهای HTML جزو این تحویل نیستند؛ ساخت UI عملیات و داشبوردها در Next.js باز می‌ماند.
 
 ## تحویل اجرایی 2026-09-07
 اسکیل‌های architecture، domain-modeling، database-architect، backend-architect، architecture-decision-records، django-pro و postgres-best-practices در این برش استفاده شدند. طرح دامنه و ERD کلان ایجاد و دیتابیس اولین برش به migration تبدیل شد؛ طراحی فیزیکی همهٔ ماژول‌های تجاری هنوز تکمیل نیست.
@@ -527,16 +531,17 @@ ProductRevision با draft/submit/claim/review/cancel، یک نسخهٔ باز �
 - [x] report، hide/unhide، invalidate/revalidate، دلیل، actor، تاریخچه و پاسخ عمومی immutable در backend ساخته شدند؛ پنل مرورگر باز است.
 
 ### Task 8.3 — تعلیق شخص/کسب‌وکار
-- [ ] دو نوع تعلیق مستقل و دسترسی محدود پس از تعلیق اعمال شوند.
+- [x] دو نوع تعلیق مستقل و دسترسی محدود پس از تعلیق در بک‌اند اعمال شدند.
 
-- [ ] برای هر سفارش فعال disposition جدا ثبت شود؛ هیچ رکوردی حذف نشود.
+- [x] برای هر سفارش فعال disposition جدا ثبت می‌شود؛ سفارش‌ها و تصمیم‌ها حذف نمی‌شوند.
 
 ### Task 8.4 — پنل عملیات و audit
-- [ ] صف‌های ضروری اپراتور در پنل سفارشی و مرز مجوز مالک سامانه طبق ADR-0010 ساخته شوند.
+- [x] API صف‌های ضروری، claim/reassign، فرمان دامنه و مرز مجوز مالک ساخته شدند.
+- [ ] رابط پنل سفارشی در Next.js ساخته شود؛ طبق محدودهٔ فعلی، frontend به مرحلهٔ بعد موکول است.
 
-- [ ] اپراتور به Django Admin دسترسی نداشته باشد و admin مالک/کاربر فنی با allowlist مدل و فیلد محدود شود.
+- [x] اپراتور به Django Admin دسترسی ندارد و admin فنی محدود است.
 
-- [ ] مدل‌های حساس در Django Admin ثبت نشوند یا read-only باشند؛ اصلاح دستی فقط از commandهای audit‌شده با reason و before/after انجام شود.
+- [x] مدل‌های حساس در Django Admin ثبت نشده‌اند یا read-only هستند؛ اصلاح دستی از commandهای audit‌شده با reason و before/after انجام می‌شود.
 
 **Verification فاز:** permission regression suite و سناریوهای تعلیق در سه مرحلهٔ سفارش پاس شوند.
 
@@ -547,9 +552,9 @@ ProductRevision با draft/submit/claim/review/cancel، یک نسخهٔ باز �
 **وابستگی:** فاز ۸
 
 ### Task 9.1 — تعریف و پیاده‌سازی metricها
-- [ ] هر metric فرمول، timezone، فیلتر و drill-down مشخص داشته باشد.
+- [x] فرمول، timezone، فیلتر و drill-down معیارهای بک‌اند در قرارداد operations-analytics مستند شدند.
 
-- [ ] queryهای تولیدکننده، خرده‌فروش و مدیر tenant-safe و paginationدار باشند.
+- [x] queryهای تولیدکننده، خرده‌فروش و مدیر scope اجباری و drill-down صفحه‌بندی‌شده دارند؛ شاخص مالی کلان فقط برای مالک است.
 
 ### Task 9.2 — performance و resilience
 - [ ] query plan/index برای مسیرهای اصلی بازبینی شود.

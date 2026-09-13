@@ -1,5 +1,9 @@
 # فرهنگ داده و طراحی PostgreSQL
 
+## تکمیل نگهداری فایل — 2026-09-13
+
+StoredFile در migration `operations/0010` دارای `purged_at` شد: `deleted_at` زمان تأیید حذف و قطع دسترسی است و `purged_at` پایان حذف از مخزن را ثبت می‌کند. classification از purpose مشتق می‌شود: identity/activity برابر restricted، سایر فایل‌ها private. `legal_hold` با فرمان مالک و دلیل تغییر می‌کند؛ پروندهٔ باز مانع تأیید حذف است. اصل metadata و FKها حفظ می‌شوند. رویدادهای deletion_approved، purged و tombstone_reapplied رد اجرای دستی و بازیابی را نگه می‌دارند؛ فایل‌های تاریخی با purged_at تهی نگهداری می‌شوند. [قرارداد و محدودیت‌ها](../backend/file-retention-runbook.md).
+
 ## برش اجرایی عملیات PRD-08 — 2026-09-13
 
 | جدول | قرارداد |

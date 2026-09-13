@@ -78,6 +78,11 @@ class StoredFile(BaseModel):
     consent_version = models.CharField(max_length=40)
     legal_hold = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True)
+    purged_at = models.DateTimeField(null=True)
+
+    @property
+    def classification(self):
+        return "restricted" if self.purpose in ["identity", "activity"] else "private"
 
     class Meta:
         constraints = [

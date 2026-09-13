@@ -14,18 +14,18 @@
 | هویت / accounts | User، AuthSession، EmailChallenge، PlatformRole | Register، Login، RotateSession، Logout، VerifyEmail، ResetPassword | موبایل canonical یکتا؛ ثبت‌نام Business نمی‌سازد؛ نقش از DB خوانده می‌شود؛ reuse نشست را باطل می‌کند |
 | اعتماد / accounts | Business، Membership، VerificationApplication، VerificationSection، Evidence | CreateBusiness، SubmitVerification، ReviewSection، ReopenVerification، SetControlledAccess | هر شخص حداکثر یک Business و هر Business یک مالک؛ تأیید نیازمند پذیرش هر دو بخش؛ مجوز MVP مستقل از وضعیت |
 | بازنگری اعتماد / accounts | BusinessRevision | ProposeRevision، ClaimRevision، ReviewRevision، ResubmitRevision | تا تأیید همهٔ بخش‌های تغییرکرده، دادهٔ مصوب و وضعیت Business ثابت؛ یک بازنگری باز؛ تاریخچهٔ نهایی تغییرناپذیر |
-| محدودسازی / accounts | SuspensionCase، OrderDisposition | SuspendUser، SuspendBusiness، Restore | وضعیت User و Business مستقل؛ فقط مالک سامانه تصمیم نهایی می‌گیرد؛ آثار هر Order جدا ثبت می‌شوند |
+| محدودسازی / operations | Suspension، OrderDisposition | Propose، Activate، Reject، Restore، DecideOrder | وضعیت User و Business مستقل؛ فقط مالک سامانه تصمیم نهایی می‌گیرد؛ آثار هر Order جدا ثبت می‌شوند |
 | کاتالوگ / catalog | Category، AttributeDefinition، Product، ProductRevision، Variant، PriceTier، FixedPack | SubmitProduct، PublishRevision، SetSupply | نسخهٔ مصوب عمومی است؛ SKU یکتا؛ قیمت برای غیرخرده‌فروش تأییدشده افشا نمی‌شود |
-| عرضه / catalog | Supply، Reservation | Reserve، Allocate، Release | موجودی/ظرفیت منفی ممنوع؛ آماده قبل از تولید؛ آزادسازی دقیقاً یک‌بار |
+| عرضه / catalog و orders | catalog.VariantSupply، orders.Reservation | Reserve، Allocate، Release | catalog مالک عرضه؛ orders مالک رزرو/تخصیص؛ موجودی/ظرفیت منفی ممنوع؛ آماده قبل از تولید؛ آزادسازی دقیقاً یک‌بار |
 | سفارش / orders | Cart، CartProductSelection، OrderGroup، Order، OrderLine، CancellationRequest | PreviewCheckout، Checkout، Accept، Reject، Expire، Cancel | ثبت گروه همه یا هیچ؛ پس از ثبت هر Order مستقل؛ snapshot غیرقابل‌ویرایش |
 | مالی / finance | Payment، Invoice، Adjustment، Refund، Settlement، SettlementHold | Pay، RefundFromDecision، Settle | integer IRR؛ همهٔ MVP با execution_mode=simulated؛ مبلغ حمل مستقل؛ سند صادرشده الحاقی |
-| لجستیک / fulfillment | ShippingService، TariffVersion، TariffRow، Carrier | ActivateTariff، Quote | فعال‌سازی فقط مالک؛ شهر سپس استان سپس سراسری؛ بازه‌های فعال بدون هم‌پوشانی |
-| اجرای حمل / fulfillment | ShippingGroup، TransportRequest، Shipment، ShipmentItem، TrackingEvent، DeliveryChallenge | Ready، Assign، Handover، IssueCode، ConfirmDelivery | مجموع تخصیص از اقلام بیشتر نمی‌شود؛ تحویل آخرین مرسوله آغاز ۷۲ ساعت؛ کد فقط hash |
+| لجستیک / logistics | ShippingService، Tariff، Carrier | ActivateTariff، Quote | فعال‌سازی فقط مالک؛ شهر سپس استان سپس سراسری؛ بازه‌های فعال بدون هم‌پوشانی |
+| اجرای حمل / logistics | ShippingGroup، ShippingRequest، Shipment، ShipmentItem، FulfillmentEvent، DeliveryChallenge | Ready، Assign، Handover، IssueCode، ConfirmDelivery | مجموع تخصیص از اقلام بیشتر نمی‌شود؛ تحویل آخرین مرسوله آغاز مهلت؛ کد فقط hash |
 | مغایرت / disputes | DiscrepancyCase، DiscrepancyLine، Resolution، Compensation | ClaimDiscrepancy، Respond، Decide، CompleteCompensation | قلم و تعداد دقیق؛ ۴۸ ساعت پاسخ؛ hold فقط همان Order؛ مبلغ جبران از snapshot |
 | پشتیبانی / support | Ticket، Message، Attachment | Reply، Resolve، Close | پیام اثر مالی ندارد؛ حل‌شده با پاسخ باز می‌شود؛ بسته‌شده نهایی |
 | نظر / reviews | Entitlement، Review، Reply، ModerationAction | SubmitReview، PublishPair، HideContent، Invalidate | یک حق برای موضوع سفارش؛ ۱۴ روز؛ ارسال نهایی قفل؛ دادهٔ simulated در آمار عمومی نیست |
 | عملیات / operations | WorkItem، AuditEvent، OutboxEvent، InboxNotification، StoredFile | Claim، Reassign، Dispatch، AuthorizeDownload | claim اتمیک؛ تصمیم فقط مسئول/مالک؛ audit الحاقی؛ اعلان idempotent؛ فایل قرنطینه تا اسکن |
-| تحلیل / analytics | read model روی contextهای بالا | QueryDashboard | فقط خواندن؛ کش پنج‌دقیقه‌ای بدون استفاده در مجوز یا تصمیم مالی |
+| تحلیل / operations.analytics | projection روی contextهای بالا | QueryDashboard، DrillDown | فقط خواندن از PostgreSQL؛ بدون کش در اجرای فعلی؛ scope نقش و Business اجباری |
 
 ## Value objectها
 
@@ -35,7 +35,7 @@
 
 - ماژول مالک تنها نویسندهٔ مدل خود است؛ API از service و خواندن از selector می‌گذرد.
 - orchestration سفارش می‌تواند در همان transaction سرویس رزرو و مالی را فراخوانی کند. consumer رویداد نباید برای invariant مالی به eventual consistency متکی باشد.
-- `operations` فقط زیرساخت audit/outbox را ارائه می‌دهد؛ برای تغییر دامنه به command مشخص رجوع می‌کند. importهای runtime دوری ممنوع؛ FK به User با `AUTH_USER_MODEL` تعریف می‌شود.
+- `operations` مالک audit/outbox، صف، تنظیمات، تعلیق و نگهداری فایل است؛ برای تغییر سفارش، مالی، کاتالوگ و لجستیک به سرویس همان دامنه رجوع می‌کند. importهای سطح ماژول نباید چرخهٔ بارگذاری بسازند؛ وابستگی‌های orchestration در محل فراخوانی import می‌شوند. FK به User با `AUTH_USER_MODEL` تعریف می‌شود.
 - اعلان و email اثر پس از commit هستند؛ intent در همان transaction ذخیره می‌شود. شکست Redis نباید write دامنه را از بین ببرد.
 - هیچ پیام صف یا JWT حامل نقش معتبر دائمی، مدرک هویتی، password یا کد تحویل نیست.
 

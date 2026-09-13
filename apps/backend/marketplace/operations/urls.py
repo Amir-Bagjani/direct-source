@@ -3,6 +3,8 @@ from django.urls import path
 from . import console_api as api
 
 urlpatterns = [
+    path("files/<uuid:pk>/hold/", api.FileHoldView.as_view()),
+    path("files/<uuid:pk>/delete/", api.FileDeleteView.as_view()),
     path("work/", api.QueueList.as_view()),
     path("work/<str:kind>/<uuid:pk>/claim/", api.ClaimView.as_view()),
     path("work/<str:kind>/<uuid:pk>/command/", api.CommandView.as_view()),

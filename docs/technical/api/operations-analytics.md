@@ -8,6 +8,8 @@
 
 | روش و مسیر | کاربرد و مجوز |
 | --- | --- |
+| `POST files/{id}/hold/` | ثبت/رفع legal hold با enabled و reason؛ فقط مالک |
+| `POST files/{id}/delete/` | تأیید و حذف دستی با reason؛ فقط مالک، بدون گردش باز یا hold؛ retry پس از 503 همان درخواست |
 | `GET work/` | صف جاری PostgreSQL؛ مالک و اپراتور |
 | `POST work/{kind}/{id}/claim/` | پذیرش اتمیک مسئولیت؛ `reason` الزامی |
 | `POST work/{kind}/{id}/command/` | فرمان دامنه با `command`، `reason`، `idempotency_key` و `parameters` |

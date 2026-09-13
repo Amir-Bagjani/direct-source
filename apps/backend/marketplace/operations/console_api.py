@@ -91,6 +91,38 @@ class WorkClaimInput(StrictCommand):
     user_id = serializers.UUIDField(required=False)
 
 
+class FileRetentionInput(StrictCommand):
+    reason = serializers.CharField(max_length=2000)
+
+
+class FileHoldInput(FileRetentionInput):
+    enabled = serializers.BooleanField()
+
+
+class FileHoldView(APIView):
+    @extend_schema(request=FileHoldInput, responses=ObjectOutput)
+    def post(self, request, pk):
+        from .retention import set_hold
+
+        return Response(
+            {"data": set_hold(actor=request.user, pk=pk, **validated(FileHoldInput, request))}
+        )
+
+
+class FileDeleteView(APIView):
+    @extend_schema(request=FileRetentionInput, responses=ObjectOutput)
+    def post(self, request, pk):
+        from .retention import delete_file
+
+        return Response(
+            {
+                "data": delete_file(
+                    actor=request.user, pk=pk, **validated(FileRetentionInput, request)
+                )
+            }
+        )
+
+
 class ClaimView(APIView):
     @extend_schema(request=WorkClaimInput, responses=ObjectOutput)
     def post(self, request, kind, pk):

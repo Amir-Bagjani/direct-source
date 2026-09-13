@@ -161,6 +161,8 @@ def download_document(*, actor, file):
             or not own_rights(actor).filter(reviewimage__file=file).exists()
         ):
             raise NotFound()
+        with transaction.atomic():
+            audit(actor=actor, action="file.download_authorized", target=file)
         return default_storage.url(file.object_key)
 
     if file.purpose in ["support", "discrepancy"]:

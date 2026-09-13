@@ -1,4 +1,22 @@
 # برنامهٔ مرحله‌ای توسعهٔ بک‌اند
+
+## بازبینی checkboxهای قدیمی — 2026-09-13
+
+این بازبینی هر مورد را با فایل اجرایی یا تست مرتبط تطبیق می‌دهد. `[x]` برای CI به معنی وجود job و تأیید پیکربندی است؛ مشاهدهٔ اجرای سبز GitHub نیاز به شاهد remote جدا دارد. تست‌های API از PostgreSQL واقعی و در مسیر فایل/ایمیل از adapter کنترل‌شده استفاده می‌کنند؛ جای تمرین provider واقعی در staging نیستند. checkboxهای Definition of Done در انتهای سند قالب تکرارشونده‌اند، نه backlog مستقل.
+
+| محدوده | شاهد |
+| --- | --- |
+| CI، schema و migration | `.github/workflows/backend.yml`، `tests/test_contract.py` |
+| Celery/Redis/beat، storage و اعلان | `config/settings/base.py`، `compose.yaml`، `common/storage.py`، `operations/tasks.py` |
+| هویت و تأیید دو نوع Business | `tests/test_auth.py`، `tests/test_onboarding_api.py`، `tests/test_business.py` |
+| ماتریس محورهای دسترسی | `tests/test_backend_completion.py::test_independent_access_axes` و تست‌های مجوز هر دامنه |
+| شکست اعلان و retry محدود | `test_outbox_failure_rolls_back_and_retry_delivers_once`، `test_outbox_cannot_escape_rolled_back_domain_command`، `test_email_retry_is_bounded_and_excludes_future_leases` |
+| کمبود تکمیل‌شدهٔ نگهداری فایل | `operations/retention.py`، API hold/delete، migration `0010`، تست حذف نسخه‌ها/hold/پروندهٔ باز/retry و `file-retention-runbook.md` |
+
+NextAuth/CSRF مرورگر، تأیید remote CI، سناریوی runtime با providerهای واقعی، دادهٔ نماینده، load test، انتخاب provider و تمرین staging همچنان در checkpointهای مربوط باز هستند. نیازمندی جدیدی برای frontend در این بازبینی پیاده نشده است.
+
+راستی‌آزمایی این بازبینی: **۲۸۱ تست PostgreSQL موفق، پوشش ۹۱٫۹۸٪**؛ شامل ۱۲ حالت تازه در test_backend_completion.py. Ruff، format، mypy (۱۱۸ فایل)، Django check، migration drift و OpenAPI validate/fail-on-warn موفق بودند. migration `operations/0010` روی دیتابیس محلی اعمال شد. هیچ فایل واقعی مخزن حذف نشد؛ رفتار حذف و نسخه‌های S3 با adapter شبیه‌سازی‌شده آزموده شد.
+
 وضعیت: در حال اجرا — backend PRD-05 به checkout و لجستیک متصل است؛ پرداخت، بازپرداخت، تسویه و تکمیل سفارش پیاده شده‌اند. backend PRD-06 شامل پرونده، داوری، تیکت و جبران داخلی متصل شده است؛ backend PRD-07 شامل entitlement، نظر محصول، همکاری کور، پاسخ و moderation متصل شده است. APIهای عملیات، تعلیق و داشبورد PRD-08 اضافه شده‌اند. طبق تعیین محدودهٔ 2026-09-13، رابط عملیات و تمام frontend بعداً با Next.js پیاده می‌شوند.
 
 ## برش بک‌اند PRD-08 — 2026-09-13
@@ -17,7 +35,7 @@
 | 2.2.a قرارداد مشترک | S | common، config/urls.py، OpenAPI | schema drift، خطا، pagination، health و deny-by-default | done |
 | 2.3.a کیفیت | S | pyproject، workflow، tests/test_contract.py | Ruff، mypy، pytest، coverage؛ CI تعریف‌شده ولی اجرای remote هنوز مشاهده نشده | done برای بررسی محلی |
 | 2.4.a audit و outbox | M | operations/models.py، services.py، tasks.py، migrations | trigger الحاقی، commit مشترک و inbox idempotent | done |
-| 2.4.b مدارک خصوصی | M | operations/files.py، common/storage.py، API و test_files | signature/size/consent/scan gate و دسترسی؛ تست واقعی provider و حذف کنترل‌شده باز | in-progress |
+| 2.4.b مدارک خصوصی | M | operations/files.py، retention.py، common/storage.py، API و تست‌ها | signature/size/consent/scan gate، دسترسی، legal hold، tombstone و حذف کنترل‌شده؛ provider واقعی در staging باز | done برای بک‌اند با mock provider |
 | 3.1.a هویت و نشست | M | auth_services.py، authentication.py، serializers/api، test_auth | ثبت‌نام، موبایل canonical، rotation/reuse/logout و تعلیق؛ رقابت PostgreSQL | done برای Django |
 | 3.1.b بازیابی ایمیل | M | email_services.py، tasks، API، test_auth، ADR-0013 | ایمیل verified، لینک منقضی/مصرف‌شده، رمز فعلی برای تغییر ایمیل، revoke همهٔ نشست‌ها | done برای Django؛ SMTP/BFF محیط مقصد باز |
 | 3.2.a مالکیت | S | business_services.py، permissions.py، test_business | یک مالک/یک Business و tenant isolation | done |
@@ -218,34 +236,34 @@ P. بستن نقشهٔ محصول و نوشتن PRDها
 **وابستگی:** فاز ۰
 
 ### Task 1.1 — نقشهٔ دامنه و aggregateها
-- [ ] bounded contextها، aggregate rootها، value objectها و ownership داده مشخص شوند.
+- [x] bounded contextها، aggregate rootها، value objectها و ownership داده در domain-model.md مشخص شده‌اند.
 
-- [ ] commandها، eventهای داخلی و invariantهای هر aggregate فهرست شوند.
+- [x] commandها، eventهای داخلی و invariantهای aggregateها در domain-model.md و قراردادهای API فهرست شده‌اند.
 
-- [ ] dependencyهای بین contextها و موارد ممنوع مشخص شوند.
+- [x] dependencyها و مرز نوشتن داده در domain-model.md و capability-dependencies.md مشخص شده‌اند.
 
 **خروجی:** `docs/technical/database/domain-model.md`
 
 ### Task 1.2 — state machineها
-- [ ] چرخه‌های Business Verification، Product Publication، Order، Fulfillment، Finance، Shipment، Discrepancy، Ticket، Suspension و Review رسم شوند.
+- [x] چرخه‌های دامنه در جدول‌های گذار و نمودارهای state-machines.md ثبت‌اند؛ نمودار اجرایی تعلیق/تصمیم سفارش و نگهداری فایل نیز اضافه شد.
 
-- [ ] actor، precondition، side effect، deadline و terminal state هر transition تعریف شود.
+- [x] actor، guard، اثر، deadline و حالت نهایی در state-machines.md و قرارداد API هر دامنه تعریف شده‌اند؛ تفاوت نام‌های مفهومی/اجرایی مشخص است.
 
-- [ ] transitionهای اپراتوری و دلیل اجباری آن‌ها جدا شوند.
+- [x] transitionهای مسئول پرونده و مالک سامانه و reason اجباری در جدول وضعیت و allowlist فرمان عملیات مشخص‌اند.
 
 **خروجی:** `docs/technical/database/state-machines.md`
 
 ### Task 1.3 — ERD و فرهنگ داده
-- [ ] entityها، رابطه‌ها، cardinality و ownership ترسیم شوند.
+- [x] entityها، رابطه‌ها، cardinality و ownership در ERD و فرهنگ داده ثبت شده‌اند.
 
-- [ ] unique/check constraint، index اولیه، snapshot و audit fields تعیین شوند.
+- [x] unique/check constraint، indexهای اولیه، snapshot و audit fields در مدل، migration و فرهنگ داده ثبت شده‌اند.
 
-- [ ] فیلدهای PII/حساس، retention و سطح دسترسی علامت‌گذاری شوند.
+- [x] فیلدهای حساس و دسترسی در فرهنگ داده و ADR-0006 ثبت‌اند؛ classification و گردش نگهداری/حذف فایل در file-retention-runbook.md مستند و آزموده شدند.
 
 **خروجی:** `docs/technical/database/erd.md` و `data-dictionary.md`
 
 ### Task 1.4 — سناریو و invariant قابل‌آزمون
-- [ ] برای هر نیازمندی، Given/When/Then مسیر خوشحال و لبه‌های مالی/دسترسی نوشته شود.
+- [x] معیارهای Given/When/Then در بخش پذیرش هشت PRD و سناریوهای مرزی domain-model.md نوشته شده‌اند.
 
 - [ ] ردیابی requirement → entity/transition/test تکمیل شود.
 
@@ -267,7 +285,7 @@ P. بستن نقشهٔ محصول و نوشتن PRDها
 ### Task 2.2 — استانداردهای API و خطا
 - [x] DRF، REST JSON، `/api/v1/`، OpenAPI 3، pagination و error envelope طبق ADR-0008 پایه شوند.
 
-- [ ] اعتبارسنجی schema و contract test برای جلوگیری از اختلاف OpenAPI و endpointها در CI اجرا شوند.
+- [x] workflow موجود backend.yml، اعتبارسنجی OpenAPI و test_schema_matches_committed_contract را در CI اجرا می‌کند؛ پیکربندی و اجرای محلی بررسی شدند، سبز بودن اجرای remote جدا تأیید می‌شود.
 
 - [x] request ID، health endpoint و logging ساخت‌یافته اضافه شوند.
 
@@ -276,27 +294,28 @@ P. بستن نقشهٔ محصول و نوشتن PRDها
 ### Task 2.3 — کیفیت و CI
 - [x] formatter/linter/type check/test runner و coverage threshold تنظیم شوند.
 
-- [ ] test database واقعی PostgreSQL و migration check در CI اجرا شوند.
+- [x] PostgreSQL 16 در CI و migration از صفر، makemigrations --check و pytest در backend.yml تنظیم شده‌اند.
 
-- [ ] secret scan و dependency/security scan پایه شوند.
+- [x] Gitleaks با خروجی redacted و pip-audit در workflow CI از قبل پایه شده‌اند.
 
 ### Task 2.4 — worker و فایل
-- [ ] Celery، scheduler و Redis طبق ADR-0009 با task آزمایشی idempotent، retry محدود و timeout راه‌اندازی شوند.
+- [x] Celery/beat و Redis در Compose و settings تعریف شده‌اند؛ timeout عمومی و retry محدود برقرار است و idempotency/failure با تست backend_completion بررسی می‌شود. آزمون قطع broker واقعی جزو تمرین staging است.
 
-- [ ] storage abstraction و محیط local/S3-compatible خصوصی طبق ADR-0006 تعریف شود.
+- [x] PrivateS3Storage و MinIO خصوصی محلی با init_local_storage تعریف شده‌اند.
 
-- [ ] metadata فایل، purpose، classification، owner، hash، hold، tombstone و audit دسترسی/حذف پیاده و آزموده شوند.
+- [x] metadata، classification مشتق از purpose، legal hold، tombstone و audit دسترسی/حذف پیاده و آزموده شدند؛ حذف نسخه‌های دقیق object و retry در retention.py است.
 
-- [ ] URL امضاشدهٔ کوتاه‌عمر، allowlist نوع، سقف حجم/تعداد، بررسی signature و اسکن بدافزار طبق `file-upload-policy.md` پیاده شوند.
+- [x] URL امضاشدهٔ ۶۰ثانیه‌ای، allowlist، محدودیت حجم/تعداد، signature و ClamAV پیاده‌اند؛ تست فایل/دامنه تأیید می‌کند و provider در تست‌ها mock است.
 
-- [ ] transactional outbox یا الگوی تضمین‌شدهٔ هم‌ارز برای dispatch پس از commit پیاده و تست شود.
+- [x] intent اعلان در تراکنش دامنه ثبت می‌شود؛ rollback دامنه و rollback تحویل ناموفق، پیام ناقص باقی نمی‌گذارند؛ retry دقیقاً یک inbox می‌سازد.
 
-- [ ] interface اعلان و provider داخلی `InternalInbox` با dispatch idempotent ساخته شود؛ provider مالک منطق یا secret کد تحویل نباشد.
+- [x] InternalInbox با event یکتا ساخته شده است؛ email در inbox وارد نمی‌شود و کد تحویل فقط در projection گیرنده محاسبه می‌شود.
 
 **Verification فاز:** build پاک، migration از صفر، test/quality checks، health web/worker و تولید OpenAPI.
 
 ### Checkpoint 2
-- [ ] محیط local و CI یکسان و scaffold آمادهٔ اولین برش عمودی است.
+- [x] scaffold، نسخه‌های Python/dependency قفل‌شده، PostgreSQL و تنظیمات مشترک local/CI آماده‌اند و برش عمودی onboarding تست دارد.
+- [ ] اجرای سبز remote CI و health واقعی web/worker در محیط مقصد ثبت شود.
 
 ## فاز ۳ — هویت، کسب‌وکار و تأیید
 **وابستگی:** فاز ۲
@@ -304,9 +323,11 @@ P. بستن نقشهٔ محصول و نوشتن PRDها
 ### Task 3.1 — ثبت‌نام و احراز هویت JWT/NextAuth
 - [x] ثبت‌نام، ورود، خروج، refresh، بازیابی دسترسی و rate limit پیاده شود.
 
-- [ ] Django مرجع هویت و صادرکنندهٔ access/refresh JWT و NextAuth لایهٔ session/BFF باشد؛ JWT خام به JavaScript مرورگر نرسد.
+- [x] Django مرجع هویت و صادرکنندهٔ access/refresh JWT است؛ نشست‌ها در دیتابیس قابل ابطال‌اند.
+- [ ] NextAuth/BFF و نگهداری JWT خارج از JavaScript مرورگر در Next.js پیاده شوند.
 
-- [ ] rotation/blacklist، CSRF، token replay، refresh reuse و تعلیق فوری تست شوند.
+- [x] rotation، refresh reuse/replay، رقابت refresh و تعلیق فوری در test_auth.py آزموده شده‌اند.
+- [ ] CSRF/cookie و نشست BFF پس از پیاده‌سازی Next.js آزموده شوند.
 
 - [x] custom User و وضعیت تعلیق شخص تست شود.
 
@@ -316,19 +337,19 @@ P. بستن نقشهٔ محصول و نوشتن PRDها
 - [x] قید «یک مالک در MVP» و tenant isolation در DB/API آزموده شود.
 
 ### Task 3.3 — احراز و تأیید دستی
-- [ ] مدارک هویت/فعالیت، submission، review و reason ثبت شوند.
+- [x] مدارک هویت/فعالیت، submission، review و reason در verification_services و آزمون onboarding هر دو نوع کسب‌وکار پوشش دارند.
 
-- [ ] صف اپراتور و transitionهای تأیید/رد با audit trail ساخته شوند.
+- [x] صف، claim و transitionهای تأیید/رد با audit در API و تست‌های business/operations موجودند.
 
 ### Task 3.4 — ماتریس دسترسی
-- [ ] platform role، business type، membership role و business status جدا اعمال شوند.
+- [x] نقش پلتفرمی، نوع کسب‌وکار، مالکیت و وضعیت مستقل در permissions.py اعمال می‌شوند.
 
-- [ ] جدول دسترسی به permission testهای data-driven تبدیل شود.
+- [x] ترکیب نقش/نوع/وضعیت/controlled_access/تعلیق به تست جدول‌محور test_independent_access_axes تبدیل شد؛ tenant isolation و endpointها در تست‌های دامنه پوشش دارند.
 
 **Verification فاز:** کاربر عمومی ثبت‌نام می‌کند؛ کسب‌وکار تا تأیید فعالیت تجاری ندارد؛ دادهٔ کسب‌وکار دیگر قابل‌مشاهده نیست.
 
 ### Checkpoint 3
-- [ ] یک تولیدکننده و خرده‌فروش از ثبت‌نام تا تأیید کامل طی می‌شوند.
+- [x] test_register_to_verified_business_api برای manufacturer و retailer، مسیر API از ثبت‌نام تا تأیید و controlled access را طی می‌کند؛ storage/scan در تست mock هستند.
 
 ## فاز ۴ — کاتالوگ، قیمت و عرضه
 ### تحویل پیش‌نویس — 2026-09-08
@@ -443,7 +464,8 @@ ProductRevision با draft/submit/claim/review/cancel، یک نسخهٔ باز �
 **Verification فاز:** سناریوی چندتولیدکننده، رد یکی، پرداخت دیگری و عدم اثر متقابل end-to-end پاس شود.
 
 ### Checkpoint 5
-- [ ] گردش ثبت سفارش تا پرداخت‌شده برای حساب کنترل‌شده کامل است.
+- [x] گردش بک‌اند ثبت سفارش تا پرداخت برای Business با controlled_access در test_payment_atomic_snapshot_invoice_ledger_and_retry پوشش داده شده است.
+- [ ] همین گردش با حساب‌ها و providerهای محیط پایلوت اجرا و ثبت شود.
 
 ## فاز ۶ — آماده‌سازی، ارسال و تحویل
 **وابستگی:** فاز ۵؛ به انتخاب کاربر بک‌اند این فاز با قرارداد داخلی سفارش/پرداخت زودتر تحویل شده است. [قرارداد اتصال و API](../api/fulfillment.md).
@@ -515,7 +537,8 @@ ProductRevision با draft/submit/claim/review/cancel، یک نسخهٔ باز �
 **Verification فاز:** no-dispute، partial dispute، operator decision و full refund invariant مالی پاس کنند.
 
 ### Checkpoint 7
-- [ ] یک سفارش از checkout تا settlement یا refund بدون اصلاح مستقیم DB طی می‌شود.
+- [x] گردش سرویس/API از checkout تا تحویل و settlement در test_checkout_to_delivery_and_concurrent_settlement و مسیر refund در تست لغو مالی پوشش دارند؛ عبور زمان در تست کنترل می‌شود.
+- [ ] rehearsal همین گردش با دادهٔ پایلوت و provider واقعی بدون اصلاح دستی DB ثبت شود.
 
 ## فاز ۸ — امتیاز، تعلیق و عملیات مدیریت
 **وابستگی:** فاز ۷
@@ -561,7 +584,8 @@ ProductRevision با draft/submit/claim/review/cancel، یک نسخهٔ باز �
 
 - [ ] load test ظرفیت هدف ۲۰۰ کاربر هم‌زمان و ۱۰۰۰ سفارش روزانه را پوشش دهد و رشد پنج‌برابری داده در query planهای کلیدی بررسی شود.
 
-- [ ] retry/failure test برای worker اجرا شود.
+- [x] retry/failure اعلان و محدودیت تلاش ایمیل به تست‌ها اضافه شد؛ workerهای مالی/سفارش/مغایرت/نظر نیز تست دامنه دارند.
+- [ ] قطع واقعی broker و بازیابی worker/beat در staging تمرین شود.
 
 - [ ] backup/restore و object lifecycle در staging تمرین شوند.
 

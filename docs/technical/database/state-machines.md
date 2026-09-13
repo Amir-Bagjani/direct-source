@@ -1,5 +1,40 @@
 # چرخه‌های وضعیت
 
+## اجرای عملیات و نگهداری فایل — PRD-08 و ADR-0006
+
+```mermaid
+stateDiagram-v2
+    state "پروندهٔ تعلیق" as Suspension {
+        [*] --> proposed
+        proposed --> active: مالک سامانه + دلیل
+        proposed --> rejected: مالک سامانه + دلیل
+        active --> restored: مالک سامانه + دلیل
+        rejected --> [*]
+        restored --> [*]
+    }
+    state "تصمیم سفارش" as Disposition {
+        [*] --> pending
+        pending --> cancelled: فعال‌سازی تعلیق / سفارش پرداخت‌نشده
+        pending --> continue: تصمیم مالک / همین سفارش
+        pending --> cancel_refund: تصمیم مالک / پیش از ارسال + ثبت بازپرداخت
+        cancelled --> [*]
+        continue --> [*]
+        cancel_refund --> [*]
+    }
+    state "نگهداری فایل" as FileRetention {
+        retained --> held: مالک + دلیل منع حذف
+        held --> retained: مالک + دلیل رفع منع
+        retained --> tombstoned: مالک + دلیل / بدون گردش باز
+        tombstoned --> purged: حذف تمام نسخه‌های کلید در مخزن
+        tombstoned --> tombstoned: شکست مخزن / retry دستی
+        purged --> [*]
+    }
+```
+
+proposed/active برای هر scope تعلیق یکتا هستند. لغو unpaid رزرو را آزاد می‌کند؛ paid/shipped توقف تسویه و تصمیم مستقل دارند؛ shipped از cancel_refund منع می‌شود. تصمیم نهایی immutable است و بازگردانی تعلیق آن را برنمی‌گرداند. مهلت‌های سفارش/پرداخت/مغایرت/نظر از PolicyVersion مؤثر هنگام ساخت deadline گرفته می‌شوند؛ اعداد ۲۴/۷۲/۱۴ در بخش‌های تاریخی زیر پیش‌فرض هستند، نه تنظیم ثابت. تیکت closed با فرمان اختصاصی مالک و دلیل می‌تواند به in_review برگردد.
+
+حذف فایل بدون زمان‌بندی خودکار است. tombstone پیش از I/O مخزن commit می‌شود؛ در شکست، صدور URL جدید مسدود می‌ماند. اصل metadata برای روابط و audit حفظ می‌شود. [runbook](../backend/file-retention-runbook.md).
+
 ## اجرای مالی PRD-05
 
 وضعیت مالی از FinancialEventها مشتق می‌شود: بدون payment→pending، payment→reserved، refund/adjustment→مبلغ خالص تازه، settlement→final. حالت پرداخت ناموفق و PATCH وضعیت مالی وجود ندارد. رویدادها و اسناد صادرشده ثابت‌اند؛ جبران رویداد تازه با سند شماره‌دار است.

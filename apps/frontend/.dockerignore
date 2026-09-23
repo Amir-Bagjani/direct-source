@@ -1,0 +1,15 @@
+.git
+node_modules
+.next
+.env*
+**/.env*
+.npmrc
+*.pem
+*.key
+*.log
+*.tsbuildinfo
+.pnpm-store
+.husky/_
+coverage
+playwright-report
+test-results

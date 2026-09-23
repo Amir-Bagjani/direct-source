@@ -1,0 +1,7 @@
+# Skip the frontend toolchain for backend-only or deletion-only commits.
+if git diff --cached --quiet --diff-filter=ACMR -- apps/frontend; then
+  exit 0
+fi
+
+cd apps/frontend || exit 1
+pnpm lint:staged

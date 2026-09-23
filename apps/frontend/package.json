@@ -1,0 +1,62 @@
+{
+  "name": "@directsourcing/frontend",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "prepare": "node .husky/install.mjs",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
+    "lint": "oxlint . --deny-warnings && pnpm lint:checks",
+    "lint:fix": "oxlint . --fix --deny-warnings",
+    "lint:checks": "node --test tooling/lint.test.mjs",
+    "lint:staged": "lint-staged --cwd .",
+    "test:hooks": "node --test tooling/pre-commit.test.mjs",
+    "typecheck": "next typegen && tsc --noEmit && pnpm check:deprecations",
+    "check:deprecations": "node tooling/check-deprecations.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "generate:api": "openapi-typescript ../../docs/technical/api/openapi.yaml -o src/shared/api/openapi.ts"
+  },
+  "dependencies": {
+    "@base-ui/react": "1.8.0",
+    "@hookform/resolvers": "5.9.1",
+    "@tanstack/react-query": "5.102.8",
+    "cn": "0.4.0",
+    "next": "16.3.5",
+    "next-auth": "4.24.15",
+    "next-intl": "4.14.4",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-hook-form": "7.88.0",
+    "server-only": "0.0.1",
+    "zod": "4.6.4"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@tailwindcss/postcss": "4.3.3",
+    "@testing-library/react": "16.3.3",
+    "@types/node": "26.5.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@typescript/native": "npm:typescript@7.0.2",
+    "babel-plugin-react-compiler": "1.0.0",
+    "husky": "9.1.7",
+    "jsdom": "30.0.1",
+    "lint-staged": "17.5.1",
+    "openapi-typescript": "7.13.0",
+    "oxfmt": "0.68.0",
+    "oxlint": "1.83.0",
+    "tailwindcss": "4.3.3",
+    "typescript": "npm:@typescript/typescript6@6.0.2",
+    "vitest": "5.0.0"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=24.11.1"
+  },
+  "packageManager": "pnpm@11.11.0"
+}

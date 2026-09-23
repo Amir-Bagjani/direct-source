@@ -1,0 +1,32 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "oxc", "react", "nextjs", "import", "jsx-a11y"],
+  "categories": { "correctness": "error" },
+  "env": { "browser": true, "node": true, "es2022": true },
+  "ignorePatterns": [
+    ".next/**",
+    "node_modules/**",
+    "src/shared/api/openapi.ts",
+    "next-env.d.ts",
+    "playwright-report/**",
+    "test-results/**"
+  ],
+  "rules": {
+    "import/no-cycle": "error",
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "error",
+    "react/unsupported-syntax": "error",
+    "typescript/no-explicit-any": "error",
+    "jsx-a11y/prefer-tag-over-role": "off",
+    "nextjs/no-img-element": "error",
+    "nextjs/no-html-link-for-pages": "error",
+    "nextjs/no-sync-scripts": "error"
+  },
+  "overrides": [
+    {
+      "files": ["src/**/*.{ts,tsx,js,jsx,mjs}"],
+      "jsPlugins": ["./tooling/architecture-plugin.mjs"],
+      "rules": { "architecture/dependencies": "error", "architecture/no-reexports": "error" }
+    }
+  ]
+}

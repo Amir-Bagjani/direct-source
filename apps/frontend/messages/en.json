@@ -1,0 +1,32 @@
+{
+  "meta": {
+    "title": "Direct Sourcing Marketplace",
+    "description": "Direct connections between bag and footwear manufacturers and retailers"
+  },
+  "nav": {
+    "home": "Home",
+    "primary": "Main navigation",
+    "language": "Language",
+    "skip": "Skip to main content"
+  },
+  "theme": {
+    "label": "Color theme",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "home": {
+    "eyebrow": "Wholesale bags and footwear",
+    "title": "Direct sourcing, confident choices",
+    "body": "Connecting manufacturers directly with retail businesses.",
+    "about": "About the marketplace",
+    "aboutBody": "Direct Sourcing Marketplace connects bag and footwear manufacturers with retail businesses."
+  },
+  "common": {
+    "loading": "Loading…",
+    "retry": "Try again",
+    "close": "Close",
+    "error": "Something went wrong.",
+    "notFound": "Page not found.",
+    "backHome": "Back to home"
+  }
+}

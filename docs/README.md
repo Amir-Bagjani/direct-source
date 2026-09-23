@@ -65,6 +65,14 @@
 
 فایل [index.html](diagrams/index.html) را در مرورگر باز کنید. ۲۰ نمودار HTML خودکفا بدون نیاز به سرور اجرا می‌شوند. فهرست کامل با مرجع مستندات هر نمودار: [diagrams/README.md](diagrams/README.md).
 
+## فرانت‌اند — base
+
+- [اجرای محلی فرانت‌اند](../apps/frontend/README.md)
+- [معماری و مرز base](technical/frontend/architecture.md)
+- [برنامهٔ پیاده‌سازی مرحله‌ای PRDها](technical/frontend/implementation-plan.md)
+- [مرجع طراحی، responsive، RTL/LTR و SEO](../docs/frontend/design.md)
+- [قواعد عامل‌های کدنویسی](../AGENTS.md)
+
 ## ریشهٔ پروژه
 
 - [`CONTEXT.md`](../CONTEXT.md) — واژه‌نامهٔ دامنه؛ همچنین به‌عنوان دستورالعمل پروژه توسط opencode از ریشه بارگذاری می‌شود.

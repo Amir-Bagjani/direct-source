@@ -1,0 +1,73 @@
+name: Frontend foundation checks
+on:
+  pull_request:
+    paths: ["apps/frontend/**", "docs/technical/api/openapi.yaml", ".github/workflows/frontend.yml"]
+  push:
+    paths: ["apps/frontend/**", "docs/technical/api/openapi.yaml", ".github/workflows/frontend.yml"]
+permissions:
+  contents: read
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm generate:api
+      - run: git diff --exit-code -- src/shared/api/openapi.ts
+      - run: pnpm typecheck
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm test:hooks
+      - run: pnpm test
+      - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+  container:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose config --quiet
+      - run: docker compose up --build --wait --wait-timeout 120
+      - name: Verify standalone pages, assets and safe SEO defaults
+        run: |
+          docker compose exec -T frontend node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {existsSync} from 'node:fs';
+          assert.notEqual(process.getuid(), 0, 'Runtime must not run as root');
+          assert.equal(existsSync('/app/.env.local'), false);
+          assert.equal(existsSync('/app/.env'), false);
+          const read = async (path) => {
+            const response = await fetch(`http://127.0.0.1:3000${path}`, {
+              redirect: 'error', signal: AbortSignal.timeout(10000)
+            });
+            assert.equal(response.status, 200, path);
+            return response.text();
+          };
+          for (const [locale, direction] of [['fa', 'rtl'], ['en', 'ltr']]) {
+            const html = await read(`/${locale}`);
+            assert.match(html, new RegExp(`<html[^>]*lang="${locale}"`));
+            assert.match(html, new RegExp(`<html[^>]*dir="${direction}"`));
+            assert.match(html, /name="robots"[^>]*content="[^"]*noindex/);
+            const assets = [...html.matchAll(/(?:src|href)="(\/_next\/static\/[^"?]+\.(?:js|css))(?:\?[^"]*)?"/g)];
+            assert.ok(assets.length > 0, 'Standalone must serve static assets');
+            await Promise.all(assets.map(([, path]) => read(path)));
+          }
+          assert.match(await read('/robots.txt'), /Disallow: \/\s/);
+          assert.doesNotMatch(await read('/sitemap.xml'), /<loc>/);
+          NODE
+      - name: Container logs on failure
+        if: failure()
+        run: docker compose logs --no-color
+      - name: Stop containers
+        if: always()
+        run: docker compose down

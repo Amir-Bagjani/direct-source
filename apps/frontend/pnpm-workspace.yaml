@@ -1,0 +1,18 @@
+packages:
+  - "."
+
+allowBuilds:
+  "@parcel/watcher": true
+  "@swc/core": true
+  unrs-resolver: set this to true or false
+
+# OpenAPI codegen still requires the legacy TS5 factory API, independent of the app compiler.
+packageExtensions:
+  "openapi-typescript@7.13.0":
+    dependencies:
+      typescript: "5.9.3"
+
+# OpenAPI executes with its own TS5 dependency; its unused peer sees the TS6 shim.
+peerDependencyRules:
+  allowedVersions:
+    "openapi-typescript@7.13.0>typescript": "6"

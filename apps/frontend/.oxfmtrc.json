@@ -1,0 +1,20 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    ".next/**",
+    "node_modules/**",
+    "src/shared/api/openapi.ts",
+    "next-env.d.ts",
+    "playwright-report/**",
+    "test-results/**",
+    ".agents/skills/next-dev-loop/**",
+    ".agents/skills/shadcn/**",
+    ".agents/skills/vercel-composition-patterns/**",
+    ".agents/skills/vercel-react-best-practices/**",
+    ".agents/skills/web-design-guidelines/**",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "DESIGN.md"
+  ]
+}

@@ -195,7 +195,7 @@ are added. Record a technical reason here before introducing an alternative fetc
 - Full unit suite: 23 tests passed; after adjusting the test deferred promise to the
   configured TypeScript library target, all 5 query tests passed again.
 - `pnpm typecheck`, `pnpm lint` (including architecture checks), and `pnpm build` passed.
-- `pnpm format` ran; pre-existing `DESIGN.md` formatting was restored to preserve that
+- `pnpm format` ran; unrelated legacy document formatting was restored to preserve that
   unrelated document. `pnpm format:check` still fails only on that known legacy file;
   the changed query files pass the targeted Oxfmt check.
 - No backend changes or new UI flow; backend and browser E2E were not rerun.
@@ -203,3 +203,23 @@ are added. Record a technical reason here before introducing an alternative fetc
 Changed files: root and frontend `AGENTS.md`; this guide and `architecture.md`;
 `query-client.ts`, `query-provider.tsx`, `query-client.test.ts` and the new
 `query-provider.test.tsx` under `apps/frontend/src/shared/query`.
+
+### Base checkpoint — 2026-09-24
+
+The shared provider now scopes `QueryErrorResetBoundary`. The locale error fallback
+resets that boundary before calling the installed Next.js `retry()` API, so a cached
+Suspense query error can recover and a server-rendered failure is re-fetched. A component
+integration test exercises a failed request followed by a successful user retry.
+
+`bffRequest` rejects pathname traversal (including encoded/double-encoded separators),
+backslashes, control characters and fragments, and forces `redirect: "error"` alongside
+same-origin credentials and no-store. Query values are not interpreted as path segments.
+AbortSignal forwarding is covered. These browser guards do not replace the future
+server endpoint allowlist, session validation or CSRF enforcement.
+
+Public route loading lives in `[locale]/(public)` so unknown routes remain outside
+that streaming boundary and keep their HTTP 404 status. The existing shared header
+and QueryProvider remain in the locale layout. No product query, auth handler or
+protected route has been fabricated. See [base readiness](base-readiness.md) for
+session/logout/cache acceptance gates. The legacy formatting issue noted in the
+2026-09-21 history was resolved by the shadcn migration.

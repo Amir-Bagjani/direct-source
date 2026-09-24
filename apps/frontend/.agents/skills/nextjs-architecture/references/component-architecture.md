@@ -82,3 +82,7 @@ they serve more than one owner.
 - Do external consumers import the canonical file directly?
 - Is the client boundary as narrow as the interaction requires?
 - Are accessibility, both locales, and both directions covered?
+
+Needed official shadcn primitives are approved shared infrastructure from their first consumer;
+feature-specific assemblies still require demonstrated shared use. Do not introduce private
+component stylesheets; compose shadcn variants and Tailwind layout utilities.

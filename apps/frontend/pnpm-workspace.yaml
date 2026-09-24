@@ -4,7 +4,6 @@ packages:
 allowBuilds:
   "@parcel/watcher": true
   "@swc/core": true
-  unrs-resolver: set this to true or false
 
 # OpenAPI codegen still requires the legacy TS5 factory API, independent of the app compiler.
 packageExtensions:

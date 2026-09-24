@@ -7,7 +7,8 @@
     "home": "خانه",
     "primary": "ناوبری اصلی",
     "language": "زبان",
-    "skip": "رفتن به محتوای اصلی"
+    "skip": "رفتن به محتوای اصلی",
+    "switchLanguage": "English"
   },
   "theme": {
     "label": "پوستهٔ رنگی",

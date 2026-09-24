@@ -69,8 +69,9 @@
 
 - [اجرای محلی فرانت‌اند](../apps/frontend/README.md)
 - [معماری و مرز base](technical/frontend/architecture.md)
+- [ممیزی آمادگی base و گیت امنیت صفحات خصوصی](technical/frontend/base-readiness.md)
 - [برنامهٔ پیاده‌سازی مرحله‌ای PRDها](technical/frontend/implementation-plan.md)
-- [مرجع طراحی، responsive، RTL/LTR و SEO](../docs/frontend/design.md)
+- [راهنمای shadcn، تم و RTL/LTR](../docs/frontend/shadcn.md)
 - [قواعد عامل‌های کدنویسی](../AGENTS.md)
 
 ## ریشهٔ پروژه

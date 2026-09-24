@@ -8,10 +8,9 @@ native element, or third-party primitive alone does not establish conformance.
 - Use native landmarks, headings, links, buttons, labels, tables, and dialogs before ARIA.
 - Give controls an accessible name and form fields a programmatic label, name, correct
   input type/mode, autocomplete policy, helper/error association, and actionable errors.
-- Preserve keyboard operation, logical focus order, native dialog trapping, dismissal,
+- Preserve keyboard operation, logical focus order, shadcn Dialog focus trapping, dismissal,
   and focus restoration. Sticky UI must not obscure focused content.
-- Keep a visible 3px `:focus-visible` indicator with sufficient contrast; decorative
-  hairlines and the subtle blue glow token are not focus indicators.
+- Preserve shadcn focus-visible indicators and verify contrast on composed surfaces.
 - Keep interactive targets at least 44 by 44 CSS pixels. Provide hover, active, focus,
   and disabled feedback without relying on color alone.
 - Normal text needs at least 4.5:1 contrast and large text 3:1 on the actual opaque or

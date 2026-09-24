@@ -19,7 +19,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
   const t = await getTranslations("home");
   const meta = await getTranslations("meta");
   return (
-    <main id="main" className="hero">
+    <main id="main" className="mx-auto grid max-w-5xl gap-6 px-4 py-16 sm:px-6 sm:py-24">
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -30,9 +30,9 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
           inLanguage: locale,
         }}
       />
-      <p className="eyebrow">{t("eyebrow")}</p>
-      <h1>{t("title")}</h1>
-      <p>{t("body")}</p>
+      <p className="text-sm font-medium text-muted-foreground">{t("eyebrow")}</p>
+      <h1 className="text-3xl font-semibold ltr:tracking-tight sm:text-5xl">{t("title")}</h1>
+      <p className="text-muted-foreground">{t("body")}</p>
       <Suspense>
         <AboutMarketplace />
       </Suspense>

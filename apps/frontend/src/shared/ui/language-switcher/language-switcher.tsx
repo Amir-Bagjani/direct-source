@@ -10,12 +10,13 @@ export function LanguageSwitcher() {
   const t = useTranslations("nav");
   return (
     <Link
+      className="inline-flex min-h-11 items-center underline underline-offset-4"
       aria-label={t("language")}
       href={`${pathname}?${params.toString()}`}
       locale={locale === "fa" ? "en" : "fa"}
       replace
     >
-      {locale === "fa" ? "English" : "فارسی"}
+      {t("switchLanguage")}
     </Link>
   );
 }

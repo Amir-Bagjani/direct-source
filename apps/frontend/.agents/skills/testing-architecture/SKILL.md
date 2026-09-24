@@ -27,7 +27,7 @@ boundary or browser risk.
   security-policy tests. Component tests use Testing Library with a per-file
   `// @vitest-environment jsdom` directive when DOM behavior is required.
 - Use Playwright 1.63 only for cross-route or real-browser behavior: navigation,
-  native dialog/focus, responsive layout, locale routing, and future critical journeys.
+  shadcn Dialog/focus, responsive layout, locale routing, and future critical journeys.
 - Theme changes follow `design-system-architecture`: test preference parsing at unit
   level, the accessible switcher at component level, and first paint, persistence, client
   navigation, both locales/directions, shared surfaces and reduced motion in Playwright.

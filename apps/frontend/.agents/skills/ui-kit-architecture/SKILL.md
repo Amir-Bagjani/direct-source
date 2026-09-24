@@ -1,38 +1,25 @@
 ---
 name: ui-kit-architecture
-description: Create, extend, or review shared UI primitives in the DirectSourcing Marketplace frontend, including their APIs, states, theme integration, localization, accessibility, and tests.
+description: Add, compose or review official shadcn/ui primitives in this frontend.
 ---
 
 # UI Kit Architecture
 
-Use `docs/frontend/design.md` and `design-system-architecture` for product appearance,
-Light/Dark themes, typography, accessibility and responsive behavior. Consult the official
-installed `shadcn` skill, current component docs, and `components.json` for CLI, source,
-base-specific APIs and aliases. Use `nextjs-architecture` for ownership,
-`typescript-architecture` for props, and `testing-architecture` for verification.
+The UI kit is shadcn/ui. Read the official `../shadcn/SKILL.md`, `components.json`,
+`design-system-architecture`, and `docs/frontend/shadcn.md` before changing UI.
+Use `@shadcn` with Base UI / Nova / neutral. Do not build substitute controls with CSS.
 
-Initial inventory: `src/shared/ui/button/button.tsx` (existing public API, adapted),
-`src/shared/ui/input/input.tsx` (shadcn source adapted), and
-`src/shared/ui/modal/modal.tsx` (native dialog with product URL/history contract).
-ThemeSwitcher, LanguageSwitcher, SiteHeader, and Loading remain existing shared UI.
-Base UI is selected in `components.json` for future composite shadcn components.
-Button keeps `primary | secondary`, default `type="button"`, and the project `loading`
-state; Input keeps native form props without a form-library dependency.
-
-- Search current source and requirements before adding a control. Use the official
-  shadcn CLI for a needed starting point, review generated CSS/dependencies, then adapt
-  the source to the existing owner and remove duplicate generated files.
-- Create only proven business-neutral primitives under `src/shared/ui/<component>/`;
-  feature-specific controls remain in `src/features/<feature>/`. Add incrementally.
-- Preserve native semantics and props, direct canonical imports, colocated types/tests, and the
-  smallest client boundary. Do not add barrels or a second styling/theme system.
-- Consume the shared semantic CSS tokens. Every primitive supports the Light default and explicit
-  Dark theme by inheritance; do not add theme props, read theme persistence, hardcode theme colours,
-  create per-theme implementations, or introduce another provider.
-- Implement applicable default, hover, active, focus-visible, disabled, loading, selected, error
-  and success states with accessible names, 44px targets, keyboard behavior and non-colour cues.
-- Keep visible copy in both locale catalogs and test Persian/English, RTL/LTR, reflow and composed
-  contrast where the component changes those risks.
-
-Before finishing, run the focused component tests, formatting, typecheck and lint. Run Playwright
-when the primitive affects theme switching, native browser behavior, focus, layout or direction.
+- Inspect installed source, run CLI `docs` and read official component documentation.
+  Install missing components with the CLI; keep only needed components.
+- Move generated files to `src/shared/ui/<component>/<component>.tsx`, update all imports,
+  and remove duplicate generated files. No barrels. Needed shadcn primitives are approved
+  shared infrastructure from the first consumer.
+- Keep shadcn variants, semantic colors and composition. Tailwind classes at consumers
+  express layout, not replacement palettes or bespoke visual controls.
+- Preserve native props, refs, accessible names, localization, RTL/LTR and keyboard behavior.
+  Generated English labels must use the existing locale catalogs. Use DirectionProvider.
+- Button defaults to non-submit; compose loading with Spinner, disabled and aria-busy.
+  Modal is a URL/history adapter around shadcn Dialog. Preserve its tested history contract.
+- Light is the default; Dark is explicit and persisted. All components inherit the same
+  shadcn tokens; no new theme state or provider.
+- Run relevant tests, typecheck, lint and format checks; Playwright for visible/browser changes.

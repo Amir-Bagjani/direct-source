@@ -1,6 +1,6 @@
 # Modal Contract
 
-The project Modal uses native `<dialog>` and URL state. Its component, types, tests, and
+The project Modal composes shadcn Dialog (Base UI) with URL state. Its component, types, tests, and
 history helper live in `src/shared/ui/modal/`. Styling may evolve; the interaction contract
 below changes only through an explicit product/design decision and matching tests.
 
@@ -11,19 +11,18 @@ below changes only through an explicit product/design decision and matching test
   base entry.
 - With `closeOnBack={false}`, opening replaces the current URL without adding history.
   Back navigates normally. A direct modal URL leaves history untouched.
-- Close and native Escape remove `modal` and `id` on the current page when no modal-owned
+- Close and Escape remove `modal` and `id` on the current page when no modal-owned
   Back entry exists. Do not intercept `popstate` or block navigation.
 - Changing `closeOnBack` does not retroactively remove an existing modal entry.
-- The dialog has a programmatic label through `aria-labelledby`, native modal semantics
+- The dialog has a programmatic label through `aria-labelledby`, modal semantics
   and focus trapping, keyboard cancel behavior, scroll containment, and focus restoration
   to the previously active trigger.
 
-Keep the close action visible, localized, and at least 44px. Use the theme's raised surface,
-documented radius, restrained elevation, distinguishable boundary, and strong backdrop.
+Keep the close action visible, localized, and at least 44px. Use the built-in shadcn Dialog surface, radius, overlay and focus behavior.
 Content must reflow within the viewport and remain scrollable when taller than available
 space.
 
 Vitest covers history helper/component coordination under jsdom. Playwright is required
-for native dialog, Escape, Back/Forward, direct URLs, focus restoration, both locale
+for Dialog, Escape, Back/Forward, direct URLs, focus restoration, both locale
 directions, and responsive overflow. Do not replace those browser claims with a dialog
 shim or snapshot.

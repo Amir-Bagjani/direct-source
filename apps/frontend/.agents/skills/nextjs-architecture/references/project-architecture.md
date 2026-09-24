@@ -72,13 +72,12 @@ utility at the narrowest owner; promote it only after real reuse.
 
 - Visible copy comes from both locale message files. Persian and English behavior ships
   together; use logical CSS properties and locale-aware navigation/formatting.
-- Follow `docs/frontend/design.md` for UI and SEO. Public routes require route-specific
+- Follow `docs/frontend/shadcn.md` for shadcn integration; use the technical architecture for SEO. Public routes require route-specific
   canonical/hreflang metadata. Protected prices and personal data never enter structured
   data.
 - Browser requests go through the same-origin BFF. Reuse `ApiError`, `unwrap`, query
   client policies, and future approved auth adapters.
-- Keep dependencies pinned through the pnpm lockfile. Prefer platform/CSS/current code
-  before adding a package or abstraction.
+- Keep dependencies pinned through the pnpm lockfile. Use existing shadcn components before adding dependencies or abstractions.
 
 ## Known inconsistencies
 
@@ -87,7 +86,5 @@ dedicated directories within `shared/ui`, `shared/query`, and `shared/seo`, with
 types, helpers, and tests colocated. Keep category-wide query-client and metadata
 utilities outside component directories.
 
-`apps/frontend/DESIGN.md` and portions of the generated frontend `AGENTS.md` contain
-legacy guidance. The root `AGENTS.md`, current source, `docs/frontend/design.md`, and
-`docs/technical/frontend/architecture.md` take precedence. In particular, current code
-uses `next/root-params`, not `setRequestLocale`.
+The root and frontend `AGENTS.md`, current source and technical architecture govern
+integration. Use `next/root-params`, not `setRequestLocale`.

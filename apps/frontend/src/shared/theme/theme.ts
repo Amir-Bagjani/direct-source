@@ -5,8 +5,8 @@ export const THEME_CHANGE_EVENT = "directsourcing:theme-change";
 export const themes = ["light", "dark"] as const;
 export type Theme = (typeof themes)[number];
 export const THEME_COLORS = {
-  light: "#f7f8fa",
-  dark: "#131416",
+  light: "#ffffff",
+  dark: "#0a0a0a",
 } satisfies Record<Theme, string>;
 
 export function parseTheme(value: unknown): Theme {

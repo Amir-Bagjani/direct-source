@@ -47,3 +47,27 @@
 - `pnpm check:deprecations` به typecheck/CI متصل شد؛ بدون dependency تازه و بدون suppress.
   روی ۳۵ فایل پروژه صفر هشدار داشت؛ با یک نمونهٔ موقت deprecated نیز خروج غیرصفر تأیید شد.
 - format check، lint، typecheck، ۱۱ تست واحد و ۱۰ تست مرورگر موفق؛ build اجرا نشد.
+
+## یکپارچه‌سازی shadcn — 2026-09-24
+
+- مرجع بصری اختصاصی قبلی و ارجاع‌های آن حذف شدند؛ shadcn/ui تنها UI Kit و دیزاین سیستم است.
+- skill رسمی در `.agents/skills/shadcn` دوباره نصب و مستندات رسمی همراه URL و هش دانلود شدند.
+- Button، Input، Dialog، ToggleGroup، Spinner و Alert از سورس رسمی استفاده می‌کنند؛ Modal
+  قرارداد URL/History را حفظ می‌کند. تم neutral جایگزین پالت اختصاصی شد.
+- لایت پیش‌فرض باقی می‌ماند؛ دارک فقط با انتخاب صریح کاربر ذخیره می‌شود. RTL، تایپوگرافی فارسی،
+  keyboard/focus، reload و تغییر زبان در تست مرورگر بررسی شدند.
+- ۴۷ تست واحد/کامپوننت، ۲۲ تست مرورگر موبایل/دسکتاپ، typecheck، lint و format:check موفق.
+  build تولیدی طبق سیاست پروژه اجرا نشد. هیچ PRD محصولی با این تغییر تکمیل‌شده محسوب نمی‌شود.
+
+## checkpoint ممیزی پایان base عمومی — 2026-09-24
+
+[گزارش آمادگی](base-readiness.md) موجودی، مرز تحویل و ماتریس اجباری guard/logout را ثبت می‌کند.
+نصب frozen/strict-peer، codegen بدون drift، typecheck، lint، format، ۵۹ تست واحد/کامپوننت،
+تست hook و build موفق بودند. ۲۲ تست مرورگر روی خروجی standalone تولیدی موفق شدند؛ CI نیز
+بعد از build همین حالت را اجرا می‌کند. اجرای remote CI و کانتینر محلی در این ممیزی تأیید نشده است.
+
+نقص‌های مسیر BFF و retry خطای React Query رفع شدند. loading در گروه عمومی قرار گرفت تا
+catch-all پاسخ HTTP 404 بدهد. header و providerها همچنان در layout زبان مشترک‌اند.
+
+شروع PRD-01 مجاز است؛ نخستین برش آن session/BFF، guard سمت سرور و logout واقعی با
+`AC-ACC-31` است. base احراز هویت هنوز تکمیل نیست و هیچ صفحهٔ خصوصی قبل از این گیت فعال نمی‌شود.

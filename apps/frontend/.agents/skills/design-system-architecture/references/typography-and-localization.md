@@ -16,11 +16,9 @@ native form controls, navigation, tables and dialog content inherit that choice;
 font-family declarations in each component. Keep Tahoma/Arial and the documented system sans
 stack as load-failure fallbacks.
 
-Keep body/control copy at a readable 14–16px and inputs at 16px. Headings use weight 400.
-Use the documented scale through tokens and fluid `clamp()` for display text; do not force
-desktop sizes onto mobile.
+Keep body/control copy at a readable 14–16px and inputs at 16px. Use shadcn typography and responsive Tailwind layout; do not force desktop sizes onto mobile.
 
-English headings may use the supplied negative tracking. Persian headings use normal
+English headings may use shadcn tracking. Persian headings use normal
 letter spacing and extra line-height for joined glyphs and diacritics. Do not uppercase,
 italicize, or add letter spacing to Persian. Test Persian characters, Persian and Latin numerals,
 diacritics and mixed Persian/English strings at the actual weights used in navigation, buttons,

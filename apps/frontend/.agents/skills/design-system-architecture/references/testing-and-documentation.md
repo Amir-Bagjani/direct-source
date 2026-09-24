@@ -7,7 +7,7 @@ Follow `testing-architecture` and select the lowest level that proves each disti
 - Pure tests may verify token-source consistency or a transformation when CSS parsing is
   necessary; avoid duplicating the browser's cascade in a test.
 - Playwright covers computed token/application behavior, direction, responsive overflow,
-  keyboard focus, native dialog/history, and representative Persian/English journeys.
+  keyboard focus, shadcn Dialog/history, and representative Persian/English journeys.
 - Theme coverage includes the Light first-visit and failure default, explicit Dark/Light choices,
   versioned persistence, first-paint initialization, client navigation, reduced motion, computed
   contrast and the shared component surfaces that actually exist.
@@ -20,7 +20,7 @@ reviewed baseline/storage policy exists. Establish platform-stable CI baselines 
 adding `toHaveScreenshot`; retain semantic and computed-style assertions meanwhile.
 
 Storybook is not currently installed. Component files and tests are the executable API
-documentation, and this Skill records design contracts. Add Storybook only when the
+documentation, and this Skill records integration contracts. Add Storybook only when the
 shared library has enough real variants to justify another build surface. Use the official
 `@storybook/nextjs-vite` integration, colocate meaningful stories, import global tokens,
 and document purpose, variants, states, accessibility, RTL/LTR, localization, and theme.

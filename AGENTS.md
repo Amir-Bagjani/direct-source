@@ -8,8 +8,10 @@ their source document and tests in the same change.
 
 Current frontend scope is foundation only. Implement each PRD separately when requested.
 See `docs/technical/frontend/implementation-plan.md` for the sequence and remaining gates.
-`CONTEXT.md` is the domain vocabulary, this file is agent guidance, and
-`docs/frontend/design.md` is the living UI/SEO design reference. Do not duplicate them.
+`docs/technical/frontend/base-readiness.md` records the audited base and mandatory
+session/guard/logout gate before any protected feature is enabled.
+`CONTEXT.md` is the domain vocabulary. shadcn/ui is the sole design system and UI kit;
+`docs/frontend/shadcn.md` records its project integration and official references.
 
 ## Frontend implementation skills
 
@@ -25,26 +27,24 @@ API contracts, validation schemas, hooks, or shared abstractions, also read
 `apps/frontend/.agents/skills/typescript-architecture/SKILL.md`. Do not assume automatic
 activation or duplicate detailed skill rules here.
 
-Before creating feature UI or reusable components, or changing shared UI, CSS, design
-tokens, typography, responsive behavior, accessibility, RTL/LTR presentation, Modal
-behavior, or UI-library choices, read `docs/frontend/design.md` and
-`apps/frontend/.agents/skills/design-system-architecture/SKILL.md`. Reuse established
-tokens and components; a new visual language or styling system requires a documented
-architecture decision.
+Before any UI work, read `apps/frontend/.agents/skills/shadcn/SKILL.md`,
+`apps/frontend/.agents/skills/design-system-architecture/SKILL.md`,
+`apps/frontend/.agents/skills/ui-kit-architecture/SKILL.md`, and
+`apps/frontend/components.json`. Use official `@shadcn` components with the configured
+Base UI / Nova / neutral preset. Search and install the matching component before
+considering custom markup. Compose its existing variants; do not recreate controls,
+overlays, cards, forms, or states with hand-written CSS or a competing UI kit.
+Tailwind utilities are for layout and documented shadcn composition. The shadcn theme
+stylesheet is infrastructure, not a source of bespoke component styles.
 
-The approved foundation uses Tailwind CSS v4 and the official shadcn/ui source workflow.
-Before shadcn work, read `apps/frontend/.agents/skills/ui-kit-architecture/SKILL.md`,
-`apps/frontend/.agents/skills/shadcn/SKILL.md`, and `apps/frontend/components.json`. The product
-design and existing semantic tokens govern generated source; add components only as needed.
-
-Light Theme is the application default; Dark Theme is an explicit persisted user choice. New UI
-must support both through the shared semantic tokens. Do not hardcode theme-specific component
-colours or introduce another theme provider, persistence mechanism, or token system. Consult
-`docs/frontend/design.md` and the `design-system-architecture` Skill before theme-related work.
+Light is the application default even on a dark operating system. Dark is an explicit
+persisted user choice. Use the existing SSR-validated theme cookie and shadcn semantic
+tokens; do not add a second theme provider, persistence key, or per-component palette.
 
 ## Frontend rules
 
-- Use Ponytail: prefer platform, CSS, and existing code before adding a dependency or abstraction.
+- Reuse installed shadcn components; add only components needed by the current task.
+  Avoid speculative abstractions and dependencies outside the approved shadcn stack.
 - No barrel files. Do not add `index.ts` merely to re-export module members.
 - Oxlint is the frontend linter. Keep `pnpm lint` and its architecture regression checks
   passing; do not reintroduce ESLint or a second linter without an explicit decision.
@@ -52,8 +52,9 @@ colours or introduce another theme provider, persistence mechanism, or token sys
   to verify; leave generated files excluded in `.oxfmtrc.json` untouched.
 - Pre-commit uses Husky/lint-staged for staged frontend files. Preserve partial staging;
   never add broad `git add` commands or builds to the hook. Full checks remain in CI.
-- Keep routes thin; keep feature code in `apps/frontend/src/features` and shared primitives in
-  `apps/frontend/src/shared` only after a second consumer exists.
+- Keep routes thin; feature code belongs in `apps/frontend/src/features`. Needed official
+  shadcn primitives are shared infrastructure from their first consumer. Other shared
+  abstractions in `apps/frontend/src/shared` require a second consumer.
 - Browser requests use the same-origin BFF. Never expose Django JWTs to browser JavaScript or
   store them in web storage.
 - All visible copy belongs in the locale message files. Use CSS logical properties so RTL/LTR

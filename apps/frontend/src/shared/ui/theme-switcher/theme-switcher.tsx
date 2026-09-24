@@ -1,7 +1,7 @@
 "use client";
 import { useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
-import { Button } from "@/shared/ui/button/button";
+import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group/toggle-group";
 import {
   applyTheme,
   DEFAULT_THEME,
@@ -23,23 +23,18 @@ export function ThemeSwitcher({ initialTheme = DEFAULT_THEME }: { initialTheme?:
   const theme = useSyncExternalStore(subscribe, getThemeSnapshot, () => initialTheme);
   const t = useTranslations("theme");
   return (
-    <div className="theme-switcher" role="group" aria-label={t("label")}>
-      <Button
-        aria-pressed={theme === "light"}
-        className="theme-switcher__option"
-        onClick={() => applyTheme("light")}
-        variant="secondary"
-      >
-        {t("light")}
-      </Button>
-      <Button
-        aria-pressed={theme === "dark"}
-        className="theme-switcher__option"
-        onClick={() => applyTheme("dark")}
-        variant="secondary"
-      >
-        {t("dark")}
-      </Button>
-    </div>
+    <ToggleGroup
+      aria-label={t("label")}
+      value={[theme]}
+      onValueChange={(values) => {
+        const selected = values[0];
+        if (selected === "light" || selected === "dark") applyTheme(selected);
+      }}
+      variant="outline"
+      spacing={0}
+    >
+      <ToggleGroupItem value="light">{t("light")}</ToggleGroupItem>
+      <ToggleGroupItem value="dark">{t("dark")}</ToggleGroupItem>
+    </ToggleGroup>
   );
 }

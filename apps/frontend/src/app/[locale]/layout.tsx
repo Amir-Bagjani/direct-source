@@ -10,6 +10,7 @@ import { QueryProvider } from "@/shared/query/query-provider/query-provider";
 import { SiteHeader } from "@/shared/ui/site-header/site-header";
 import { siteUrl } from "@/shared/seo/metadata";
 import { parseTheme, THEME_COLORS, THEME_COOKIE_NAME } from "@/shared/theme/theme";
+import { DirectionProvider } from "@/shared/ui/direction/direction";
 import "../globals.css";
 
 const inter = Inter({
@@ -64,12 +65,14 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
     >
       <body>
         <NextIntlClientProvider messages={messages}>
-          <QueryProvider>
-            <Suspense>
-              <SiteHeader initialTheme={theme} />
-            </Suspense>
-            {children}
-          </QueryProvider>
+          <DirectionProvider direction={locale === "fa" ? "rtl" : "ltr"}>
+            <QueryProvider>
+              <Suspense>
+                <SiteHeader initialTheme={theme} />
+              </Suspense>
+              {children}
+            </QueryProvider>
+          </DirectionProvider>
         </NextIntlClientProvider>
       </body>
     </html>

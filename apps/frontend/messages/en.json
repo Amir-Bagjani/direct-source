@@ -7,7 +7,8 @@
     "home": "Home",
     "primary": "Main navigation",
     "language": "Language",
-    "skip": "Skip to main content"
+    "skip": "Skip to main content",
+    "switchLanguage": "فارسی"
   },
   "theme": {
     "label": "Color theme",

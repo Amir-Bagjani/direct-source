@@ -7,7 +7,7 @@ configured Chrome channel through `PLAYWRIGHT_CHANNEL=chrome`.
 ## What belongs here
 
 Cover critical journeys and real-browser contracts: locale navigation, server-rendered
-metadata, native dialog/focus/history, responsive overflow, authentication/session flows,
+metadata, shadcn Dialog/focus/history, responsive overflow, authentication/session flows,
 protected navigation, and later core ordering/catalog operations. Keep pure validation,
 formatting, permission matrices, and API parsing in Vitest.
 

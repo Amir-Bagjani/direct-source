@@ -3,12 +3,12 @@
 فعلاً فقط زیرساخت آماده می‌شود. صفحات و جریان‌های ۸ PRD هنوز پیاده نشده‌اند.
 خانهٔ فارسی/انگلیسی و مودال «دربارهٔ بازارگاه» نمونهٔ قابل‌آزمون زیرساخت‌اند.
 
-UI Kit پایه از Tailwind CSS v4 و گردش‌کار رسمی shadcn/ui استفاده می‌کند. Button موجود
-حفظ و بهبود یافته، Input افزوده شده و Modal بومی قرارداد URL/History خود را حفظ می‌کند.
-`components.json` گزینهٔ Base UI و مسیرهای CLI را مشخص می‌کند؛ ظاهر واقعی از
-`docs/frontend/design.md` و توکن‌های `src/app/globals.css` می‌آید. قبل از افزودن هر کنترل،
-`.agents/skills/ui-kit-architecture/SKILL.md` و skill رسمی `.agents/skills/shadcn/SKILL.md`
-را بخوانید. فقط کنترل موردنیاز همان قابلیت را اضافه کنید.
+دیزاین سیستم و UI Kit پروژه فقط shadcn/ui است: Base UI، استایل Nova و تم neutral.
+از کامپوننت‌ها و variantهای رسمی استفاده کنید؛ کنترل یا استایل جایگزین با CSS اختصاصی نسازید.
+راهنمای اتصال پروژه و مستندات رسمی دانلودشده در [راهنمای shadcn](../../docs/frontend/shadcn.md)
+قرار دارند. skill رسمی در `.agents/skills/shadcn/SKILL.md` نصب شده است.
+پیش‌فرض لایت است؛ انتخاب صریح دارک با cookie ذخیره و از سرور اعمال می‌شود.
+Modal از Dialog رسمی استفاده می‌کند و قرارداد URL/History قبلی را حفظ می‌کند.
 
 ## اجرا
 
@@ -107,6 +107,17 @@ pnpm exec playwright install chromium
 pnpm test:e2e
 ```
 
+در checkpoint پایان base، تست مرورگر را روی خروجی واقعی standalone اجرا کنید:
+
+```sh
+pnpm build
+PLAYWRIGHT_SERVER_MODE=production pnpm test:e2e
+```
+
+حالت production فایل‌های static/public را در خروجی تولیدشده آماده و سرور standalone را
+روی پورت 3100 اجرا می‌کند؛ سرور dev موجود را استفاده نمی‌کند. CI همین حالت را اجرا می‌کند.
+در صورت نیاز محلی `PLAYWRIGHT_CHANNEL=chrome` را نیز به فرمان اضافه کنید.
+
 `pnpm build` فقط در checkpoint یک فاز، CI یا release اجرا می‌شود؛ بعد از هر تسک لازم نیست.
 `pnpm typecheck` بررسی deprecated APIها را هم اجرا می‌کند؛ اجرای جداگانه با
 `pnpm check:deprecations` ممکن است. این بررسی از Language Service نصب‌شده استفاده می‌کند،
@@ -135,12 +146,13 @@ JS plugin API و بررسی‌های React Compiler در Oxlint هنوز experim
 build خروجی standalone نیز می‌سازد؛ Dockerfile دارایی‌های `.next/static` و `public`
 را کنار آن کپی می‌کند. تأیید استقرار واقعی و staging همچنان جزو این برش نیست.
 Next.js هنگام توسعه، `AGENTS.md` محلی و `CLAUDE.md` ارجاعی می‌سازد؛ قواعد اصلی
-Ponytail و سیاست build در AGENTS.md ریشه باقی می‌مانند.
+shadcn و سیاست build در AGENTS.md ریشه باقی می‌مانند.
 
 ## ادامه
 
+- [ممیزی آمادگی base و گیت guard/logout](../../docs/technical/frontend/base-readiness.md)
 - [معماری و مرز base](../../docs/technical/frontend/architecture.md)
-- [طرح طراحی و SEO](../../docs/frontend/design.md)
+- [راهنمای shadcn](../../docs/frontend/shadcn.md)
 - [برنامهٔ تحویل PRDها](../../docs/technical/frontend/implementation-plan.md)
 - [واژه‌نامه](../../CONTEXT.md) و [دستورهای عامل](../../AGENTS.md)
 

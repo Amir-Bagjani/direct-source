@@ -12,7 +12,7 @@ creates shared primitives, changes dependency direction, or establishes a new pa
 ## Workflow
 
 1. Read `CONTEXT.md`, the applicable PRD, requirement, API contract, implementation
-   plan, and relevant sections of `docs/frontend/design.md`.
+   plan, and relevant sections of `docs/frontend/shadcn.md`.
 2. Inspect the current route and nearby source. Confirm whether the capability belongs
    to an existing feature or deserves `src/features/<domain>`; do not create a feature
    for a route shell or one generic utility.

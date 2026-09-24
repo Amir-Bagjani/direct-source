@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { StrictMode, useSyncExternalStore } from "react";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { DialogTitle } from "@/shared/ui/dialog/dialog";
 import { Modal } from "./modal";
 import { openModal } from "./modal-history";
 
@@ -34,28 +35,11 @@ beforeEach(() => {
       window.dispatchEvent(new Event("test:history"));
     });
   }
-  // jsdom has no native dialog methods; actual focus trapping is covered by Playwright.
-  Object.defineProperties(HTMLDialogElement.prototype, {
-    showModal: {
-      configurable: true,
-      value(this: HTMLDialogElement) {
-        this.setAttribute("open", "");
-      },
-    },
-    close: {
-      configurable: true,
-      value(this: HTMLDialogElement) {
-        this.removeAttribute("open");
-      },
-    },
-  });
 });
 
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
-  Reflect.deleteProperty(HTMLDialogElement.prototype, "showModal");
-  Reflect.deleteProperty(HTMLDialogElement.prototype, "close");
 });
 
 function modal(closeOnBack?: boolean) {
@@ -63,7 +47,7 @@ function modal(closeOnBack?: boolean) {
   return (
     <StrictMode>
       <Modal name="example" labelledBy="modal-title" {...historyBehavior}>
-        <h2 id="modal-title">Example</h2>
+        <DialogTitle id="modal-title">Example</DialogTitle>
         <input aria-label="Draft" />
       </Modal>
     </StrictMode>
@@ -83,12 +67,12 @@ async function traverse(direction: "back" | "forward") {
 it("closes on Back by default and reopens on Forward", async () => {
   render(modal());
   act(() => openModal("example", "42"));
-  expect(screen.getByRole("dialog").hasAttribute("open")).toBe(true);
+  expect(screen.getByRole("dialog", { name: "Example" })).toBeDefined();
   await traverse("back");
-  expect(screen.queryByRole("dialog")).toBeNull();
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
   expect(window.location.search).toBe("?keep=yes");
   await traverse("forward");
-  expect(screen.getByRole("dialog").hasAttribute("open")).toBe(true);
+  expect(screen.getByRole("dialog", { name: "Example" })).toBeDefined();
   expect(window.location.hash).toBe("#details");
 });
 
@@ -97,14 +81,14 @@ it("false adds no modal entry: Back reaches the previous page and Forward restor
   const entries = history.length;
   act(() => openModal("example", "42"));
   expect(history.length).toBe(entries);
-  expect(screen.getByRole("dialog").hasAttribute("open")).toBe(true);
+  expect(screen.getByRole("dialog", { name: "Example" })).toBeDefined();
   await traverse("back");
   expect(window.location.pathname).toBe("/fa");
-  expect(screen.queryByRole("dialog")).toBeNull();
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
   await traverse("forward");
   expect(window.location.pathname).toBe("/en");
   expect(window.location.search).toBe("?keep=yes&modal=example&id=42");
-  expect(screen.getByRole("dialog").hasAttribute("open")).toBe(true);
+  expect(screen.getByRole("dialog", { name: "Example" })).toBeDefined();
   expect(history.length).toBe(entries);
 });
 
@@ -115,8 +99,8 @@ it.each(["close", "escape"])(
     const entries = history.length;
     act(() => openModal("example", "42"));
     if (action === "close") fireEvent.click(screen.getByRole("button", { name: "close" }));
-    else fireEvent(screen.getByRole("dialog"), new Event("cancel", { cancelable: true }));
-    expect(screen.queryByRole("dialog")).toBeNull();
+    else fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     expect(window.location.pathname).toBe("/en");
     expect(window.location.search).toBe("?keep=yes");
     expect(window.location.hash).toBe("#details");
@@ -130,11 +114,11 @@ it.each([true, false])("direct modal URL respects closeOnBack=%s", async (closeO
   history.replaceState({}, "", "/en?keep=yes&modal=example&id=42#details");
   const entries = history.length;
   render(modal(closeOnBack));
-  expect(screen.getByRole("dialog").hasAttribute("open")).toBe(true);
+  expect(screen.getByRole("dialog", { name: "Example" })).toBeDefined();
   expect(history.length).toBe(entries + (closeOnBack ? 1 : 0));
   await traverse("back");
   expect(window.location.pathname).toBe(closeOnBack ? "/en" : "/fa");
-  expect(screen.queryByRole("dialog")).toBeNull();
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
 });
 
 it("uses the prop selected before opening", async () => {

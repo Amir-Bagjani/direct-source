@@ -31,7 +31,7 @@
 - Promote a primitive to shared only when a second independent consumer exists.
 - Import canonical files directly; never add a re-exporting `index.ts`.
 - Add visible copy to both locale files and use logical CSS properties. Follow
-  `docs/frontend/design.md` rather than inventing tokens or layout values.
+  `docs/frontend/shadcn.md` rather than inventing tokens or layout values.
 
 ## 4. Complete behavior
 

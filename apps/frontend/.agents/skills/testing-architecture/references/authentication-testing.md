@@ -22,3 +22,9 @@ a single browser-process mock cannot prove the documented multi-replica invarian
 Never expose or snapshot Django JWTs in browser JavaScript, web storage, HTML/RSC payloads,
 test output, traces, screenshots, or committed fixtures. Run destructive auth/session
 tests only against an isolated test environment.
+
+`AC-ACC-31` also requires logout → public route → Back/Forward, direct navigation,
+reload, prefetched RSC, BFCache restore, another-tab logout, and late query/mutation
+results. Assert private content is absent, not only that the URL changed. Use real
+session revocation; fake cookies cannot prove this gate. See
+`docs/technical/frontend/base-readiness.md` for the acceptance matrix.

@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const production = process.env.PLAYWRIGHT_SERVER_MODE === "production";
+
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: true,
@@ -15,9 +17,9 @@ export default defineConfig({
     { name: "mobile", use: { ...devices["Pixel 7"] } },
   ],
   webServer: {
-    command: "pnpm dev --port 3100",
+    command: production ? "node tooling/start-e2e-production.mjs" : "pnpm dev --port 3100",
     url: "http://localhost:3100/fa",
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: !production && !process.env.CI,
     timeout: 120_000,
   },
 });

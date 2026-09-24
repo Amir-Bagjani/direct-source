@@ -1,0 +1,30 @@
+{
+  "source": "https://ui.shadcn.com/docs",
+  "retrieved": "2026-09-24",
+  "files": {
+    "theming.md": {
+      "url": "https://ui.shadcn.com/docs/theming.md",
+      "sha256": "403a71fea629dd9d5eebdf3656baab6b8550972adfb4fc5ed0847d13b3dc73f0"
+    },
+    "dark-mode-next.md": {
+      "url": "https://ui.shadcn.com/docs/dark-mode/next.md",
+      "sha256": "45e542a88f294e90944727856d3c4ee3c5fb42d5efb96e5ff0b9ad5b41b9d18c"
+    },
+    "rtl.md": {
+      "url": "https://ui.shadcn.com/docs/rtl.md",
+      "sha256": "cf90c91f38d5a5c8bfd4385f40a799bf01500107188012bbec4373697c834779"
+    },
+    "components-json.md": {
+      "url": "https://ui.shadcn.com/docs/components-json.md",
+      "sha256": "8dd04ec57364664c35a69679de426ae6e74ee24420a15fcee914cd09c77f4106"
+    },
+    "skills.md": {
+      "url": "https://ui.shadcn.com/docs/skills.md",
+      "sha256": "8ad2b7746b8e8be30d0a04f287643cc93f1c43fe4ed33624225c79dc9191ff1c"
+    },
+    "LICENSE.md": {
+      "url": "https://raw.githubusercontent.com/shadcn-ui/ui/main/LICENSE.md",
+      "sha256": "1564074e13439397221ffd522e2e504d56561994a23d371aa5e3ad43e4f5423f"
+    }
+  }
+}

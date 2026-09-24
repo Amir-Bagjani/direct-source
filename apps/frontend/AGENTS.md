@@ -27,44 +27,30 @@ read `.agents/skills/testing-architecture/SKILL.md`; meaningful tests are part o
 implementation. For components, features, TypeScript types, API contracts, validation
 schemas, hooks, shared abstractions, or TypeScript errors, also read
 `.agents/skills/typescript-architecture/SKILL.md`. Automatic activation is not assumed.
-Before feature UI, reusable/shared components, CSS, tokens, typography, responsive
-layouts, accessibility, RTL/LTR presentation, Modal behavior, or UI-library changes,
-read `../../docs/frontend/design.md` and
-`.agents/skills/design-system-architecture/SKILL.md`. Reuse its tokens and components;
-do not introduce another visual language or styling system without a documented decision.
-For shared UI primitives, also read `.agents/skills/ui-kit-architecture/SKILL.md`,
-`.agents/skills/shadcn/SKILL.md`, and `components.json`.
+Before any UI work, read `.agents/skills/shadcn/SKILL.md`,
+`.agents/skills/design-system-architecture/SKILL.md`,
+`.agents/skills/ui-kit-architecture/SKILL.md`, `components.json`, and
+`../../docs/frontend/shadcn.md`.
 
-Light Theme is the application default and Dark Theme is an explicit persisted choice. All UI
-supports both through shared semantic tokens. Do not hardcode theme-specific component colours or
-introduce another theme provider, persistence mechanism, or token system.
+## UI source of truth: shadcn/ui
 
-## Source of Truth: frontend design
-The repository file `../../docs/frontend/design.md` is the source of truth for visual,
-UX, and public SEO decisions. `DESIGN.md` in this directory is a stale legacy copy and
-must not drive new work.
-
-### Before any UI work
-1. Read `../../docs/frontend/design.md` fully. Re-read the relevant sections whenever you build or edit a
-   page, component, or layout, even if you already read it earlier in the session.
-2. Follow it exactly: colors, typography, spacing, radius, shadows, breakpoints,
-   components, motion, and tone.
-
-### Rules
-- Do NOT invent styles. Every visual value must come from `../../docs/frontend/design.md`.
-- No hard-coded values. Define design tokens once as CSS variables and use only those tokens.
-- Reuse existing components before creating new ones. New components must follow the
-  patterns in `../../docs/frontend/design.md`.
-- If the design source is silent or ambiguous, ask me, or pick the option most consistent with
-  the existing design and state the assumption at the end of your response.
-- If my request conflicts with the design source, point out the conflict first and ask which
-  should win.
-- Never modify the design source unless I explicitly ask. Suggest changes instead.
+- shadcn/ui is the sole design system and UI kit. Use the official `@shadcn` registry,
+  Base UI primitives, Nova style, neutral palette, and built-in variants.
+- Check installed components, then use the shadcn CLI to find and add missing controls.
+  Do not hand-build substitutes with CSS, CSS Modules, styled divs, or another UI kit.
+- Compose shadcn components; use Tailwind utilities for responsive layout. Do not
+  override component appearance to reproduce the retired visual system.
+- The global stylesheet contains shadcn theme infrastructure and necessary locale,
+  accessibility and browser integration only. No feature/component stylesheet system.
+- Light is the SSR and failure default, including with a dark OS preference. Dark is
+  selected explicitly and persisted by the existing theme cookie. All components inherit
+  the same shadcn semantic tokens; no additional theme provider or persistence system.
+- PRDs own product behavior; the technical architecture owns SEO and security.
 
 ## Implementation Standards
 - Prefer Server Components. Add `"use client"` only when interactivity requires it.
 - Use `next/image` for images and `next/font` for fonts.
-- Mobile-first, responsive layouts using the breakpoints from `../../docs/frontend/design.md`.
+- Mobile-first, responsive layouts using Tailwind responsive utilities.
 - Implement all states for interactive elements: hover, focus-visible, active,
   disabled, loading, empty, error.
 - Accessibility: semantic HTML, alt text, sufficient contrast, keyboard navigation,
@@ -102,13 +88,12 @@ Never build for one direction and "fix" the other later.
 - Write natural Persian, not literal translation. Use proper Persian punctuation
   (، ؛ ؟ «») and the ZWNJ (نیم‌فاصله) where required.
 - Format numbers, dates, currency, and relative time with next-intl's
-  `useFormatter` / `getFormatter`. Follow `../../docs/frontend/design.md` for digit style
-  (Persian vs Latin digits) and calendar (Jalali vs Gregorian).
+  `useFormatter` / `getFormatter`. Follow the product language requirements and ADR-0011/ADR-0012 for currency and calendar.
 - Design for text length differences: no fixed widths on text containers, allow wrapping.
 
 ### Layout & CSS
-- Use logical CSS properties such as `margin-inline-start`, `padding-inline-end`, and
-  `inset-inline-start`; Tailwind utilities may express these where they follow project tokens.
+- Use logical Tailwind utilities (`ms-*`, `pe-*`, `start-*`) for layout. Do not add
+  hand-written component CSS.
 - Never use physical left/right properties when a logical equivalent exists.
 - Flex/Grid mirror automatically. Do not fake RTL with `flex-row-reverse`.
 - For things that can't be logical (transforms, gradients, shadow offsets, background
@@ -117,15 +102,13 @@ Never build for one direction and "fix" the other later.
   RTL. Do NOT flip logos, play/pause icons, clocks, checkmarks, charts, or photos.
 - Directional animations (slide-in, drawers, carousels, progress bars, toasts) must
   respect the current direction.
-- When a portaled or direction-sensitive Base UI/Radix component is introduced, use its
-  direction provider with the current document `dir` (dropdowns, tabs, sliders, and menus
-  depend on it). Native Button, Input, and dialog inherit document direction already.
+- Use the shared DirectionProvider with the current document direction for shadcn
+  Base UI components, including portals.
 
 ### Typography
-- Each locale uses its own font from `../../docs/frontend/design.md`, loaded via `next/font` and applied
+- Use Vazirmatn for Persian and Inter for English, loaded via `next/font` and applied
   through CSS variables based on the locale.
-- Line-height, font-size, and weight may differ per script. Use the per-locale values
-  from `../../docs/frontend/design.md`.
+- Line-height, font-size, and weight may differ per script. Preserve Persian glyph readability within shadcn typography.
 - Never apply `letter-spacing` to Persian text (it breaks letter joining).
 - Never use `uppercase` or italic on Persian text.
 
@@ -141,11 +124,11 @@ Never build for one direction and "fix" the other later.
   `generateMetadata`, plus `alternates.languages` for `hreflang`.
 
 ## Before Finishing Any Task
-Verify against `../../docs/frontend/design.md` and the rules above:
-- [ ] Colors, typography, spacing, radius, and shadows match the design tokens
+Verify shadcn composition and the rules above:
+- [ ] Components use shadcn variants and semantic tokens
 - [ ] Layout is responsive at all defined breakpoints
 - [ ] All interactive states are implemented
-- [ ] No hard-coded values or one-off styles
+- [ ] No bespoke component styling; use shadcn variants
 - [ ] Page renders correctly in both `fa` (RTL) and `en` (LTR), with no misalignment
 - [ ] No physical left/right classes remain
 - [ ] Directional icons and animations flip correctly
@@ -153,7 +136,7 @@ Verify against `../../docs/frontend/design.md` and the rules above:
 - [ ] All strings come from next-intl and exist in both `fa.json` and `en.json`
 - [ ] Mixed LTR/RTL content (numbers, English words) displays properly
 
-Then briefly list which sections of the design source you applied and any assumptions you made.
+Report the components used and verification performed.
 
 ## Data Fetching Architecture
 

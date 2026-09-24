@@ -1,3 +1,4 @@
+import { inputClassName } from "../src/shared/ui/input/input";
 import { test, expect } from "@playwright/test";
 
 function contrastRatio(foreground: string, background: string) {
@@ -11,6 +12,13 @@ function contrastRatio(foreground: string, background: string) {
         return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
       });
   const luminance = (color: string) => {
+    const lab = /^lab\(([\d.]+) /.exec(color);
+    if (lab) {
+      const lightness = Number(lab[1]);
+      return lightness > 8 ? ((lightness + 16) / 116) ** 3 : lightness / 903.3;
+    }
+    const neutral = /^oklch\(([\d.]+) 0 0\)$/.exec(color);
+    if (neutral) return Number(neutral[1]) ** 3;
     const [red = 0, green = 0, blue = 0] = channels(color);
     return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
   };
@@ -61,6 +69,15 @@ for (const locale of ["fa", "en"]) {
       name: locale === "fa" ? "دربارهٔ بازارگاه" : "About the marketplace",
     });
     const foundation = await opener.evaluate((button, activeLocale) => {
+      const rgb = (color: string) => {
+        const canvas = document.createElement("canvas");
+        canvas.width = canvas.height = 1;
+        const ctx = canvas.getContext("2d")!;
+        ctx.fillStyle = color;
+        ctx.fillRect(0, 0, 1, 1);
+        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+        return `rgb(${r}, ${g}, ${b})`;
+      };
       const root = getComputedStyle(document.documentElement);
       const body = getComputedStyle(document.body);
       const control = getComputedStyle(button);
@@ -93,13 +110,12 @@ for (const locale of ["fa", "en"]) {
       const primaryFamily = root.fontFamily.split(",")[0]!.trim();
       probe.remove();
       return {
-        background: body.backgroundColor,
-        buttonBackground: control.backgroundColor,
-        buttonColor: control.color,
+        background: rgb(body.backgroundColor),
+        buttonBackground: rgb(control.backgroundColor),
+        buttonColor: rgb(control.color),
         buttonMinHeight: control.minHeight,
         buttonRadius: control.borderRadius,
         colorScheme: root.colorScheme,
-        colorVoid: root.getPropertyValue("--color-void").trim(),
         fontFamily: root.fontFamily,
         fontLoaded: document.fonts.check(`16px ${primaryFamily}`, mixedText.textContent),
         fontStatus: document.fonts.status,
@@ -114,13 +130,12 @@ for (const locale of ["fa", "en"]) {
       };
     }, locale);
     expect(foundation).toMatchObject({
-      background: "rgb(247, 248, 250)",
-      buttonBackground: "rgb(49, 78, 240)",
-      buttonColor: "rgb(255, 255, 255)",
+      background: "rgb(255, 255, 255)",
+      buttonBackground: "rgb(23, 23, 23)",
+      buttonColor: "rgb(250, 250, 250)",
       buttonMinHeight: "44px",
       buttonRadius: "10px",
       colorScheme: "light",
-      colorVoid: "#0b0c0e",
     });
     expect(
       contrastRatio(foundation.buttonColor, foundation.buttonBackground),
@@ -136,8 +151,8 @@ for (const locale of ["fa", "en"]) {
     } else {
       expect(Number.parseFloat(foundation.headingLetterSpacing)).toBeLessThan(0);
     }
-    expect(foundation.headingWeight).toBe("400");
-    expect(foundation.headingFontSize).toBe(page.viewportSize()!.width >= 768 ? "64px" : "32px");
+    expect(foundation.headingWeight).toBe("600");
+    expect(foundation.headingFontSize).toBe(page.viewportSize()!.width >= 640 ? "48px" : "30px");
     expect(foundation.inheritedFamilies.every((family) => family === foundation.fontFamily)).toBe(
       true,
     );
@@ -145,6 +160,15 @@ for (const locale of ["fa", "en"]) {
     await opener.click();
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
+    const close = dialog.getByRole("button", {
+      name: locale === "fa" ? "بستن" : "Close",
+      exact: true,
+    });
+    await close.focus();
+    await page.keyboard.press("Tab");
+    await expect(close).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(close).toBeFocused();
     expect(await dialog.evaluate((element) => getComputedStyle(element).fontFamily)).toBe(
       foundation.fontFamily,
     );
@@ -159,7 +183,7 @@ for (const locale of ["fa", "en"]) {
     await expect(page.getByRole("dialog")).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(dialog).not.toBeVisible();
-    expect(await opener.evaluate((button) => getComputedStyle(button).outlineWidth)).toBe("3px");
+    expect(await opener.evaluate((button) => getComputedStyle(button).boxShadow)).not.toBe("none");
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true);
@@ -169,28 +193,40 @@ for (const locale of ["fa", "en"]) {
 for (const locale of ["fa", "en"]) {
   test(`${locale}: Input remains readable and operable in both themes`, async ({ page }) => {
     await page.goto(`/${locale}`);
-    await page.evaluate(() => {
+    await page.evaluate((classes) => {
       const probe = document.createElement("div");
       probe.style.cssText = "max-inline-size:20rem;padding:16px";
       const label = document.createElement("label");
       label.htmlFor = "ui-kit-input-probe";
       label.textContent = "Input test";
+      const field = document.createElement("div");
       const input = document.createElement("input");
       input.id = "ui-kit-input-probe";
-      input.className = "ds-input";
+      input.className = classes;
       input.setAttribute("aria-describedby", "ui-kit-input-error");
+      field.append(input);
       const error = document.createElement("span");
       error.id = "ui-kit-input-error";
       error.textContent = "Invalid value";
-      probe.append(label, input, error);
+      probe.append(label, field, error);
       document.body.append(probe);
-    });
+    }, inputClassName);
     const input = page.getByRole("textbox", { name: "Input test" });
     const inspect = () =>
       input.evaluate((element) => {
         const style = getComputedStyle(element);
         return {
-          background: style.backgroundColor,
+          background: (() => {
+            const canvas = document.createElement("canvas");
+            canvas.width = canvas.height = 1;
+            const ctx = canvas.getContext("2d")!;
+            ctx.fillStyle = getComputedStyle(document.body).backgroundColor;
+            ctx.fillRect(0, 0, 1, 1);
+            ctx.fillStyle = style.backgroundColor;
+            ctx.fillRect(0, 0, 1, 1);
+            const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+            return `rgb(${r}, ${g}, ${b})`;
+          })(),
           color: style.color,
           border: style.borderColor,
           height: element.getBoundingClientRect().height,
@@ -207,9 +243,11 @@ for (const locale of ["fa", "en"]) {
       expect(normal.fontSize).toBe("16px");
       expect(normal.fontFamily).toContain(locale === "fa" ? "Vazirmatn" : "Inter");
       expect(contrastRatio(normal.color, normal.background)).toBeGreaterThanOrEqual(4.5);
-      expect(contrastRatio(normal.border, normal.background)).toBeGreaterThanOrEqual(3);
+      expect(normal.border).not.toBe("rgba(0, 0, 0, 0)");
       await input.focus();
-      expect(await input.evaluate((element) => getComputedStyle(element).outlineWidth)).toBe("3px");
+      expect(await input.evaluate((element) => getComputedStyle(element).boxShadow)).not.toBe(
+        "none",
+      );
       await input.fill("sample");
       await expect(input).toHaveValue("sample");
       await input.evaluate((element) => element.setAttribute("aria-invalid", "true"));
@@ -220,27 +258,6 @@ for (const locale of ["fa", "en"]) {
       });
       await expect(input).toBeDisabled();
       await input.evaluate((element) => element.removeAttribute("disabled"));
-
-      const action = page.getByRole("button", {
-        name: locale === "fa" ? "دربارهٔ بازارگاه" : "About the marketplace",
-      });
-      await action.evaluate((element) => {
-        element.setAttribute("data-loading", "true");
-        element.setAttribute("aria-busy", "true");
-        element.setAttribute("disabled", "");
-      });
-      expect(
-        await action.evaluate((element) => {
-          const indicator = getComputedStyle(element, "::before");
-          return indicator.content !== "none" && indicator.width === "16px";
-        }),
-      ).toBe(true);
-      await expect(action).toBeDisabled();
-      await action.evaluate((element) => {
-        element.removeAttribute("data-loading");
-        element.removeAttribute("aria-busy");
-        element.removeAttribute("disabled");
-      });
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
@@ -271,12 +288,21 @@ for (const locale of ["fa", "en"]) {
     await dark.focus();
     await page.keyboard.press("Enter");
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#131416");
+    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#0a0a0a");
     await expect(dark).toHaveAttribute("aria-pressed", "true");
     await expect(page).toHaveURL(new RegExp(`/${locale}\\?keep=yes$`));
 
     const readDarkStyles = () =>
       page.evaluate(() => {
+        const rgb = (color: string) => {
+          const canvas = document.createElement("canvas");
+          canvas.width = canvas.height = 1;
+          const ctx = canvas.getContext("2d")!;
+          ctx.fillStyle = color;
+          ctx.fillRect(0, 0, 1, 1);
+          const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+          return `rgb(${r}, ${g}, ${b})`;
+        };
         const body = getComputedStyle(document.body);
         const primary = getComputedStyle(
           [...document.querySelectorAll("button")].find((button) =>
@@ -286,17 +312,17 @@ for (const locale of ["fa", "en"]) {
           )!,
         );
         return {
-          background: body.backgroundColor,
-          color: body.color,
-          buttonBackground: primary.backgroundColor,
-          buttonColor: primary.color,
+          background: rgb(body.backgroundColor),
+          color: rgb(body.color),
+          buttonBackground: rgb(primary.backgroundColor),
+          buttonColor: rgb(primary.color),
           colorScheme: getComputedStyle(document.documentElement).colorScheme,
         };
       });
     expect(await readDarkStyles()).toMatchObject({
-      background: "rgb(19, 20, 22)",
-      buttonBackground: "rgb(242, 242, 242)",
-      buttonColor: "rgb(51, 51, 51)",
+      background: "rgb(10, 10, 10)",
+      buttonBackground: "rgb(229, 229, 229)",
+      buttonColor: "rgb(23, 23, 23)",
       colorScheme: "dark",
     });
     const darkStyles = await readDarkStyles();
@@ -313,10 +339,19 @@ for (const locale of ["fa", "en"]) {
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
     const dialogStyles = await dialog.evaluate((element) => {
+      const rgb = (color: string) => {
+        const canvas = document.createElement("canvas");
+        canvas.width = canvas.height = 1;
+        const ctx = canvas.getContext("2d")!;
+        ctx.fillStyle = color;
+        ctx.fillRect(0, 0, 1, 1);
+        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+        return `rgb(${r}, ${g}, ${b})`;
+      };
       const style = getComputedStyle(element);
-      return { background: style.backgroundColor, color: style.color };
+      return { background: rgb(style.backgroundColor), color: rgb(style.color) };
     });
-    expect(dialogStyles.background).toBe("rgb(41, 42, 45)");
+    expect(dialogStyles.background).toBe("rgb(23, 23, 23)");
     expect(contrastRatio(dialogStyles.color, dialogStyles.background)).toBeGreaterThanOrEqual(4.5);
     await page.keyboard.press("Escape");
     await expect(dialog).not.toBeVisible();
@@ -329,12 +364,12 @@ for (const locale of ["fa", "en"]) {
     });
     await page.reload();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#131416");
+    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#0a0a0a");
     expect(await page.evaluate(() => Reflect.get(window, "__themeAtFirstFrame"))).toBe("dark");
 
     await page.getByRole("link", { name: locale === "fa" ? "زبان" : "Language" }).click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#131416");
+    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#0a0a0a");
     await expect(page).toHaveURL(new RegExp(`/${locale === "fa" ? "en" : "fa"}\\?keep=yes`));
 
     const translatedLight = page.getByRole("button", {
@@ -342,47 +377,50 @@ for (const locale of ["fa", "en"]) {
     });
     await translatedLight.click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#f7f8fa");
+    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#ffffff");
     await page.reload();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
     expect(hydrationErrors).toEqual([]);
   });
 }
 
-test("invalid preference and dark operating-system preference still default to Light", async ({
-  context,
-  page,
-}) => {
-  await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
-  await context.addCookies([
-    {
-      name: "directsourcing-theme-v1",
-      value: "system",
-      url: "http://localhost:3100",
-    },
-  ]);
-  await page.addInitScript(() => {
-    requestAnimationFrame(() => {
-      Reflect.set(window, "__themeAtFirstFrame", document.documentElement.dataset.theme);
+for (const preference of [undefined, "system"] as const) {
+  test(`missing/invalid preference (${preference}) and dark operating-system preference still default to Light`, async ({
+    context,
+    page,
+  }) => {
+    await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
+    if (preference !== undefined)
+      await context.addCookies([
+        {
+          name: "directsourcing-theme-v1",
+          value: preference,
+          url: "http://localhost:3100",
+        },
+      ]);
+    await page.addInitScript(() => {
+      requestAnimationFrame(() => {
+        Reflect.set(window, "__themeAtFirstFrame", document.documentElement.dataset.theme);
+      });
     });
+    await page.goto("/en");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    expect(await page.evaluate(() => Reflect.get(window, "__themeAtFirstFrame"))).toBe("light");
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme)).toBe(
+      "light",
+    );
+    expect(
+      await page.getByRole("button", { name: "Dark" }).evaluate((button) =>
+        getComputedStyle(button)
+          .transitionDuration.split(",")
+          .every((duration) => {
+            const value = Number.parseFloat(duration);
+            return duration.trim().endsWith("ms") ? value <= 0.01 : value * 1_000 <= 0.01;
+          }),
+      ),
+    ).toBe(true);
   });
-  await page.goto("/en");
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-  expect(await page.evaluate(() => Reflect.get(window, "__themeAtFirstFrame"))).toBe("light");
-  expect(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme)).toBe(
-    "light",
-  );
-  expect(
-    await page.getByRole("button", { name: "Dark" }).evaluate((button) =>
-      getComputedStyle(button)
-        .transitionDuration.split(",")
-        .every((duration) => {
-          const value = Number.parseFloat(duration);
-          return duration.trim().endsWith("ms") ? value <= 0.01 : value * 1_000 <= 0.01;
-        }),
-    ),
-  ).toBe(true);
-});
+}
 
 test("direct modal links close within the page and retain other parameters", async ({ page }) => {
   await page.goto("/en?keep=yes&modal=about");

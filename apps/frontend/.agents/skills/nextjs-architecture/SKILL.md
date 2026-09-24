@@ -25,6 +25,7 @@ repository-wide migration.
   boundaries, and composition; business implementation belongs in
   `src/features/<domain>`.
 - Put a primitive in `src/shared` only after a second independent consumer exists.
+  Needed official shadcn primitives are an exception: shared from their first consumer.
   Shared and i18n code cannot depend on features or app routes.
 - Reusable and feature components each get a dedicated directory. Colocate every
   file used only by that component. Preserve existing `shared/ui`, `shared/query`,
@@ -49,7 +50,7 @@ repository-wide migration.
   or a global state library merely because another project uses them.
 - Tests follow ownership: colocate source tests, keep cross-feature journeys in `tests/`,
   and consult `testing-architecture` for level selection and test implementation.
-- Use `design-system-architecture` for design-source compliance, CSS/tokens, typography,
+- Use `design-system-architecture` for shadcn composition and theme integration, typography,
   shared UI APIs, accessibility, RTL/LTR presentation, and responsive behavior.
 
 ## Detailed references

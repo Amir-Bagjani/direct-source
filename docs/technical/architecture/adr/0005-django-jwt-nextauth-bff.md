@@ -91,3 +91,12 @@ Accepted
 - [Auth.js Credentials provider](https://authjs.dev/getting-started/authentication/credentials)
 - [Simple JWT settings](https://django-rest-framework-simplejwt.readthedocs.io/en/stable/settings.html)
 - [Simple JWT blacklist app](https://django-rest-framework-simplejwt.readthedocs.io/en/stable/blacklist_app.html)
+
+
+## تکمیل تصمیم وب — 2026-09-25
+
+Credentials پایدار NextAuth 4.24.15 با cookie حاوی شناسهٔ opaque اجرا شد؛ access/refresh
+Django در vault رمز‌شدهٔ PostgreSQL می‌مانند. قفل advisory مشترک و ثبت durable حالت
+`refreshing` قبل از HTTP، refresh هم‌زمان/نامطمئن را هماهنگ می‌کنند. این vault مرجع هویت
+مستقل نیست؛ `/me/` و هر عملیات دامنه همچنان از Django مجوز می‌گیرند.
+[قرارداد اجرایی و محدودیت‌های استقرار](../../frontend/web-sessions.md) جزئیات را ثبت می‌کند.

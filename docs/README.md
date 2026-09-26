@@ -69,7 +69,9 @@
 
 - [اجرای محلی فرانت‌اند](../apps/frontend/README.md)
 - [معماری و مرز base](technical/frontend/architecture.md)
+- [نشست وب، refresh و خروج](technical/frontend/web-sessions.md)
 - [ممیزی آمادگی base و گیت امنیت صفحات خصوصی](technical/frontend/base-readiness.md)
+- [ثبت‌نام و صفحه‌های قوانین/حریم خصوصی](technical/frontend/registration-policies.md)
 - [برنامهٔ پیاده‌سازی مرحله‌ای PRDها](technical/frontend/implementation-plan.md)
 - [راهنمای shadcn، تم و RTL/LTR](../docs/frontend/shadcn.md)
 - [قواعد عامل‌های کدنویسی](../AGENTS.md)
@@ -77,3 +79,5 @@
 ## ریشهٔ پروژه
 
 - [`CONTEXT.md`](../CONTEXT.md) — واژه‌نامهٔ دامنه؛ همچنین به‌عنوان دستورالعمل پروژه توسط opencode از ریشه بارگذاری می‌شود.
+
+- [Frontend feature architecture refactor](technical/frontend/feature-architecture-refactor.md)

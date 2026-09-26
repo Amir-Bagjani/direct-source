@@ -8,7 +8,8 @@
     "primary": "Main navigation",
     "language": "Language",
     "skip": "Skip to main content",
-    "switchLanguage": "فارسی"
+    "switchLanguage": "فارسی",
+    "account": "Account"
   },
   "theme": {
     "label": "Color theme",
@@ -20,7 +21,8 @@
     "title": "Direct sourcing, confident choices",
     "body": "Connecting manufacturers directly with retail businesses.",
     "about": "About the marketplace",
-    "aboutBody": "Direct Sourcing Marketplace connects bag and footwear manufacturers with retail businesses."
+    "aboutBody": "Direct Sourcing Marketplace connects bag and footwear manufacturers with retail businesses.",
+    "register": "Create account"
   },
   "common": {
     "loading": "Loading…",
@@ -29,5 +31,171 @@
     "error": "Something went wrong.",
     "notFound": "Page not found.",
     "backHome": "Back to home"
+  },
+  "accounts": {
+    "register": {
+      "title": "Create your personal account",
+      "description": "Register with your mobile number. Creating an account does not create or verify a business.",
+      "fields": {
+        "first_name": "First name",
+        "last_name": "Last name",
+        "mobile": "Mobile number",
+        "email": "Email (optional)",
+        "password": "Password",
+        "accept_terms": "I accept the terms of use and privacy policy."
+      },
+      "passwordHelp": "Use 12–128 characters. Avoid common passwords, numbers alone, and your personal details.",
+      "mobileHelp": "Use an Iranian mobile number, such as <number>09123456789</number> or <number>+989123456789</number>. Registration does not verify the number.",
+      "validation": {
+        "first_name": "Enter your first name (up to 150 characters).",
+        "last_name": "Enter your last name (up to 150 characters).",
+        "mobile": "Enter a valid Iranian mobile number.",
+        "email": "Enter a valid email address or leave it empty.",
+        "password": "Use a password between 12 and 128 characters.",
+        "accept_terms": "Accept the terms of use and privacy policy to continue."
+      },
+      "submit": "Create account",
+      "submitting": "Creating account…",
+      "successTitle": "Your account was created",
+      "successDescription": "Your personal account is registered. No business has been created and you are not signed in.",
+      "errorTitle": "Registration could not be completed",
+      "errors": {
+        "rejected": "We could not register these details. Check your information and choose a strong password. A previously used mobile number cannot be registered again.",
+        "throttled": "Too many attempts. Wait a minute before trying again.",
+        "unavailable": "We could not confirm the result. Your account may have been created. Check your connection before trying again."
+      },
+      "readPolicies": "Read <terms>the terms of use</terms> and <privacy>privacy policy</privacy> (each opens a new tab).",
+      "login": "Sign in"
+    },
+    "policies": {
+      "navigation": "Policy navigation",
+      "register": "Back to registration",
+      "terms": {
+        "title": "Terms of use",
+        "description": "Rules for using Direct Sourcing Marketplace and managing personal and business accounts.",
+        "sections": {
+          "scope": {
+            "title": "Scope of the service",
+            "body": "The marketplace connects manufacturers with retail businesses. A personal account identifies a person; a business has a separate identity and review process. These rules apply to account registration and to the marketplace services made available to you."
+          },
+          "account": {
+            "title": "Account information and security",
+            "body": "Provide accurate information and a mobile number you are entitled to use. Keep your password private and do not use another person’s account. Email is optional. Registration alone does not verify your mobile number or your identity. Password recovery requires an email address that has already been verified."
+          },
+          "business": {
+            "title": "Business ownership and verification",
+            "body": "Each user can own at most one business, either a manufacturer or a retailer, and each business has one owner. Creating a business does not approve it. Wholesale prices and commercial operations require the relevant permissions. Submit only information and documents you are entitled to provide; approval is a review of identity and activity, not a guarantee of every product or future transaction."
+          },
+          "conduct": {
+            "title": "Permitted use",
+            "body": "Do not impersonate others, submit forged documents, publish misleading information, access another account’s private information, or try to bypass access restrictions. Do not use the service to distribute harmful files or disrupt other users. You are responsible for the accuracy and authorized use of the information and content you submit."
+          },
+          "transactions": {
+            "title": "Orders and payments in this version",
+            "body": "In the current version, payment, refunds and settlement do not transfer real money. Orders do not create a real commitment to manufacture, ship or deliver goods. Do not make off-platform payments or arrange real trade based on these records. Order invoices are not bank receipts, official invoices or tax invoices. Order and payment access is limited to businesses expressly authorized by the platform."
+          },
+          "access": {
+            "title": "Review and access restrictions",
+            "body": "The platform may return submissions for correction, reject them or restrict access according to its review and suspension rules. Decisions are recorded with a reason. Suspension does not erase existing records or automatically resolve open matters; access to resolve an existing matter depends on the applicable permissions."
+          },
+          "changes": {
+            "title": "Rules and recorded acceptance",
+            "body": "Registration requires acceptance of these terms and the privacy policy. The accepted policy versions and time of acceptance are recorded with the account. Revised information for an approved business is reviewed separately; submitting a revision does not by itself replace the approved information."
+          }
+        }
+      },
+      "privacy": {
+        "title": "Privacy policy",
+        "description": "What information the marketplace uses, why it is needed and how public information differs from private account data.",
+        "sections": {
+          "collection": {
+            "title": "Information we collect",
+            "body": "Registration collects your first and last name, mobile number, password and acceptance of the policies; email is optional. The password is stored as a one-way hash. Business creation and verification collect additional information such as business details, addresses, contact numbers, identity details, identity images and evidence of activity. Provide these documents only in the dedicated verification steps."
+          },
+          "purpose": {
+            "title": "Why we use information",
+            "body": "Account information supports registration, sign-in, account security and communication about the account. Business details and documents support ownership and verification checks. Information about orders, messages, support requests and decisions is used to provide the relevant service, follow up open matters and maintain an audit trail. Password recovery uses only a previously verified email address."
+          },
+          "visibility": {
+            "title": "Public and private information",
+            "body": "An approved manufacturer’s business name, logo, province, city, activity description and eligible public reputation may appear on its public page. Exact addresses, contact numbers, personal identity information and verification documents are private. Access is limited to the relevant owner and authorized platform staff, with the permissions required for the task. Other users do not receive access merely by registering."
+          },
+          "storage": {
+            "title": "Document storage and access",
+            "body": "Identity documents and evidence of activity are kept in private file storage. They do not have public download links. Authorized document access uses short-lived links and is recorded. Infrastructure services may process the information needed to store files, operate the service or deliver account email; credentials and private documents are not intended for public publication."
+          },
+          "retention": {
+            "title": "Retention and deletion",
+            "body": "Private verification documents currently have no automatic expiry or scheduled deletion and may be retained indefinitely. Deletion requires a valid request from the data subject or a legal instruction, approval by the system owner and a recorded reason. An open matter or a legal hold may prevent deletion. Decision and financial records are retained as history; a correction is recorded separately rather than silently overwriting the original record."
+          },
+          "cookies": {
+            "title": "Cookies and browser preferences",
+            "body": "The website uses a cookie to remember an explicitly selected light or dark theme and may remember your language preference. Light is the default. Secure sign-in uses a session cookie so the server can recognize the account. Account tokens are not made available to page scripts or stored in browser web storage. These technical cookies support the requested service and preferences."
+          },
+          "requests": {
+            "title": "Corrections and privacy requests",
+            "body": "Use the account and business workflows to correct information when those functions are available. Changes to approved business information require review. A request to delete a private document must go through the platform’s authorized review process and does not immediately remove records or settle an open matter. Registration itself does not publish your personal details or verify a business."
+          }
+        }
+      }
+    },
+    "login": {
+      "title": "Sign in",
+      "description": "Use your mobile number and password to access your account.",
+      "submit": "Sign in",
+      "pending": "Signing in…",
+      "register": "Create an account",
+      "error": "Unable to sign in. Check your details and try again.",
+      "validation": {
+        "mobile": "Enter a valid Iranian mobile number.",
+        "password": "Enter your password."
+      },
+      "forgotPassword": "Forgot your password?"
+    },
+    "account": {
+      "title": "Your account",
+      "description": "Your personal account details.",
+      "name": "Name",
+      "mobile": "Mobile number",
+      "email": "Email",
+      "noEmail": "Not provided",
+      "emailVerified": "Your email is verified.",
+      "emailUnverified": "Your email is not verified. Password recovery requires a verified email.",
+      "logout": "Sign out",
+      "retryLogout": "Retry sign out",
+      "logoutUncertain": "Access is blocked on this device, but server sign-out has not been confirmed. Please retry.",
+      "unavailable": "Your session could not be verified. Please retry."
+    },
+    "recovery": {
+      "forgotTitle": "Recover your account",
+      "forgotDescription": "Enter your previously verified email to request a password reset link.",
+      "confirmTitle": "Confirm your account request",
+      "confirmDescription": "Opening this page does not confirm your email or change your password. Continue only if you requested this action.",
+      "email": "Email",
+      "current_password": "Current password",
+      "emailHelp": "Email is optional. Changing it removes its previous verification. Leaving it empty removes email-based recovery.",
+      "saveEmail": "Save email",
+      "resend": "Send verification link",
+      "emailSaved": "Email saved. If you provided a new address, check it for a verification link.",
+      "verificationRequested": "Verification requested. If your account has an unverified email, a link will be sent to it.",
+      "requestReset": "Request reset link",
+      "resetRequested": "If this address belongs to an eligible account with a verified email, a reset link will be sent. Check your inbox and spam folder.",
+      "requestError": "The request could not be confirmed. Check your details or wait before trying again. It may already have been processed.",
+      "newPassword": "New password",
+      "savePassword": "Save new password",
+      "confirmEmail": "Confirm email",
+      "verifyDone": "Your email is verified. This does not verify your mobile number or business.",
+      "resetDone": "Your password has changed and all previous account sessions are invalid. Sign in with your new password.",
+      "consumeError": "The action could not be confirmed. The link may be expired, used or replaced, or the new password may be unsuitable. Request a fresh link if needed.",
+      "invalidLink": "This link is missing or unavailable. Reopen the latest email or request a new link.",
+      "newLink": "Request a new reset link",
+      "login": "Sign in",
+      "account": "Go to your account",
+      "validation": {
+        "email": "Enter a valid email address.",
+        "current_password": "Enter your current password.",
+        "password": "Use a password between 12 and 128 characters."
+      }
+    }
   }
 }

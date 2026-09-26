@@ -74,3 +74,7 @@ check. Run a production build only at a documented checkpoint, in CI, for a rele
 candidate, or when the task explicitly requires it. Review the result against ownership,
 dependency direction, server/client boundaries, both locales, and the applicable source
 documents.
+
+For file placement and reuse decisions, follow
+[the canonical feature structure](../feature-module-design/references/feature-structure.md)
+and the mandatory project-local Ponytail workflow in the frontend AGENTS.md.

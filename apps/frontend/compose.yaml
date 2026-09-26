@@ -13,6 +13,8 @@ services:
       SEO_INDEXABLE: ${SEO_INDEXABLE:-false}
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-}
+      SESSION_VAULT_KEY: ${SESSION_VAULT_KEY:-}
+      FRONTEND_DATABASE_URL: ${FRONTEND_DATABASE_URL:-}
       DJANGO_API_URL: ${DJANGO_API_URL:-http://host.docker.internal:8000}
     ports:
       - "127.0.0.1:${FRONTEND_PORT:-3000}:3000"

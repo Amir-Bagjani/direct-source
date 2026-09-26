@@ -39,3 +39,7 @@ Do not create a separate visual specification or bespoke CSS component system.
 - [Modal contract](references/modal-contract.md)
 - [Testing](references/testing-and-documentation.md)
 - [Workflow](references/implementation-workflow.md)
+
+For file placement and reuse decisions, follow
+[the canonical feature structure](../feature-module-design/references/feature-structure.md)
+and the mandatory project-local Ponytail workflow in the frontend AGENTS.md.

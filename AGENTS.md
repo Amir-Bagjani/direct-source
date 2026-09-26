@@ -6,7 +6,11 @@ Read `CONTEXT.md`, the applicable document in `docs/product/prd/`, and the relat
 requirement/API contract before changing behaviour. Product and API changes must update
 their source document and tests in the same change.
 
-Current frontend scope is foundation only. Implement each PRD separately when requested.
+Frontend foundation is complete; PRD-01 registration, policies and personal-account web
+sessions/guards/logout and email verification/recovery are implemented. Business onboarding
+remains next. The tested scope and native BFCache release limitations are in
+`docs/technical/frontend/web-sessions.md`; do not infer business permissions from login.
+Implement each PRD separately when requested.
 See `docs/technical/frontend/implementation-plan.md` for the sequence and remaining gates.
 `docs/technical/frontend/base-readiness.md` records the audited base and mandatory
 session/guard/logout gate before any protected feature is enabled.
@@ -100,3 +104,23 @@ versions and security boundaries rather than copying them literally.
 - Run a production build only at a phase checkpoint, in CI, or before a release candidate.
 - If backend code or an API contract changes, run its targeted tests; run the full backend suite
   only at a checkpoint.
+
+
+## Mandatory frontend file workflow
+
+Before implementing or modifying frontend code, read and apply
+`apps/frontend/.agents/skills/feature-module-design/SKILL.md` (including its canonical
+`references/feature-structure.md`) and `apps/frontend/.agent/skills/ponytail/SKILL.md`.
+Ponytail defaults to full; its project-local discovery link at `.agents/skills/ponytail`
+points to that same installation. Explicit project architecture, shadcn and testing rules
+prevail over generic Ponytail suggestions; do not install its optional lifecycle hooks.
+
+Before creating any frontend file: identify the feature/shared owner, search existing modules
+and consumers, read applicable skills, choose the responsibility directory, and reuse the
+existing implementation. Add an abstraction only when existing modules cannot meet the need.
+Keep feature roots free of source files. Use the existing shared categories and `src/server`;
+neutral shared hooks/utils belong in `src/shared/hooks` / `src/shared/utils` only when needed.
+Do not create parallel lib/hooks/utils trees, duplicate HTTP wrappers or feature barrels.
+All real feature keys come from one queries/*.keys.ts factory. Preserve server/client
+boundaries and feature encapsulation; cross-feature integration requires an intentional
+contracts/ module. Run Oxlint's architecture checks and the appropriate tests.

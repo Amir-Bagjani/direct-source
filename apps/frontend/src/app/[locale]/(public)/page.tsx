@@ -6,6 +6,9 @@ import { routing } from "@/i18n/routing";
 import { buildMetadata, canonicalUrl } from "@/shared/seo/metadata";
 import { JsonLd } from "@/shared/seo/json-ld/json-ld";
 import { AboutMarketplace } from "./about-marketplace";
+import { Link } from "@/i18n/navigation";
+import { buttonVariants } from "@/shared/ui/button/button.variants";
+import { cn } from "@/shared/ui/cn";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]">) {
   const { locale } = await params;
@@ -33,6 +36,11 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
       <p className="text-sm font-medium text-muted-foreground">{t("eyebrow")}</p>
       <h1 className="text-3xl font-semibold ltr:tracking-tight sm:text-5xl">{t("title")}</h1>
       <p className="text-muted-foreground">{t("body")}</p>
+      <div>
+        <Link href="/register" className={cn(buttonVariants())}>
+          {t("register")}
+        </Link>
+      </div>
       <Suspense>
         <AboutMarketplace />
       </Suspense>

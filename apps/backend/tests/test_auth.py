@@ -89,7 +89,11 @@ def test_logout_all_and_suspension_are_immediate(client, user_factory):
 
 
 def email_token():
-    return parse_qs(urlparse(mail.outbox[-1].body.splitlines()[-1]).query)["token"][0]
+    link = urlparse(mail.outbox[-1].body.splitlines()[-1])
+    assert not link.query
+    challenge = parse_qs(link.fragment)
+    assert challenge["purpose"][0] in {"verify", "reset"}
+    return challenge["token"][0]
 
 
 def test_verified_email_reset_invalidates_tokens_and_sessions(client, user_factory):

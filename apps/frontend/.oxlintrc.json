@@ -26,7 +26,11 @@
     {
       "files": ["src/**/*.{ts,tsx,js,jsx,mjs}"],
       "jsPlugins": ["./tooling/architecture-plugin.mjs"],
-      "rules": { "architecture/dependencies": "error", "architecture/no-reexports": "error" }
+      "rules": {
+        "architecture/dependencies": "error",
+        "architecture/no-reexports": "error",
+        "architecture/feature-layout": "error"
+      }
     }
   ]
 }

@@ -8,15 +8,15 @@ contain TypeScript declarations.
 | Scope                             | Location                                                              |
 | --------------------------------- | --------------------------------------------------------------------- |
 | One component                     | The component directory, such as `shared/ui/modal/modal.types.ts`     |
-| Several components in one feature | A descriptively named file under `features/<domain>`                  |
+| Several components in one feature | `features/<domain>/types/`, or inferred beside its schema             |
 | API operation                     | Beside the feature API adapter; derive its DTO from generated OpenAPI |
 | Route props                       | The route file, using generated Next.js helpers                       |
 | Runtime schema and inferred value | Beside the boundary that parses the value                             |
 | Two independent features          | The narrow appropriate module under `src/shared`                      |
 
 Do not create `src/types`, `src/shared/types`, or a feature `types/` directory in advance.
-A feature-level `types/` directory is justified only after several related contracts make
-named files at the feature root harder to navigate.
+Standalone feature-wide contracts belong in `types/` as soon as they exist; inferred schema
+types stay in `schemas/`. Follow feature-module-design/references/feature-structure.md.
 
 ## Components
 
@@ -45,7 +45,7 @@ generic merely to annotate a normal function component.
 This repository forbids every re-export barrel, including type-only barrels. Consumers
 import an intended type from its canonical file. Keep implementation-only declarations
 unexported. A direct path does not make an internal feature type public; cross-feature
-access still requires a small stable contract owned at the feature root.
+access still requires a small stable contract owned under its `contracts/` directory.
 
 Move a type with its owner when responsibility changes. Do not duplicate it temporarily
 in a global location, and avoid type-only dependency cycles; lift orchestration to `app`

@@ -4,6 +4,7 @@ const production = process.env.PLAYWRIGHT_SERVER_MODE === "production";
 
 export default defineConfig({
   testDir: "./tests",
+  testIgnore: "**/*.integration.spec.ts",
   fullyParallel: true,
   workers: 2,
   retries: process.env.CI ? 1 : 0,

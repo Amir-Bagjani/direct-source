@@ -19,7 +19,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "generate:api": "openapi-typescript ../../docs/technical/api/openapi.yaml -o src/shared/api/openapi.ts"
+    "generate:api": "openapi-typescript ../../docs/technical/api/openapi.yaml -o src/shared/api/openapi.ts",
+    "test:e2e:registration": "playwright test --config playwright.registration.config.ts",
+    "session:migrate": "node --env-file-if-exists=.env.local tooling/migrate-sessions.mjs",
+    "test:e2e:accounts": "playwright test --config playwright.accounts.config.ts",
+    "test:e2e:recovery": "playwright test --config playwright.recovery.config.ts"
   },
   "dependencies": {
     "@base-ui/react": "1.8.0",
@@ -31,6 +35,7 @@
     "next": "16.3.5",
     "next-auth": "4.24.15",
     "next-intl": "4.14.4",
+    "pg": "8.23.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-hook-form": "7.88.0",
@@ -43,6 +48,7 @@
     "@tailwindcss/postcss": "4.3.3",
     "@testing-library/react": "16.3.3",
     "@types/node": "26.5.1",
+    "@types/pg": "8.23.1",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@typescript/native": "npm:typescript@7.0.2",

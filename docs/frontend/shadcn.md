@@ -40,6 +40,11 @@ The old palette, component selectors and bespoke spacing/radius scales are remov
 Generated source is adapted only for canonical imports, localized strings, non-submit
 Button defaults, 44px default touch targets, 16px Input text and Dialog viewport reflow.
 Color changes are immediate when switching themes; motion/focus transitions remain.
+For navigation, use a real next-intl `Link` with the official `buttonVariants` helper,
+as described in [Button as Link](https://ui.shadcn.com/docs/components/base/button#as-link).
+Base UI Button applies `role="button"` even when rendering an anchor. The unchanged
+variant definitions live in `button/button.variants.ts` so Server Components and the
+client Button can share them without calling a client export during server rendering.
 Inter and Vazirmatn remain self-hosted through next/font. Use DirectionProvider with
 the current document direction for Base UI, including portals. Visible copy belongs
 in both next-intl catalogs. shadcn installation does not certify accessibility:

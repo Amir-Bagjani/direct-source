@@ -7,8 +7,9 @@
 
 شروع PRD-01 پس از موفقیت checkpoint فنی مجاز است. نخستین برش آن باید `CAP-ACC-01`
 و `CAP-ACC-07`، یعنی session/BFF و کنترل دسترسی واقعی باشد. تا عبور از این گیت، هیچ صفحهٔ
-خصوصی یا دادهٔ قیمت‌دار نباید فعال شود. guard و logout اکنون پیاده نشده‌اند؛ package
-نصب‌شدهٔ NextAuth یا proxy زبان، جای آن‌ها نیست. base امنیتی صفحات خصوصی هنوز بسته نیست.
+خصوصی یا دادهٔ قیمت‌دار نباید فعال شود. وضعیت زمان ممیزی زیر تاریخی است؛ برش نشست
+حساب در 2026-09-25 اجرا شد. [شاهد و محدودیت‌های فعلی](web-sessions.md) مرجع ادامه است؛
+مجوز کسب‌وکار و قیمت با login شخصی ثابت نمی‌شود.
 
 ## شاهد checkpoint محلی
 
@@ -123,3 +124,20 @@ same-origin، locale-aware و اعتبارسنجی‌شده باشد؛ open redi
 - [TanStack advanced SSR](https://tanstack.com/query/latest/docs/framework/react/guides/advanced-ssr): cache و hydration.
 - [BFCache](https://web.dev/articles/bfcache): restore از حافظه و pageshow/pagehide.
 - راهنمای نصب‌شدهٔ Next.js در `node_modules/next/dist/docs` برای API نسخهٔ واقعی، از جمله `retry`.
+
+
+## شروع ثبت‌نام عمومی — 2026-09-24
+
+پیش‌نیاز عمومی PRD-01 شامل ثبت‌نام/BFF و صفحه‌های قوانین و حریم خصوصی اضافه شده است؛
+[برنامهٔ اجرا](implementation-plan.md) و [سیاست‌ها](registration-policies.md) جزئیات را دارند.
+این endpoint نشست یا Business ایجاد نمی‌کند. گیت session/refresh/guard/logout این سند
+همچنان باز است؛ وجود تست ثبت‌نام یا ورود مستقیم API، شاهد تکمیل `AC-ACC-31` وب نیست.
+
+
+## برش نشست حساب — 2026-09-25
+
+ورود NextAuth، vault رمز‌شده، refresh با قفل PostgreSQL میان پردازش‌ها، guard زندهٔ Django
+و خروج/پاک‌سازی cache اجرا شده‌اند. مسیر خصوصی فعلی فقط حساب شخصی است. تست‌های واقعی
+مرورگر و محدودیت BFCache بومی در [قرارداد نشست](web-sessions.md) ثبت شده‌اند.
+معیارهای دامنه‌ای بالا با اولین قابلیت کسب‌وکار/عملیات تکمیل می‌شوند؛ صفحه یا role
+ساختگی برای ادعای پوشش آن‌ها ایجاد نشده است. اجرای remote CI و staging گیت انتشار باقی است.

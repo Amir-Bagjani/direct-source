@@ -23,3 +23,7 @@ Use `@shadcn` with Base UI / Nova / neutral. Do not build substitute controls wi
 - Light is the default; Dark is explicit and persisted. All components inherit the same
   shadcn tokens; no new theme state or provider.
 - Run relevant tests, typecheck, lint and format checks; Playwright for visible/browser changes.
+
+For file placement and reuse decisions, follow
+[the canonical feature structure](../feature-module-design/references/feature-structure.md)
+and the mandatory project-local Ponytail workflow in the frontend AGENTS.md.

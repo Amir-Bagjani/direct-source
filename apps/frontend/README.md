@@ -1,7 +1,9 @@
-# فرانت‌اند — base پروژه
+# فرانت‌اند
 
-فعلاً فقط زیرساخت آماده می‌شود. صفحات و جریان‌های ۸ PRD هنوز پیاده نشده‌اند.
-خانهٔ فارسی/انگلیسی و مودال «دربارهٔ بازارگاه» نمونهٔ قابل‌آزمون زیرساخت‌اند.
+PRD-01 شروع شده است: ثبت‌نام عمومی در `/fa/register` و `/en/register` از BFF به Django
+متصل است. ورود در `/fa/login` و `/en/login`، حساب محافظت‌شده در `/fa/account` و
+`/en/account` و خروج واقعی اضافه شده‌اند؛ این تحویل تکمیل همهٔ PRD-01 نیست.
+خانهٔ فارسی/انگلیسی و مودال «دربارهٔ بازارگاه» نیز در دسترس‌اند.
 
 دیزاین سیستم و UI Kit پروژه فقط shadcn/ui است: Base UI، استایل Nova و تم neutral.
 از کامپوننت‌ها و variantهای رسمی استفاده کنید؛ کنترل یا استایل جایگزین با CSS اختصاصی نسازید.
@@ -20,7 +22,17 @@ pnpm dev
 ```
 
 صفحهٔ اصلی: http://localhost:3000/fa و http://localhost:3000/en.
-برای base نیازی به Django یا secret نیست. تنظیمات اختیاری در `.env.example` هستند.
+برای صفحهٔ خانه نیازی به Django یا secret نیست. ثبت‌نام به Django روی پورت 8000 نیاز دارد.
+در `.env.local` مقدار `DJANGO_API_URL` را آدرس سرور بک‌اند و `NEXTAUTH_URL` را origin دقیق
+مرورگر قرار دهید (پیش‌فرض توسعه `http://localhost:3000`). localhost و 127.0.0.1 دو origin
+متفاوت‌اند. در production هر دو متغیر الزامی‌اند؛ secret هنوز توسط ثبت‌نام مصرف نمی‌شود.
+ورود علاوه بر Django به PostgreSQL مخصوص فرانت‌اند نیاز دارد. یک دیتابیس مستقل مانند
+`marketplace_web` بسازید، `FRONTEND_DATABASE_URL` را تنظیم کنید و `pnpm session:migrate`
+را اجرا کنید. `NEXTAUTH_SECRET` و `SESSION_VAULT_KEY` را جداگانه با `openssl rand -hex 32`
+بسازید و فقط در `.env.local` قرار دهید؛ مقدار نمونه معتبر نیست. پس از تغییر env سرور را
+دوباره راه‌اندازی کنید. راهنمای [نشست وب](../../docs/technical/frontend/web-sessions.md)
+قرارداد نگهداری، refresh، شکست شبکه و استقرار چند replica را شرح می‌دهد.
+
 `NEXT_PUBLIC_SITE_URL` باید دامنهٔ واقعی سایت باشد؛ `SEO_INDEXABLE` فقط هنگام انتشار عمومی true شود.
 
 ## Docker و Compose
@@ -58,13 +70,14 @@ Compose فایل `.env.local` را خودکار نمی‌خواند؛ در صو�
 - `NEXT_PUBLIC_SITE_URL` و `SEO_INDEXABLE` هم به build و هم runtime داده می‌شوند؛ چون
   metadata، robots و sitemap فعلی پیش‌رندر می‌شوند، تغییرشان **نیازمند rebuild image** است.
   image دارای SEO فعال را به preview منتقل نکنید؛ تغییر runtime به‌تنهایی کافی نیست.
-- `NEXTAUTH_SECRET` فقط runtime است؛ هرگز آن را با build arg نفرستید. احراز هویت هنوز
-  در base فعال نیست و مقدار نمونهٔ secret برای استفادهٔ واقعی معتبر نیست.
+- `NEXTAUTH_SECRET`، `SESSION_VAULT_KEY` و `FRONTEND_DATABASE_URL` فقط runtime هستند؛
+  هرگز secret را با build arg نفرستید. آدرس دیتابیس داخل کانتینر باید قابل‌دسترسی باشد
+  (برای دیتابیس میزبان `host.docker.internal` به‌جای localhost). schema را قبل از اجرا آماده کنید.
 - `FRONTEND_PORT` پورت میزبان را تغییر می‌دهد؛ URLهای سایت و NextAuth را نیز هماهنگ کنید.
 - `DJANGO_API_URL` آدرس server-to-server است. داخل کانتینر، `127.0.0.1` خود فرانت‌اند است.
   پیش‌فرض Compose، `host.docker.internal:8000` است؛ روی Linux بک‌اند باید از gateway میزبان
   قابل‌دسترسی باشد، نه فقط loopback. برای بک‌اند کانتینری، شبکهٔ مشترک و نام سرویس واقعی
-  را تنظیم کنید. این Compose عمداً بک‌اند را اجرا نمی‌کند و BFF همچنان دروازهٔ PRD-01 است.
+  را تنظیم کنید. این Compose عمداً بک‌اند را اجرا نمی‌کند؛ فعلاً فقط BFF ثبت‌نام فعال است.
 
 پورت فقط روی loopback میزبان منتشر می‌شود. برای انتشار عمومی، TLS و reverse proxy با
 پشتیبانی streaming را جدا تنظیم کنید؛ این فایل به‌تنهایی استقرار production را تأیید نمی‌کند.
@@ -106,6 +119,27 @@ pnpm test
 pnpm exec playwright install chromium
 pnpm test:e2e
 ```
+
+آزمون ثبت‌نام واقعی با Django و PostgreSQL جدا:
+
+```sh
+uv sync --directory ../backend --locked --python 3.13.14
+pnpm build
+PLAYWRIGHT_SERVER_MODE=production pnpm test:e2e:registration
+PLAYWRIGHT_SERVER_MODE=production pnpm test:e2e:accounts
+```
+
+PostgreSQL بک‌اند روی 55432 باید در دسترس باشد. تست یک دیتابیس تصادفی با پیشوند
+`test_frontend_` می‌سازد و پس از پایان حذف می‌کند؛ به داده‌های سرور پورت 8000 دست نمی‌زند.
+پورت‌های 8001، 3100 و 3101 باید آزاد باشند. تست‌های عادی مرورگر بدون بک‌اند اجرا می‌شوند؛ این
+فرمان جدا ثبت واقعی، ورود API با حساب ساخته‌شده، نداشتن Business و رد ثبت تکراری را بررسی
+می‌کند. trace/video/screenshot برای آن خاموش‌اند. خاموش‌کردن اجباری فرایند با SIGKILL ممکن
+است دیتابیس موقت را باقی بگذارد. مجموعهٔ `test:e2e:accounts` با دیتابیس مستقل، ورود/خروج
+واقعی، دو تب، تاریخچه، پاسخ دیررس، تغییر هویت، انقضا/تعلیق و refresh میان دو پردازش را
+می‌آزماید. اجرای جداگانهٔ دو مجموعه محدودیت ثبت‌نام Django را حفظ می‌کند.
+برای مرورگر دیگر پس از نصب `pnpm exec playwright install webkit firefox` از
+`ACCOUNTS_BROWSER=webkit` یا `ACCOUNTS_BROWSER=firefox` استفاده کنید؛ موبایل Chrome با
+`ACCOUNTS_MOBILE=true` اجرا می‌شود. هر اجرا دیتابیس موقت خودش را دارد.
 
 در checkpoint پایان base، تست مرورگر را روی خروجی واقعی standalone اجرا کنید:
 
@@ -156,5 +190,24 @@ shadcn و سیاست build در AGENTS.md ریشه باقی می‌مانند.
 - [برنامهٔ تحویل PRDها](../../docs/technical/frontend/implementation-plan.md)
 - [واژه‌نامه](../../CONTEXT.md) و [دستورهای عامل](../../AGENTS.md)
 
-NextAuth پایدار نصب است؛ ورود، session، refresh، logout و BFF محافظت‌شده در PRD-01 ساخته
-و با تست هم‌زمانی/CSRF تکمیل می‌شوند. هیچ endpoint احراز هویت نیمه‌فعال در base وجود ندارد.
+گام بعدی PRD-01، تأیید ایمیل و بازیابی حساب و سپس onboarding کسب‌وکار است.
+مجوز کسب‌وکار/عملیات با login شخصی یکی نیست و همراه قابلیت مربوط ساخته و تست می‌شود.
+
+### Email verification and recovery
+
+`pnpm test:e2e:recovery` uses the real Django endpoints and outbox worker with disposable
+PostgreSQL and locmem mail (no external email). Run after the checkpoint build with
+`PLAYWRIGHT_SERVER_MODE=production`; locally add `PLAYWRIGHT_CHANNEL=chrome` if needed.
+Run a separate invocation with `RECOVERY_LOCALE=en ACCOUNTS_MOBILE=true` for English/mobile.
+Each invocation gets its own database; production email throttles remain enabled.
+Set backend `ACCOUNT_LINK_BASE_URL` to the frontend HTTPS `/account/confirm` URL in production.
+Deploy/restart the email worker with the fragment-link change; previously issued query links
+require requesting a fresh link. No extra browser cookie or dependency is used for challenges.
+
+### Feature architecture
+
+Before frontend changes, follow AGENTS.md and the canonical
+[feature-module-design skill](.agents/skills/feature-module-design/SKILL.md).
+[Ponytail](.agent/skills/ponytail/SKILL.md) is mandatory and available through the existing
+`.agents` discovery symlink. See the [refactor report](../../docs/technical/frontend/feature-architecture-refactor.md)
+for file ownership, consolidation decisions and verification.

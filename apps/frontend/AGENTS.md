@@ -144,3 +144,23 @@ Follow the root [Data Fetching Architecture](../../AGENTS.md#data-fetching-archi
 and its [implementation guide](../../docs/technical/frontend/data-fetching.md) before
 changing fetching, mutations, caching, hydration or streaming. These are the canonical
 rules for this frontend; do not establish a separate local pattern.
+
+
+## Mandatory frontend file workflow
+
+Before implementing or modifying frontend code, read and apply
+`.agents/skills/feature-module-design/SKILL.md` (including its canonical
+`references/feature-structure.md`) and `.agent/skills/ponytail/SKILL.md`.
+Ponytail defaults to full; its project-local discovery link at `.agents/skills/ponytail`
+points to that same installation. Explicit project architecture, shadcn and testing rules
+prevail over generic Ponytail suggestions; do not install its optional lifecycle hooks.
+
+Before creating any frontend file: identify the feature/shared owner, search existing modules
+and consumers, read applicable skills, choose the responsibility directory, and reuse the
+existing implementation. Add an abstraction only when existing modules cannot meet the need.
+Keep feature roots free of source files. Use the existing shared categories and `src/server`;
+neutral shared hooks/utils belong in `src/shared/hooks` / `src/shared/utils` only when needed.
+Do not create parallel lib/hooks/utils trees, duplicate HTTP wrappers or feature barrels.
+All real feature keys come from one queries/*.keys.ts factory. Preserve server/client
+boundaries and feature encapsulation; cross-feature integration requires an intentional
+contracts/ module. Run Oxlint's architecture checks and the appropriate tests.

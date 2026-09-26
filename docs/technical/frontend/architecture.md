@@ -4,10 +4,12 @@
 
 base شامل Next.js App Router با React Compiler، TypeScript، next-intl، CSS منطقی،
 TanStack Query provider، ابزار OpenAPI، سیاست خطای API، SEO، مودال URL‌دار و test harness است.
-خانه و صفحهٔ 404 تنها صفحات فعلی هستند؛ قابلیت محصولی از ۸ PRD تکمیل‌شده محسوب نمی‌شود.
+خانه، 404 و صفحه‌های عمومی ثبت‌نام، قوانین و حریم خصوصی موجودند. PRD-01 با ثبت‌نام عمومی
+آغاز شده؛ ورود، نشست، guard و logout وب پیاده شده‌اند. سایر قابلیت‌های PRD باقی‌اند.
 
-Ponytail مبناست: پوشه و abstraction برای آینده ایجاد نمی‌کنیم. NextAuth، React Hook Form
-و Zod برای برش‌های بعدی نصب‌اند. فرم ورود، کاتالوگ و پنل‌های ناقص قبلی کنار گذاشته شدند.
+Ponytail مبناست: پوشه و abstraction برای آینده ایجاد نمی‌کنیم. ثبت‌نام از React Hook Form،
+Zod و TanStack mutation استفاده می‌کند؛ ورود از NextAuth Credentials عبور می‌کند. منطق در `features/accounts`
+و routeهای آن thin هستند؛ BFF فقط مقصدهای ثابت قابلیت پیاده‌شده را می‌پذیرد.
 
 ## مرز وابستگی
 
@@ -43,7 +45,7 @@ lint فعلاً syntax-based است؛ typecheck جدا اجرا می‌شود و
 [JS plugins](https://oxc.rs/docs/guide/usage/linter/js-plugins)،
 [Biome](https://biomejs.dev/) و [Biome plugins](https://biomejs.dev/linter/plugins/).
 
-## احراز هویت — دروازهٔ PRD-01، هنوز اجرا نشده
+## احراز هویت — برش نشست PRD-01
 
 ADR-0005 مرجع است: Django صادرکنندهٔ JWT و مرجع دسترسی می‌ماند. NextAuth stable با
 Credentials ورود را واگذار می‌کند. نسخهٔ beta وارد base نشده است.
@@ -51,11 +53,10 @@ JWT در session response، browser storage، HTML/RSC payload یا log قرار
 مرورگر از BFF هم‌مبدأ استفاده می‌کند. اعتبارسنجی origin باید fail-closed باشد و مسیرهای
 مجاز upstream مشخص باشند؛ پراکسی عمومی arbitrary URL ممنوع است.
 
-قبل از فعال‌سازی login باید قرارداد refresh هم‌زمان چند tab/چند replica حل شود:
-کد Django با reuse توکن قدیمی کل خانوادهٔ session را باطل می‌کند؛ قفل حافظه‌ای یک process
-برای چند replica کافی نیست. cookie-only به معنی عدم دسترسی JavaScript به توکن است،
-و الزام به stateless بودن coordination نیست. طراحی ذخیره/هماهنگی refresh باید در PRD-01
-ثبت و با RSC، BFF، cookie write، logout و تعلیق آزموده شود.
+توکن‌ها در vault رمز‌شدهٔ PostgreSQL و شناسهٔ تصادفی آن در cookie رمز‌شدهٔ NextAuth
+نگهداری می‌شوند. advisory lock میان replicaها و marker پایدار قبل از refresh از reuse
+توکن قدیمی جلوگیری می‌کنند. شکست مبهم fail-closed است. جزئیات در [نشست وب](web-sessions.md)
+ثبت شده‌اند؛ هیچ خواندن خصوصی فقط به claim یا حضور cookie اعتماد نمی‌کند.
 سرور پس از 401 حداکثر یک تلاش refresh دارد؛ mutation بدون تضمین idempotency تکرار نمی‌شود.
 
 ## داده و cache
@@ -112,3 +113,23 @@ session/guard/logout را مشخص می‌کند. مسیرهای عمومی فع
 header و providerها در layout زبان مشترک‌اند. catch-all بیرون loading عمومی می‌ماند تا
 پاسخ 404 به streaming 200 تبدیل نشود. PRD-01 ابتدا باید مرز امنیت مشترک را با session
 واقعی تکمیل کند؛ قبل از آن هیچ مسیر خصوصی آماده یا محافظت‌شده محسوب نمی‌شود.
+
+
+## Feature organization checkpoint — 2026-09-26
+
+The canonical owner is the existing `feature-module-design` skill and its
+`references/feature-structure.md`. Feature roots have populated responsibility directories,
+not flat source files or barrels. Accounts has components, api, hooks, queries, schemas,
+server, client and utils. Inferred types remain with schemas; component props remain colocated.
+Standalone types/ and cross-feature contracts/ appear only when a real contract needs them.
+
+Shared locations stay `src/shared/{api,query,ui,seo,theme}` and `src/server`; neutral shared
+hooks/utils use `src/shared/hooks` / `src/shared/utils` only after actual reuse. No parallel
+lib tree, new HTTP dependency, Route Registry or speculative feature has been introduced.
+Query keys come from `accounts/queries/accounts.keys.ts`; options and mutation hooks are
+separate. Browser adapters remain browser-only; privileged feature handlers are in server/.
+
+Ponytail 4.10.0 is vendored with its license and SHA-256 provenance under frontend
+`.agent/skills/ponytail`; `.agents/skills/ponytail` is a relative discovery symlink to that
+single installation. Both AGENTS files mandate reading it and the feature skill. The existing
+project skills cover state/data fetching; no duplicate React-state/TanStack skill is fabricated.

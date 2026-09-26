@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { mkdtemp, mkdir, readFile, realpath, writeFile, rm } from "node:fs/promises";
@@ -49,12 +50,43 @@ test("Oxlint enforces architecture, React, Next.js and accessibility policies", 
       'import {value} from "@/shared/value"; export const page = value;',
     );
     await file(
-      "src/features/value.ts",
-      'import {value} from "../shared/value"; export const feature = value;',
+      "src/features/example/utils/value.ts",
+      'import {value} from "@/shared/value"; export const feature = value;',
     );
     assert.deepEqual(lint(), { status: 0, diagnostics: [] });
 
+    await file("src/features/example/contracts/value.ts", "export const contract = 1;");
+    await file(
+      "src/features/consumer/utils/value.ts",
+      'import {contract} from "@/features/example/contracts/value"; export const value = contract;',
+    );
+    assert.deepEqual(lint(), { status: 0, diagnostics: [] });
     const cases = [
+      [
+        "src/features/example/use-flat.ts",
+        "export const value = 1;",
+        "architecture(feature-layout)",
+      ],
+      [
+        "src/features/consumer/utils/illegal.ts",
+        'import "@/features/example/utils/value";',
+        "architecture(dependencies)",
+      ],
+      [
+        "src/features/consumer/client/secret.ts",
+        '"use client"; import "@/features/consumer/server/secret.server";',
+        "architecture(dependencies)",
+      ],
+      [
+        "src/features/consumer/client/shared-secret.ts",
+        '"use client"; import "@/server/auth/config";',
+        "architecture(dependencies)",
+      ],
+      [
+        "src/features/consumer/queries/inline.ts",
+        'export const options = {queryKey: ["consumer"]};',
+        "architecture(feature-layout)",
+      ],
       ["src/shared/alias.ts", 'import "@/app/value";', "architecture(dependencies)"],
       ["src/shared/relative.ts", 'import "../app/value";', "architecture(dependencies)"],
       ["src/shared/normalized.ts", 'import "@/shared/../app/value";', "architecture(dependencies)"],
@@ -122,5 +154,27 @@ test("Oxlint enforces architecture, React, Next.js and accessibility policies", 
     assert.ok(!result.diagnostics.some((item) => item.filename.endsWith("openapi.ts")));
   } finally {
     await rm(fixture, { recursive: true, force: true });
+  }
+});
+
+test("Ponytail has one verified project-local installation and mandatory discovery", async () => {
+  const base = new URL("../", import.meta.url);
+  const canonical = new URL(".agent/skills/ponytail/SKILL.md", base);
+  const alias = new URL(".agents/skills/ponytail/SKILL.md", base);
+  assert.equal(await realpath(alias), await realpath(canonical));
+  const source = JSON.parse(
+    await readFile(new URL(".agent/skills/ponytail/source.json", base), "utf8"),
+  );
+  assert.equal(
+    createHash("sha256")
+      .update(await readFile(canonical))
+      .digest("hex"),
+    source.sha256,
+  );
+  assert.equal(source.source, "https://github.com/DietrichGebert/ponytail");
+  for (const path of ["AGENTS.md", "../../AGENTS.md"]) {
+    const instructions = await readFile(new URL(path, base), "utf8");
+    assert.ok(instructions.includes(".agent/skills/ponytail/SKILL.md"));
+    assert.ok(instructions.includes(".agents/skills/feature-module-design/SKILL.md"));
   }
 });

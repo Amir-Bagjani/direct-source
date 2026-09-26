@@ -2,8 +2,9 @@
 
 ## Scope and reference
 
-This is the implementation guide linked by root `AGENTS.md`. Foundation remains
-foundation: there are no live domain reads, writes, auth handlers or BFF routes yet.
+This is the implementation guide linked by root `AGENTS.md`. The foundation rules
+still apply. PRD-01 now has a public registration mutation and a fixed
+registration BFF route and authoritative session/logout handlers; other protected business reads remain pending.
 Do not add demo endpoints or scaffold unused feature layers just to demonstrate queries.
 
 Reference: [KevinVandy/react-data-fetching](https://github.com/KevinVandy/react-data-fetching),
@@ -38,7 +39,7 @@ do not copy older environment detection APIs blindly.
 | Duplicated fetching    | None; no separate server transport exists yet.                                                                               |
 | Mutations/invalidation | No feature mutations. Retry is already disabled globally.                                                                    |
 | Waterfalls             | No backend query waterfall exists to refactor.                                                                               |
-| Environment boundaries | No observed violation; browser wrapper is client-marked, server auth is not implemented.                                     |
+| Environment boundaries | No observed violation; browser wrapper is client-marked; credential-bearing auth adapters are server-only.                                     |
 
 Gaps: no durable feature recipe, no hydration regression coverage and provider cache
 lifetime dependent on placement of Suspense. This change fixes that lifetime and tests
@@ -48,7 +49,8 @@ No product/API behavior or contract changes are required.
 ## Ownership and placement
 
 Keep feature API functions, keys/options and mutation hooks in `features/<domain>`.
-Use direct file imports; split into `api/` and `queries/` only when size warrants it.
+Use populated `api/`, `queries/`, `hooks/` and `server/` responsibility directories from
+the canonical feature-module-design skill. Import source files directly; no barrels.
 Derive response DTOs from generated OpenAPI operations and pass an owning Zod schema to
 `bffRequest` so every successful network payload is validated; query factories infer
 their return type from the validated API function.
@@ -162,7 +164,8 @@ showing the new identity; this is an acceptance requirement for PRD-01.
 
 ## Writes and cache coordination
 
-Define a feature mutation hook or reusable mutation options beside the query definitions.
+Define feature mutation hooks in `hooks/`; reusable options and the single key factory
+belong in `queries/`. Never hardcode real feature keys in components/hooks.
 The mutation calls an API function; on success set a detail cache from an authoritative
 response or await targeted invalidation, for example:
 
@@ -223,3 +226,27 @@ and QueryProvider remain in the locale layout. No product query, auth handler or
 protected route has been fabricated. See [base readiness](base-readiness.md) for
 session/logout/cache acceptance gates. The legacy formatting issue noted in the
 2026-09-21 history was resolved by the shadcn migration.
+
+
+### PRD-01 registration — 2026-09-24
+
+The first public mutation lives in `features/accounts/{schemas,api,hooks,server}/`.
+It calls only `/api/bff/auth/register`, which calls a fixed Django endpoint. No GET cache
+is required: successful registration returns only `{created: true}`, creates no session
+and does not invalidate unrelated public queries. Mutation variables are void; the
+mutation reads the validated form at submission so credentials never enter the mutation
+cache. Retries are disabled, including ambiguous transport failures; the form resets
+on confirmed success. This does not implement the private session/cache transition gate.
+
+
+## PRD-01 session boundary — 2026-09-25
+
+`accounts/api/session.api.ts` owns browser adapters; `queries/session.queries.ts` owns options and
+`hooks/use-session-mutations.ts` owns mutations, using `queries/accounts.keys.ts`. The account query uses an ephemeral document epoch, zero stale/GC time and
+no retry. It is enabled only while the document is active and not closing. Private user
+DTOs are never rendered into cached RSC shells. This deliberate CSR boundary prevents
+old router/DOM state from revealing identity before fresh authorization; server guards
+still validate every protected route. Login/logout cancel and clear the browser cache,
+notify other documents without tokens and hard-replace the route. Passwords stay in
+form drafts, never mutation variables. Future business queries still need explicit
+user/business scope and their own authorization. See [web sessions](web-sessions.md).

@@ -75,7 +75,7 @@ def send_challenge(event):
         )
         address = user.email
     # SMTP is outside the database transaction. Retry rotates the secret.
-    link = settings.ACCOUNT_LINK_BASE_URL + "?" + urlencode({"purpose": purpose, "token": raw})
+    link = settings.ACCOUNT_LINK_BASE_URL + "#" + urlencode({"purpose": purpose, "token": raw})
     send_mail(
         "تأیید ایمیل" if purpose == "verify" else "بازیابی رمز عبور",
         f"این لینک تا ۳۰ دقیقه معتبر است:\n{link}",

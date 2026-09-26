@@ -66,3 +66,7 @@ lint` when the change affects source. Run `pnpm test:e2e` when browser behavior 
 existing critical journey changes. Report commands actually run, failures, skipped
 checks, and remaining risks; never weaken an assertion, add retries, or skip a test to
 hide the underlying failure.
+
+For file placement and reuse decisions, follow
+[the canonical feature structure](../feature-module-design/references/feature-structure.md)
+and the mandatory project-local Ponytail workflow in the frontend AGENTS.md.

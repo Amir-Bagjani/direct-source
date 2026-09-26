@@ -39,7 +39,7 @@ Expose intent through stable, named files and direct imports, for example:
 
 ```ts
 import { ProductCard } from "@/features/catalog/components/product-card/product-card";
-import type { CatalogSelection } from "@/features/catalog/catalog.contract";
+import type { CatalogSelection } from "@/features/catalog/contracts/catalog.contract";
 ```
 
 Keep internal files unimported outside their owner. A direct filesystem path does not
@@ -65,3 +65,7 @@ make an internal module public; ownership and the documented contract decide tha
 - Did an `index.ts` or other re-export bypass direct-import policy?
 - Can server-only code enter a client dependency graph?
 - Does the change create a runtime or type-only cycle?
+
+Feature directory placement and cross-feature public contracts are canonical in
+`../../feature-module-design/references/feature-structure.md`. Cross-feature imports may
+only target intentional contracts/ modules; app composition can import feature components.

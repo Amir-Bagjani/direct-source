@@ -76,3 +76,7 @@ Update runtime tests when a contract affects runtime behavior; add type-level te
 for important non-trivial compile-time APIs. Run the narrow relevant test, then `pnpm
 typecheck`, `pnpm lint`, and targeted Oxfmt checks from `apps/frontend`. Do not consider
 the work complete while relevant type errors or unsafe trust-boundary casts remain.
+
+For file placement and reuse decisions, follow
+[the canonical feature structure](../feature-module-design/references/feature-structure.md)
+and the mandatory project-local Ponytail workflow in the frontend AGENTS.md.

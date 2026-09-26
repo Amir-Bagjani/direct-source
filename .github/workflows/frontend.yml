@@ -1,14 +1,25 @@
-name: Frontend foundation checks
+name: Frontend checks
 on:
   pull_request:
-    paths: ["apps/frontend/**", "docs/technical/api/openapi.yaml", ".github/workflows/frontend.yml"]
+    paths: ["apps/frontend/**", "apps/backend/**", "docs/technical/api/openapi.yaml", ".github/workflows/frontend.yml"]
   push:
-    paths: ["apps/frontend/**", "docs/technical/api/openapi.yaml", ".github/workflows/frontend.yml"]
+    paths: ["apps/frontend/**", "apps/backend/**", "docs/technical/api/openapi.yaml", ".github/workflows/frontend.yml"]
 permissions:
   contents: read
 jobs:
   frontend:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16.10-alpine
+        env:
+          POSTGRES_USER: marketplace
+          POSTGRES_PASSWORD: marketplace
+          POSTGRES_DB: marketplace
+        ports: ["55432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U marketplace -d marketplace"
+          --health-interval 5s --health-timeout 3s --health-retries 20
     defaults:
       run:
         working-directory: apps/frontend
@@ -18,6 +29,12 @@ jobs:
         with:
           node-version: "24"
       - run: corepack enable
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.26"
+          enable-cache: true
+      - run: uv sync --locked --python 3.13.14
+        working-directory: apps/backend
       - run: pnpm install --frozen-lockfile
       - run: pnpm generate:api
       - run: git diff --exit-code -- src/shared/api/openapi.ts
@@ -27,10 +44,32 @@ jobs:
       - run: pnpm test:hooks
       - run: pnpm test
       - run: pnpm build
-      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm exec playwright install --with-deps chromium webkit
       - run: pnpm test:e2e
         env:
           PLAYWRIGHT_SERVER_MODE: production
+      - run: pnpm test:e2e:registration
+        env:
+          PLAYWRIGHT_SERVER_MODE: production
+      - run: pnpm test:e2e:accounts
+        env:
+          PLAYWRIGHT_SERVER_MODE: production
+      - run: pnpm test:e2e:accounts
+        env:
+          PLAYWRIGHT_SERVER_MODE: production
+          ACCOUNTS_MOBILE: "true"
+      - run: pnpm test:e2e:accounts
+        env:
+          PLAYWRIGHT_SERVER_MODE: production
+          ACCOUNTS_BROWSER: webkit
+      - run: pnpm test:e2e:recovery
+        env:
+          PLAYWRIGHT_SERVER_MODE: production
+      - run: pnpm test:e2e:recovery
+        env:
+          PLAYWRIGHT_SERVER_MODE: production
+          RECOVERY_LOCALE: en
+          ACCOUNTS_MOBILE: "true"
   container:
     runs-on: ubuntu-latest
     defaults:

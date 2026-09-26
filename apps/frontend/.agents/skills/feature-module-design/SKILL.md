@@ -9,6 +9,11 @@ Use this skill for implementation owned by one business capability. The
 `nextjs-architecture` skill defines project-wide boundaries; consult it too when the work
 creates shared primitives, changes dependency direction, or establishes a new pattern.
 
+Before any frontend implementation, read and apply
+`apps/frontend/.agent/skills/ponytail/SKILL.md` from the repository root and
+[the canonical feature structure](references/feature-structure.md). This reference owns
+responsibility directories, shared promotion and feature encapsulation for all frontend work.
+
 ## Workflow
 
 1. Read `CONTEXT.md`, the applicable PRD, requirement, API contract, implementation

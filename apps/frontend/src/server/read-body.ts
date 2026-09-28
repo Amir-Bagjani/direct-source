@@ -1,9 +1,9 @@
 import "server-only";
 import { ApiError } from "@/shared/api/unwrap";
 
-export async function readBodyText(request: Request, limit = 8192) {
+export async function readBodyBytes(request: Request, limit = 8192) {
   const reader = request.body?.getReader();
-  if (!reader) return "";
+  if (!reader) return Buffer.alloc(0);
   const chunks: Uint8Array[] = [];
   let size = 0;
   try {
@@ -17,17 +17,21 @@ export async function readBodyText(request: Request, limit = 8192) {
       }
       chunks.push(value);
     }
-    return Buffer.concat(chunks).toString("utf8");
+    return Buffer.concat(chunks);
   } finally {
     reader.releaseLock();
   }
 }
 
-export async function readJsonBody(request: Request): Promise<unknown> {
+export async function readBodyText(request: Request, limit = 8192) {
+  return (await readBodyBytes(request, limit)).toString("utf8");
+}
+
+export async function readJsonBody(request: Request, limit = 8192): Promise<unknown> {
   if (request.headers.get("content-type")?.split(";")[0]?.trim() !== "application/json")
     throw new ApiError(415, "unsupported_media_type");
   try {
-    return JSON.parse(await readBodyText(request)) as unknown;
+    return JSON.parse(await readBodyText(request, limit)) as unknown;
   } catch (error) {
     if (error instanceof ApiError) throw error;
     throw new ApiError(400, "invalid_input");

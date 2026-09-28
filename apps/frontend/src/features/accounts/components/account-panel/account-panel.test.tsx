@@ -43,7 +43,18 @@ it("hides before a persisted page snapshot and waits for fresh authorization on 
           complete = resolve;
         }),
     );
-  vi.stubGlobal("fetch", fetchMock);
+  vi.stubGlobal("fetch", (path: string) =>
+    path === "/api/bff/accounts/business"
+      ? Promise.resolve(Response.json(null))
+      : path.includes("onboarding/queue") || path.includes("trust/access")
+        ? Promise.resolve(
+            Response.json(
+              { code: "forbidden", message: "forbidden", request_id: "test" },
+              { status: 403 },
+            ),
+          )
+        : fetchMock(),
+  );
   setup();
   await screen.findByText("Private Person");
   act(() => {
@@ -86,4 +97,28 @@ it("clears private cache immediately and reports uncertain logout without claimi
       .every((entry) => entry.state.data === undefined && entry.state.fetchStatus === "idle"),
   ).toBe(true);
   expect(screen.getByRole("button", { name: messages.accounts.account.retryLogout })).toBeDefined();
+});
+
+it("revalidates focus without destroying a draft when a native file picker returns", async () => {
+  vi.stubGlobal("fetch", async (path: string) =>
+    path === "/api/bff/auth/session"
+      ? Response.json(user)
+      : path === "/api/bff/accounts/business"
+        ? Response.json(null)
+        : Response.json(
+            { code: "forbidden", message: "forbidden", request_id: "test" },
+            { status: 403 },
+          ),
+  );
+  setup();
+  const field = await screen.findByLabelText(messages.accounts.business.fields.name, {
+    exact: true,
+  });
+  fireEvent.change(field, { target: { value: "Unsubmitted business" } });
+  act(() => window.dispatchEvent(new Event("focus")));
+  await waitFor(() =>
+    expect(
+      screen.getByLabelText(messages.accounts.business.fields.name, { exact: true }),
+    ).toHaveProperty("value", "Unsubmitted business"),
+  );
 });

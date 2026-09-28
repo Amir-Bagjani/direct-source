@@ -256,10 +256,14 @@ def release(*, actor, target, reason):
 def listing(*, actor, filters):
     require_operator(actor)
     rows = []
+    if filters.get("include_closed") and filters.get("kind") not in ["suspension", "disposition"]:
+        raise ValidationError("تاریخچهٔ کامل فقط برای صف ایمنی حساب پشتیبانی می‌شود.")
     now = timezone.now()
     for kind, query in sources().items():
         if filters.get("kind") and filters["kind"] != kind:
             continue
+        if filters.get("include_closed"):
+            query = MODELS[kind].objects.all()
         query = query.filter(created_at__gte=filters["start"], created_at__lt=filters["end"])
         if query.count() > 5000:
             raise ValidationError("بازهٔ زمانی یا نوع صف را محدودتر کنید.")

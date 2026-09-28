@@ -94,19 +94,14 @@ async function withAccountAccess<T>(
         await client.query("DELETE FROM web_auth_session WHERE id=$1", [id]);
         throw new ApiError(401, "session_required");
       }
-      if (error instanceof ApiError && !retryUnauthorized)
-        throw new ApiError(error.status, "account_request_failed");
+      if (error instanceof ApiError) throw new ApiError(error.status, "account_request_failed");
       throw new ApiError(503, "auth_unavailable");
     }
   });
 }
 
 export function currentUser(id: string) {
-  return withAccountAccess(
-    id,
-    (access) => djangoAuth("me", registeredUserSchema, { access }),
-    true,
-  );
+  return withAccountRead(id, (access) => djangoAuth("me", registeredUserSchema, { access }));
 }
 
 // Refresh before a write if necessary, but never replay a possibly committed mutation.
@@ -135,4 +130,9 @@ export async function closeSession(id: string) {
     }
     await client.query("DELETE FROM web_auth_session WHERE id=$1", [id]);
   });
+}
+
+// Reads may refresh and retry one 401; writes continue to use withAccountMutation.
+export function withAccountRead<T>(id: string, request: (access: string) => Promise<T>) {
+  return withAccountAccess(id, request, true);
 }

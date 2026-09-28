@@ -6,9 +6,10 @@ Read `CONTEXT.md`, the applicable document in `docs/product/prd/`, and the relat
 requirement/API contract before changing behaviour. Product and API changes must update
 their source document and tests in the same change.
 
-Frontend foundation is complete; PRD-01 registration, policies and personal-account web
-sessions/guards/logout and email verification/recovery are implemented. Business onboarding
-remains next. The tested scope and native BFCache release limitations are in
+Frontend foundation and PRD-01 are implemented: registration/policies, personal-account web
+sessions/guards/logout, email verification/recovery, business onboarding and review,
+post-verification revisions, controlled access, platform-role controls, user/business suspension,
+existing-order disposition and restricted account continuity. The tested scope and native BFCache release limitations are in
 `docs/technical/frontend/web-sessions.md`; do not infer business permissions from login.
 Implement each PRD separately when requested.
 See `docs/technical/frontend/implementation-plan.md` for the sequence and remaining gates.

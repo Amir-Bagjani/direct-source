@@ -110,3 +110,109 @@ def test_register_to_verified_business_api(client, user_factory, business_data, 
         format="json",
     )
     assert response.status_code == 200 and response.data["controlled_access"]
+
+
+def test_draft_logo_edit_and_state_gates(client, user_factory, business_data, settings, tmp_path):
+    from marketplace.accounts import business_services, verification_services
+    from marketplace.operations.models import AuditEvent, StoredFile
+
+    from .test_business import complete_application
+
+    settings.STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+            "OPTIONS": {"location": str(tmp_path)},
+        }
+    }
+    user, other, operator = user_factory(), user_factory(), user_factory(role="operator")
+    business = business_services.create_business(actor=user, **business_data)
+    root = f"/api/v1/businesses/{business.pk}"
+    client.force_authenticate(user)
+    assert (
+        client.get("/api/v1/files/policy/").data["consent_version"]
+        == settings.DOCUMENT_CONSENT_VERSION
+    )
+    with patch("marketplace.operations.files.scan", return_value=True):
+        response = client.post(
+            root + "/files/",
+            {
+                "file": picture(),
+                "purpose": "business_logo",
+                "consent_version": settings.DOCUMENT_CONSENT_VERSION,
+            },
+            format="multipart",
+        )
+    assert response.status_code == 201
+    logo = response.data["id"]
+    edit = {
+        **business_data,
+        "name": "نام تازه",
+        "logo": logo,
+        "kind": "retailer",
+        "status": "verified",
+    }
+    response = client.put(root + "/draft/", edit, format="json")
+    assert response.status_code == 200 and str(response.data["logo"]) == str(logo)
+    assert response.data["kind"] == "manufacturer" and response.data["status"] == "draft"
+    content = f"/api/v1/files/{logo}/content/"
+    response = client.get(content)
+    assert response.status_code == 200 and response["Cache-Control"] == "no-store"
+    assert b"".join(response.streaming_content).startswith(b"\x89PNG")
+    assert AuditEvent.objects.filter(action="file.download_authorized").exists()
+    client.force_authenticate(other)
+    assert client.get(content).status_code == 404
+    assert client.put(root + "/draft/", edit, format="json").status_code == 404
+    client.force_authenticate(user)
+    StoredFile.objects.filter(pk=logo).update(scan_status="pending")
+    assert client.put(root + "/draft/", edit, format="json").status_code == 400
+    assert client.get(content).status_code == 404
+    edit["logo"] = None
+    assert client.put(root + "/draft/", edit, format="json").status_code == 200
+    complete_application(user, business)
+    assert client.put(root + "/draft/", edit, format="json").status_code == 409
+    verification_services.claim(actor=operator, business_id=business.pk)
+    verification_services.review(
+        actor=operator,
+        business_id=business.pk,
+        kind="identity",
+        decision="changes_requested",
+        reason="اصلاح",
+    )
+    assert client.put(root + "/draft/", edit, format="json").status_code == 409
+    verification_services.review(
+        actor=operator,
+        business_id=business.pk,
+        kind="activity",
+        decision="changes_requested",
+        reason="اصلاح فعالیت",
+    )
+    assert client.put(root + "/draft/", edit, format="json").status_code == 200
+    client.force_authenticate(operator)
+    assert client.get("/api/v1/operations/verification-queue/").data["count"] == 1
+
+
+def test_logo_rejects_pdf_and_wrong_consent(client, user_factory, business_data):
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    from marketplace.accounts import business_services
+
+    user = user_factory()
+    business = business_services.create_business(actor=user, **business_data)
+    client.force_authenticate(user)
+    root = f"/api/v1/businesses/{business.pk}/files/"
+    response = client.post(
+        root,
+        {"file": picture(), "purpose": "business_logo", "consent_version": "old"},
+        format="multipart",
+    )
+    assert response.status_code == 400
+    response = client.post(
+        root,
+        {
+            "file": SimpleUploadedFile("logo.pdf", b"%PDF-1.4\n%%EOF", "application/pdf"),
+            "purpose": "business_logo",
+            "consent_version": "2026-09-07",
+        },
+        format="multipart",
+    )
+    assert response.status_code == 400

@@ -53,6 +53,18 @@ connection.creation.create_test_db(verbosity=0, autoclobber=False)
 mail_dir = Path(tempfile.gettempdir()) / test_name
 if os.environ.get("E2E_CAPTURE_MAIL"):
     mail_dir.mkdir(mode=0o700)
+documents_dir = None
+if os.environ.get("E2E_DOCUMENTS"):
+    from django.conf import settings
+
+    documents_dir = tempfile.TemporaryDirectory(prefix=test_name + "_files_")
+    settings.STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+            "OPTIONS": {"location": documents_dir.name},
+        }
+    }
+    # File validation, consent, permissions and the real ClamAV service remain enabled.
 application = get_wsgi_application()
 
 
@@ -60,6 +72,7 @@ def test_application(environ, start_response):
     response = application(environ, start_response)
     if os.environ.get("E2E_CAPTURE_MAIL"):
         from django.core import mail
+
         from marketplace.operations.tasks import deliver_email_outbox
 
         deliver_email_outbox()
@@ -89,5 +102,7 @@ except KeyboardInterrupt:
     pass
 finally:
     connection.creation.destroy_test_db(original_name, verbosity=0)
+    if documents_dir:
+        documents_dir.cleanup()
     if os.environ.get("E2E_CAPTURE_MAIL"):
         shutil.rmtree(mail_dir)

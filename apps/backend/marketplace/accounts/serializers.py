@@ -81,6 +81,14 @@ class BusinessInputSerializer(serializers.Serializer):
     address = AddressInputSerializer()
 
 
+class BusinessDraftSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=200)
+    phone = serializers.RegexField(r"^\+?[0-9]{7,15}$")
+    description = serializers.CharField(max_length=2000)
+    address = AddressInputSerializer()
+    logo = serializers.UUIDField(allow_null=True)
+
+
 class BusinessSerializer(serializers.ModelSerializer):
     addresses = AddressSerializer(many=True, read_only=True)
 
@@ -93,6 +101,7 @@ class BusinessSerializer(serializers.ModelSerializer):
             "status",
             "phone",
             "description",
+            "logo",
             "controlled_access",
             "first_verified_at",
             "addresses",

@@ -5,6 +5,210 @@ info:
   description: Implemented backend contracts; monetary fields use integer IRR and
     times use UTC.
 paths:
+  /api/v1/accounts/directory/:
+    get:
+      operationId: accounts_directory_retrieve
+      tags:
+      - accounts
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountDirectoryPage'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/accounts/suspensions/:
+    get:
+      operationId: accounts_suspensions_retrieve
+      tags:
+      - accounts
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuspensionRecordPage'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/accounts/trust-access/:
+    get:
+      operationId: accounts_trust_access_retrieve
+      tags:
+      - accounts
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Access'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
   /api/v1/auth/email/:
     put:
       operationId: auth_email_update
@@ -1264,6 +1468,87 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ControlledAccessRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Business'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/businesses/{id}/draft/:
+    put:
+      operationId: businesses_draft_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - businesses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BusinessDraftRequest'
         required: true
       security:
       - bearerAuth: []
@@ -7117,6 +7402,82 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/files/{id}/content/:
+    get:
+      operationId: files_content_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - files
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
   /api/v1/files/{id}/download/:
     post:
       operationId: files_download_create
@@ -7137,6 +7498,74 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Download'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/files/policy/:
+    get:
+      operationId: files_policy_retrieve
+      tags:
+      - files
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentPolicy'
           description: ''
         '400':
           description: API error with request correlation ID
@@ -12224,6 +12653,11 @@ paths:
           type: string
           format: date-time
       - in: query
+        name: include_closed
+        schema:
+          type: boolean
+          default: false
+      - in: query
         name: kind
         schema:
           enum:
@@ -16349,6 +16783,68 @@ paths:
                 $ref: '#/components/schemas/ErrorEnvelope'
 components:
   schemas:
+    Access:
+      type: object
+      properties:
+        owner:
+          type: boolean
+      required:
+      - owner
+    AccountDirectoryPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+          nullable: true
+        previous:
+          type: string
+          format: uri
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountRow'
+      required:
+      - count
+      - next
+      - previous
+      - results
+    AccountRow:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        first_name:
+          type: string
+          title: نام
+          maxLength: 150
+        last_name:
+          type: string
+          title: نام خانوادگی
+          maxLength: 150
+        mobile:
+          type: string
+          maxLength: 13
+        is_suspended:
+          type: boolean
+        business:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+        operator:
+          type: boolean
+          readOnly: true
+      required:
+      - business
+      - id
+      - mobile
+      - operator
     ActionEnum:
       enum:
       - hide_content
@@ -16792,6 +17288,11 @@ components:
         description:
           type: string
           readOnly: true
+        logo:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
         controlled_access:
           type: boolean
           readOnly: true
@@ -16812,9 +17313,37 @@ components:
       - first_verified_at
       - id
       - kind
+      - logo
       - name
       - phone
       - status
+    BusinessDraftRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        phone:
+          type: string
+          minLength: 1
+          pattern: ^\+?[0-9]{7,15}$
+        description:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        address:
+          $ref: '#/components/schemas/AddressInputRequest'
+        logo:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - address
+      - description
+      - logo
+      - name
+      - phone
     BusinessInputRequest:
       type: object
       properties:
@@ -17573,6 +18102,13 @@ components:
       required:
       - consent_version
       - file
+    DocumentPolicy:
+      type: object
+      properties:
+        consent_version:
+          type: string
+      required:
+      - consent_version
     Download:
       type: object
       properties:
@@ -17783,6 +18319,8 @@ components:
       - identity
       - activity
       - product_image
+      - business_logo
+      - suspension
       - review_image
       - shipping
       - support
@@ -17792,6 +18330,8 @@ components:
         * `identity` - هویت
         * `activity` - فعالیت
         * `product_image` - تصویر محصول
+        * `business_logo` - لوگوی کسب‌وکار
+        * `suspension` - مدرک تعلیق
         * `review_image` - تصویر نظر
         * `shipping` - مدرک حمل
         * `support` - پیوست پشتیبانی
@@ -19604,6 +20144,10 @@ components:
           maxLength: 2000
         address:
           $ref: '#/components/schemas/AddressInputRequest'
+        logo:
+          type: string
+          format: uuid
+          nullable: true
       required:
       - address
       - description
@@ -20076,10 +20620,14 @@ components:
           type: string
           format: date-time
           nullable: true
+        status:
+          type: string
+          readOnly: true
       required:
       - assigned_to_id
       - business_id
       - id
+      - status
     QueuePage:
       type: object
       properties:
@@ -21518,6 +22066,69 @@ components:
           maxItems: 10
       required:
       - reason
+    SuspensionRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        business_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+        user_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+        status:
+          type: string
+          maxLength: 12
+        reason:
+          type: string
+          maxLength: 2000
+        activated_at:
+          type: string
+          format: date-time
+          nullable: true
+        restored_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - business_id
+      - created_at
+      - id
+      - reason
+      - user_id
+    SuspensionRecordPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+          nullable: true
+        previous:
+          type: string
+          format: uri
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SuspensionRecord'
+      required:
+      - count
+      - next
+      - previous
+      - results
     Tariff:
       type: object
       properties:
@@ -22000,11 +22611,15 @@ components:
       - identity
       - activity
       - product_image
+      - business_logo
+      - suspension
       type: string
       description: |-
         * `identity` - هویت
         * `activity` - فعالیت
         * `product_image` - تصویر محصول
+        * `business_logo` - لوگو
+        * `suspension` - مدرک تعلیق
     UploadRequest:
       type: object
       properties:

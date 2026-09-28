@@ -11,6 +11,7 @@ from .models import Business
 from .permissions import has_role, require_operator
 from .serializers import (
     ActivitySerializer,
+    BusinessDraftSerializer,
     BusinessInputSerializer,
     BusinessSerializer,
     ControlledAccessSerializer,
@@ -168,6 +169,16 @@ class BusinessDetailView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return visible_businesses(self.request.user)
+
+
+class BusinessDraftView(APIView):
+    @extend_schema(request=BusinessDraftSerializer, responses=BusinessSerializer)
+    def put(self, request, pk):
+        get_object_or_404(Business, pk=pk, membership__user=request.user)
+        business = business_services.update_draft(
+            actor=request.user, business_id=pk, **validated(BusinessDraftSerializer, request)
+        )
+        return Response(BusinessSerializer(business).data)
 
 
 class SectionsView(APIView):

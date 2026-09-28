@@ -14,14 +14,14 @@ Frontend root: `apps/frontend`; alias `@/` resolves to `src/`.
 src/
   app/                  Next.js routes, layouts, metadata and thin composition
   features/accounts/
-    api/                browser BFF adapters (registration, session, recovery)
+    api/                browser BFF adapters (registration, session, recovery, business)
     client/             session-events: browser lifecycle communication, not a pure utility
     components/         component directories with exclusive props and tests
-    hooks/              use-registration, use-recovery-mutation, use-session-mutations
-    queries/            accounts.keys and session query options
-    schemas/            login, registration and recovery runtime contracts
+    hooks/              registration, recovery, session and business mutation hooks
+    queries/            accounts.keys and session/business query options
+    schemas/            login, registration, recovery and business runtime contracts
     server/             BFF handlers, guard, NextAuth integration and session orchestration
-    utils/              pure accounts-specific mobile normalization
+    utils/              pure accounts-specific digit/mobile normalization
   shared/
     api/                bffRequest, unwrap, ApiError, generated OpenAPI
     query/              QueryClient factory, provider, hydration/error infrastructure
@@ -107,7 +107,8 @@ Current consolidation examples: `server/api-config.ts` validates trusted origins
 registration and auth; `server/read-body.ts` reads bounded JSON for multiple handlers;
 accounts/server/session-cookie.server.ts clears cookies for logout and password reset.
 Registration transport intentionally retains its 201 check, request ID and 10s timeout;
-auth transport retains refresh semantics and 8s timeout. Similar fetch syntax is not enough
+auth and business use `server/django-request.ts` for authenticated transport with an 8s
+timeout; accounts session orchestration owns refresh/read retry and never replays mutations. Similar fetch syntax is not enough
 to justify an unsafe universal wrapper. Small header literals do not need a new framework.
 
 ## Correct / incorrect examples

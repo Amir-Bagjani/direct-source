@@ -64,3 +64,50 @@ def set_controlled_access(*, actor, business_id, enabled, reason):
         after={"enabled": enabled},
     )
     return business
+
+
+@transaction.atomic
+def update_draft(*, actor, business_id, address, logo, **data):
+    from marketplace.operations.models import StoredFile
+
+    from .permissions import require_business_owner
+
+    business = Business.objects.select_for_update().get(pk=business_id)
+    require_business_owner(actor, business)
+    activity = business.verification.sections.get(kind="activity")
+    if business.status != "draft" and not (
+        business.status == "changes_requested" and activity.status == "changes_requested"
+    ):
+        raise Conflict("فقط پروفایل پیش‌نویس یا بخش فعالیت برگشتی قابل ویرایش است.")
+    if (
+        logo is not None
+        and not StoredFile.objects.select_for_update()
+        .filter(
+            pk=logo,
+            owner=actor,
+            business=business,
+            purpose="business_logo",
+            scan_status="clean",
+            deleted_at__isnull=True,
+        )
+        .exists()
+    ):
+        raise ValidationError({"logo": "لوگوی معتبر متعلق به کسب‌وکار لازم است."})
+    for key, value in data.items():
+        setattr(business, key, value)
+    business.logo_id = logo
+    business.save(update_fields=[*data, "logo", "updated_at"])
+    current = business.addresses.order_by("created_at", "id").first()
+    if current is None:
+        Address.objects.create(business=business, **address)
+    else:
+        for key, value in address.items():
+            setattr(current, key, value)
+        current.save(update_fields=[*address, "updated_at"])
+    audit(
+        actor=actor,
+        action="business.draft_updated",
+        target=business,
+        after={"fields": [*data, "address", "logo"]},
+    )
+    return business

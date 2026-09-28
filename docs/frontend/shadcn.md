@@ -77,3 +77,9 @@ focus restoration and viewport scrolling. Product interaction changes need match
 
 Run component tests, typecheck, lint and formatting. Run Playwright for theme, keyboard,
 RTL/LTR, responsive and URL/history behavior. Builds remain phase/CI/release checkpoints.
+
+
+Business onboarding adds official Base/Nova [Native Select](https://ui.shadcn.com/docs/components/base/native-select)
+and [Textarea](https://ui.shadcn.com/docs/components/base/textarea), installed through the
+configured registry and moved into their canonical shared/ui component directories. The form
+composes existing Field, Input, Button, Spinner, Alert and Card without custom CSS.

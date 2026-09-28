@@ -211,3 +211,16 @@ Before frontend changes, follow AGENTS.md and the canonical
 [Ponytail](.agent/skills/ponytail/SKILL.md) is mandatory and available through the existing
 `.agents` discovery symlink. See the [refactor report](../../docs/technical/frontend/feature-architecture-refactor.md)
 for file ownership, consolidation decisions and verification.
+
+`PLAYWRIGHT_SERVER_MODE=production pnpm test:e2e:business` checks both business kinds/locales,
+ownership isolation, duplicate rejection and recovery from a committed write with a lost
+response against isolated Django/PostgreSQL. Repeat with `ACCOUNTS_MOBILE=true` for mobile.
+The initial form lives on `/fa/account` and `/en/account`; logo and draft-edit APIs are pending.
+
+Onboarding verification: `PLAYWRIGHT_SERVER_MODE=production pnpm test:e2e:onboarding`.
+Use `ONBOARDING_LOCALE=en ACCOUNTS_MOBILE=true` for English mobile. The fixture uses
+isolated PostgreSQL, temporary filesystem storage and **real ClamAV** on localhost:3310;
+Django validation/permissions/scanning are not mocked. Storage is removed after the run.
+Backend migrations accounts/0004 and operations/0011 must be applied before serving this UI.
+The existing signed download endpoint remains; the web UI streams private file bytes through
+its authenticated same-origin BFF. No private files are served through Next's image optimizer.

@@ -250,3 +250,31 @@ still validate every protected route. Login/logout cancel and clear the browser 
 notify other documents without tokens and hard-replace the route. Passwords stay in
 form drafts, never mutation variables. Future business queries still need explicit
 user/business scope and their own authorization. See [web sessions](web-sessions.md).
+
+
+## Business profile client boundary — 2026-09-26
+
+Accounts businessOptions(userId) uses the single accountKeys factory, zero stale/GC time,
+no retry and an AbortSignal forwarded through bffRequest. It mounts only after live account
+validation; this intentional authorization dependency prevents private profile hydration into
+HTML/RSC. Account hide/identity/logout now cancels and removes all accounts queries, including
+the business profile. Business creation keeps form values out of mutation variables and returns
+only created:true. Targeted invalidation never inserts a late mutation DTO after logout.
+Browser forms use the existing RHF/Zod stack, including domain-owned digit normalization.
+
+
+### Onboarding and review — 2026-09-26
+
+`onboarding.queries.ts` owns section/detail/queue/policy options; user/business/page-scoped
+keys stay in accountKeys. Detail and section reads begin independently after authorization.
+Successful commands invalidate the owner's business and that user's onboarding prefix;
+responses never repopulate a late private DTO. File upload keeps only selected IDs in the
+form, with void mutation variables and no automatic retry. The operator queue's live 403
+hides its entire private panel; backend assignment/role checks govern every document/action.
+Focus revalidates the session without destroying form drafts; hidden/persisted documents
+still clear private queries and require a new authorization epoch before showing data.
+
+
+### PRD-01 trust and restricted continuity
+
+Account trust reads use `trustOptions` and the existing `accountKeys.trust` factory beneath the account onboarding prefix. Revision, directory, safety work, immutable order snapshots and existing support tickets remain private CSR queries; no RSC hydration or persistent cache is used. All mutations reuse `useOnboardingMutation` with void variables, no retry, immediate private-data collection and targeted invalidation. Commands and support replies retain the same idempotency key for an explicitly repeated identical attempt. Account page lifecycle hides and clears all these queries before history restoration or identity changes. Support attachment routing reuses the bounded multipart onboarding BFF and the existing purpose-specific Django authorization.

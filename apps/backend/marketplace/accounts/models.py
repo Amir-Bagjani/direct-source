@@ -116,6 +116,13 @@ class Business(BaseModel):
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
     phone = models.CharField(max_length=24)
     description = models.CharField(max_length=2000)
+    logo = models.ForeignKey(
+        "operations.StoredFile",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="business_logos",
+    )
     controlled_access = models.BooleanField(default=False)
     first_verified_at = models.DateTimeField(null=True)
 

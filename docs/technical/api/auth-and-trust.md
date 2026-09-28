@@ -97,3 +97,47 @@ BFF ثابت `/api/bff/auth/recovery/{action}` برای `email` از PUT و بر
 درخواست‌های نوشتن حتی پس از خطای 401 تکرار نمی‌شوند؛ refresh لازم پیش از نوشتن انجام می‌شود.
 بازیابی موفق cookie جاری و cache خصوصی را پاک می‌کند و تب‌های دیگر را از تغییر نشست باخبر
 می‌سازد؛ ابطال همهٔ نشست‌ها همچنان مسئولیت Django است.
+
+
+## BFF پروفایل اولیهٔ کسب‌وکار — 2026-09-26
+
+- `GET /api/bff/accounts/business`: نشست opaque وب به endpoint ثابت Django
+  `GET /api/v1/businesses/` متصل می‌شود؛ خروجی فقط Business مالک یا null است. شناسهٔ کسب‌وکار،
+  owner یا URL صفحهٔ بعد از مرورگر پذیرفته نمی‌شود و لینک pagination backend منتشر نمی‌شود.
+- `POST /api/bff/accounts/business`: Origin معتبر، JSON تا 16 KiB و BusinessInputRequest
+  معتبر لازم است. فقط فیلدهای تجاری/نشانی عبور می‌کنند؛ مالک، وضعیت و مجوزهای تزریقی حذف
+  می‌شوند. Django مالکیت یگانه را اتمیک اعمال می‌کند؛ موفقیت وب `201 {created:true}` است.
+- دادهٔ شخصی در پاسخ mutation یا variables کش تکرار نمی‌شود؛ موفقیت، query همان کاربر را
+  invalidate می‌کند تا پروفایل از پاسخ زندهٔ مجاز خوانده شود. خطای مبهم retry خودکار ندارد؛
+  UI دکمهٔ بررسی پروفایل موجود را ارائه می‌کند. 409 به کد عمومی business_exists نگاشت می‌شود.
+- پاسخ‌ها no-store و خطاها بدون fields/message خام upstream هستند. JWT فقط سمت سرور است.
+  خواندن می‌تواند یک 401 را پس از refresh تکرار کند؛ ساخت هرگز replay نمی‌شود.
+
+قرارداد API Django تغییر نکرد. Transport مشترک server/django-request.ts از auth استخراج
+شد چون اکنون دو خانوادهٔ endpoint همان timeout/headers/error/no-store را مصرف می‌کنند؛
+آداپتر feature فقط مسیر ثابت را می‌فرستد. این helper از مرورگر قابل‌استفاده نیست.
+
+
+## تکمیل onboarding وب — 2026-09-26
+
+- `PUT businesses/{id}/draft/`: نام، تلفن، توضیح، نشانی و `logo: UUID|null`؛ مالکِ فعال، قفل ردیف Business و وضعیت draft یا changes_requested با بخش activity برگشتی لازم‌اند. kind/owner/status/controlled_access ورودی نیستند. لوگو فقط StoredFile متعلق به همان مالک/کسب‌وکار با purpose=business_logo، clean و بدون deleted_at است. تغییرات پروفایل و نشانی اتمیک و audit بدون مقادیر خصوصی است.
+- Business اکنون `logo` nullable دارد؛ migrationهای accounts/0004 و operations/0011 لازم‌اند. upload موجود purpose تازهٔ business_logo را می‌پذیرد؛ تصویر معتبر JPG/PNG/WebP تا ۵ MiB، رضایت جاری و ClamAV الزامی است.
+- `GET files/policy/` نسخهٔ رضایت جاری را به کاربر واردشده می‌دهد. `GET files/{id}/content/` همان مجوز دانلود و audit را اجرا و bytes خصوصی را no-store برمی‌گرداند؛ HTML/SVG مجاز نیستند. endpoint قدیمی لینک امضاشده تغییری ندارد.
+- صف تأیید، pendingها و پرونده‌های changes_requested/rejected مسئول فعلی را با pagination و status غیرحساس برمی‌گرداند؛ مالک سامانه همهٔ این وضعیت‌ها را می‌بیند. مدارک همچنان فقط پس از مجوزِ مسئول قابل خواندن‌اند.
+- BFF `/api/bff/accounts/onboarding/{action}` فقط allowlist ثابت policy/queue/detail/sections/content برای GET، draft/identity/activity برای PUT و submit/claim/review/reopen/upload برای POST دارد. شناسه UUID و page عدد محدود است؛ URL دلخواه عبور نمی‌کند. JSON تا 16 KiB و multipart تا 11 MiB پیش از parse محدود می‌شوند، هر upload یک فایل تا 10 MiB دارد. سقف لوگو و صحت محتوا در Django نیز اعمال می‌شوند.
+- تغییرات JSON فقط completed:true برمی‌گردانند؛ upload فقط metadata فایل معتبر را می‌دهد. هیچ mutation خودکار تکرار نمی‌شود. خطاهای 403/404/409 حفظ ولی متن خام و fields حذف می‌شوند. فایل‌ها از BFF هم‌مبدأ با no-store، nosniff و sandbox منتقل می‌شوند؛ JWT و URL ذخیره‌سازی به مرورگر نمی‌روند.
+- اطلاعات هویت و فایل‌های انتخاب‌شده فقط در حافظهٔ فرم‌اند، نه storage یا mutation variables. Queryها به user/business محدود و با تغییر نشست پاک می‌شوند. focus مجوز حساب را بازبینی می‌کند بدون بازسازی پیش‌نویس هنگام برگشت از file picker؛ pagehide/visibility همچنان دادهٔ خصوصی را می‌بندند.
+
+
+## تکمیل رابط اعتماد حساب — 2026-09-27
+
+- `GET /api/v1/accounts/trust-access/`: فقط نقش فعال اپراتور/مالک؛ خروجی `{owner: boolean}`. نقش از نشست مرورگر استنتاج نمی‌شود.
+- `GET /api/v1/accounts/directory/?page=…`: صفحهٔ ۲۵تایی حساب‌ها با `id`, `first_name`, `last_name`, `mobile`, `is_suspended`, `operator` و `business` nullable. مالک سامانه همه را می‌بیند؛ اپراتور فقط مالک کسب‌وکارهایی را می‌بیند که تأیید یا بازنگری‌شان به او واگذار شده است. کاربر عادی 403 می‌گیرد.
+- `GET /api/v1/accounts/suspensions/?page=…`: فقط سابقهٔ تعلیق خود User یا Business متعلق به او، بدون پیشنهادهای منتشرنشده و بدون مدارک داخلی اپراتور. دلایل و زمان‌های فعال‌سازی/رفع محفوظ‌اند.
+- پروفایل بازنگری `logo` اختیاری و nullable دارد: حذف فیلد لوگوی قبلی را حفظ می‌کند؛ null حذف صریح است. فایل باید متعلق به مالک و همان Business، با purpose=`business_logo` و اسکن clean باشد. در تصویب نهایی نیز مدارک دوباره بررسی می‌شوند. انتشار لوگو همراه سایر بخش‌ها اتمیک است؛ `first_verified_at` تغییر نمی‌کند.
+- آپلود `purpose=suspension` فقط برای اپراتور/مالک روی Business قابل‌مشاهده مجاز است. فایل رضایت جاری و اسکن clean می‌خواهد. ارجاع در پیشنهاد فقط برای همان Business یا Business کاربر هدف مجاز است. دانلود فقط بارگذار، مالک سامانه یا اپراتور مسئول همان پرونده؛ واگذاری تأیید کسب‌وکار به‌تنهایی مجوز مدرک تعلیق نیست.
+- `GET /operations/work/?kind=suspension|disposition&include_closed=true` تاریخچهٔ پرونده‌های نهایی را نیز برمی‌گرداند. پارامتر برای نوع دیگر رد می‌شود. timeline همچنان فقط برای مسئول پرونده یا مالک سامانه است و برای تعلیق، شناسهٔ مدارک را نیز برمی‌گرداند.
+
+BFF وب `/api/bff/accounts/trust/[action]` مقصد ثابت، شناسه UUID، method مشخص، JSON حداکثر 32 KiB، بررسی origin/session و `no-store` دارد. فهرست سفید شامل بازنگری، نقش اپراتور، controlled access، پیشنهاد و فرمان تعلیق، تصمیم سفارش و سوابق است. فرمان حساس و پاسخ تیکت `idempotency_key` دارند؛ retry خودکار ندارند. شناسه‌ها، توکن و پاسخ خطای خصوصی وارد پیام UI نمی‌شوند. پاسخ نوشتن فقط `{completed:true}` است.
+
+سوابق سفارش از snapshot همان سفارش، و تیکت/پاسخ/پیوست از API موجود support خوانده می‌شوند؛ قیمت زندهٔ کاتالوگ در نمای محدود دریافت نمی‌شود. آپلود support از BFF مدارک به مسیر ثابت `/api/v1/support/files/` با `ticket_id` می‌رود، نه مسیر فایل تأیید کسب‌وکار.

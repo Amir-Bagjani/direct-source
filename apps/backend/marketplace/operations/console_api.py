@@ -25,6 +25,7 @@ class Filters(StrictCommand):
 
 
 class QueueFilters(Filters):
+    include_closed = serializers.BooleanField(default=False)
     kind = serializers.ChoiceField(choices=list(work.LABELS), required=False)
     assignee = serializers.CharField(required=False, max_length=40)
     sort = serializers.ChoiceField(choices=["oldest", "newest"], default="oldest")
@@ -199,6 +200,8 @@ def timeline(actor, kind, pk):
         ]
         if hasattr(target, field)
     }
+    if kind == "suspension":
+        details["evidence"] = list(target.evidence.values_list("pk", flat=True))
     return details, query
 
 

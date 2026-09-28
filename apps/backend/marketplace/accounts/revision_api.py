@@ -22,6 +22,7 @@ class ProfileSerializer(serializers.Serializer):
     phone = serializers.RegexField(r"^\+?[0-9]{7,15}$")
     description = serializers.CharField(max_length=2000)
     address = AddressInputSerializer()
+    logo = serializers.UUIDField(required=False, allow_null=True)
 
 
 class RevisionInputSerializer(serializers.Serializer):

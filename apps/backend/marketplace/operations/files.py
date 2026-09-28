@@ -81,13 +81,16 @@ def scan(content):
 def upload_document(*, actor, business, purpose, consent, upload):
     from marketplace.accounts.permissions import has_role
 
-    if purpose not in ["shipping", "support", "discrepancy"] or not has_role(
+    if purpose not in ["shipping", "support", "discrepancy", "suspension"] or not has_role(
         actor, "owner", "operator"
     ):
         require_business_owner(actor, business)
     if consent != settings.DOCUMENT_CONSENT_VERSION:
         raise ValidationError({"consent_version": "رضایت‌نامهٔ جاری را بپذیرید."})
     content, extension = validate_file(upload)
+    if purpose == "business_logo":
+        if extension == ".pdf" or len(content) > 5 * 1024 * 1024:
+            raise ValidationError({"file": "لوگو باید تصویر JPG/PNG/WebP تا ۵ مگابایت باشد."})
     if purpose == "product_image":
         if business.kind != "manufacturer" or business.status == "suspended":
             from rest_framework.exceptions import PermissionDenied
@@ -160,6 +163,26 @@ def download_document(*, actor, file):
             or file.scan_status != "clean"
             or not own_rights(actor).filter(reviewimage__file=file).exists()
         ):
+            raise NotFound()
+        with transaction.atomic():
+            audit(actor=actor, action="file.download_authorized", target=file)
+        return default_storage.url(file.object_key)
+
+    if file.purpose == "suspension":
+        from rest_framework.exceptions import NotFound
+
+        from .models import Suspension, WorkItem
+
+        assigned = WorkItem.objects.filter(kind="suspension", assigned_to=actor).values("target_id")
+        allowed = (
+            file.owner_id == actor.pk
+            or has_role(actor, "owner")
+            or (
+                has_role(actor, "operator")
+                and Suspension.objects.filter(pk__in=assigned, evidence=file).exists()
+            )
+        )
+        if not allowed or file.deleted_at or file.scan_status != "clean":
             raise NotFound()
         with transaction.atomic():
             audit(actor=actor, action="file.download_authorized", target=file)

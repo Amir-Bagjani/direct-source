@@ -1,3 +1,4 @@
+from marketplace.accounts import trust_api
 from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView
@@ -7,6 +8,9 @@ from marketplace.common.health import live, ready
 from marketplace.operations import api as operations
 
 urlpatterns = [
+    path("api/v1/accounts/trust-access/", trust_api.TrustAccessView.as_view()),
+    path("api/v1/accounts/directory/", trust_api.AccountDirectoryView.as_view()),
+    path("api/v1/accounts/suspensions/", trust_api.OwnSuspensionsView.as_view()),
     path("api/v1/operations/", include("marketplace.operations.urls")),
     path("api/v1/reviews/", include("marketplace.reviews.urls")),
     path("api/v1/support/", include("marketplace.support.urls")),
@@ -38,6 +42,7 @@ urlpatterns = [
     path("api/v1/auth/password/reset/", api.ResetView.as_view()),
     path("api/v1/businesses/", api.BusinessListView.as_view()),
     path("api/v1/businesses/<uuid:pk>/", api.BusinessDetailView.as_view()),
+    path("api/v1/businesses/<uuid:pk>/draft/", api.BusinessDraftView.as_view()),
     path("api/v1/businesses/<uuid:pk>/verification/", api.SectionsView.as_view()),
     path("api/v1/businesses/<uuid:pk>/verification/identity/", api.IdentityView.as_view()),
     path("api/v1/businesses/<uuid:pk>/verification/activity/", api.ActivityView.as_view()),
@@ -47,6 +52,8 @@ urlpatterns = [
     path("api/v1/businesses/<uuid:pk>/verification/reopen/", api.ReopenView.as_view()),
     path("api/v1/businesses/<uuid:pk>/controlled-access/", api.ControlledAccessView.as_view()),
     path("api/v1/businesses/<uuid:pk>/files/", operations.UploadView.as_view()),
+    path("api/v1/files/policy/", operations.DocumentPolicyView.as_view()),
+    path("api/v1/files/<uuid:pk>/content/", operations.FileContentView.as_view()),
     path("api/v1/files/<uuid:pk>/download/", operations.DownloadView.as_view()),
     path("api/v1/operations/verification-queue/", operations.QueueView.as_view()),
     path("api/v1/inbox/", operations.InboxView.as_view()),

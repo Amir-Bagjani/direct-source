@@ -148,3 +148,70 @@ def test_revision_correction_only_returned_section(verified_business, user_facto
     )
     business.refresh_from_db()
     assert business.name == "نام اصلاح‌شده"
+
+
+def test_logo_revision_is_atomic_and_preserved_on_correction(verified_business):
+    from rest_framework.exceptions import ValidationError
+
+    from marketplace.operations.models import StoredFile
+
+    user, operator, business = verified_business
+    logo = StoredFile.objects.create(
+        owner=user,
+        business=business,
+        purpose="business_logo",
+        object_key="private/test-logo.png",
+        size=10,
+        content_type="image/png",
+        sha256="0" * 64,
+        scan_status="clean",
+        consent_version="2026-09-07",
+    )
+    before = revision_services.snapshot(business)
+    first_verified = business.first_verified_at
+    profile = {**before["profile"], "logo": str(logo.pk)}
+    revision = revision_services.propose(
+        actor=user, business_id=business.pk, changes={"profile": profile}
+    )
+    business.refresh_from_db()
+    assert business.logo_id is None
+    revision_services.claim(actor=operator, revision_id=revision.pk)
+    revision_services.review(
+        actor=operator,
+        revision_id=revision.pk,
+        kind="activity",
+        decision="changes_requested",
+        reason="نام را اصلاح کنید",
+    )
+    revision_services.resubmit(
+        actor=user,
+        revision_id=revision.pk,
+        changes={"profile": {**before["profile"], "name": "نام اصلاح‌شده"}},
+    )
+    revision.refresh_from_db()
+    assert revision.proposed["profile"]["logo"] == str(logo.pk)
+    logo.scan_status = "rejected"
+    logo.save()
+    with pytest.raises(ValidationError):
+        revision_services.review(
+            actor=operator,
+            revision_id=revision.pk,
+            kind="activity",
+            decision="approved",
+            reason="بررسی",
+        )
+    business.refresh_from_db()
+    assert revision_services.snapshot(business) == before
+    logo.scan_status = "clean"
+    logo.save()
+    revision_services.review(
+        actor=operator,
+        revision_id=revision.pk,
+        kind="activity",
+        decision="approved",
+        reason="بررسی",
+    )
+    business.refresh_from_db()
+    assert business.logo_id == logo.pk
+    assert business.first_verified_at == first_verified
+    assert business.status == "verified"

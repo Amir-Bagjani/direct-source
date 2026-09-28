@@ -8,6 +8,9 @@ import { ApiError } from "@/shared/api/unwrap";
 import { Button } from "@/shared/ui/button/button";
 import { Alert, AlertDescription } from "@/shared/ui/alert/alert";
 import { Spinner } from "@/shared/ui/spinner/spinner";
+import { TrustPanel } from "../trust-panel/trust-panel";
+import { VerificationReview } from "../verification-review/verification-review";
+import { BusinessPanel } from "../business-panel/business-panel";
 import { EmailSettings } from "../email-settings/email-settings";
 import { sessionOptions } from "../../queries/session.queries";
 import { useLogout } from "../../hooks/use-session-mutations";
@@ -30,7 +33,7 @@ export function AccountPanel() {
       if (privateRef.current) privateRef.current.hidden = true;
       setActive(false);
       void client.cancelQueries();
-      client.removeQueries({ queryKey: accountKeys.sessions() });
+      client.removeQueries({ queryKey: accountKeys.all });
     };
     const resume = () => {
       if (document.visibilityState === "visible") {
@@ -51,14 +54,17 @@ export function AccountPanel() {
     resume();
     window.addEventListener("pagehide", hide);
     window.addEventListener("pageshow", resume);
-    window.addEventListener("focus", resume);
+    const focus = () => {
+      void client.invalidateQueries({ queryKey: accountKeys.sessions() });
+    };
+    window.addEventListener("focus", focus);
     document.addEventListener("visibilitychange", visibility);
     return () => {
       stop();
       hide();
       window.removeEventListener("pagehide", hide);
       window.removeEventListener("pageshow", resume);
-      window.removeEventListener("focus", resume);
+      window.removeEventListener("focus", focus);
       document.removeEventListener("visibilitychange", visibility);
     };
   }, [client, locale]);
@@ -107,6 +113,9 @@ export function AccountPanel() {
               {t("email")}: <bdi dir="auto">{query.data.email || t("noEmail")}</bdi>
             </p>
             <p>{t(query.data.email_verified_at ? "emailVerified" : "emailUnverified")}</p>
+            <BusinessPanel key={`business:${query.data.id}:${epoch}`} userId={query.data.id} />
+            <VerificationReview key={`review:${query.data.id}:${epoch}`} userId={query.data.id} />
+            <TrustPanel key={`trust:${query.data.id}:${epoch}`} userId={query.data.id} />
             <EmailSettings
               key={query.data.id}
               email={query.data.email}

@@ -17,6 +17,7 @@ def snapshot(business):
     address = business.addresses.order_by("created_at", "id").first()
     return {
         "profile": {
+            **({"logo": str(business.logo_id)} if business.logo_id else {}),
             "name": business.name,
             "phone": business.phone,
             "description": business.description,
@@ -27,6 +28,21 @@ def snapshot(business):
 
 
 def validate_documents(actor, business, data):
+    from marketplace.operations.models import StoredFile
+
+    logo = data["profile"].get("logo")
+    if (
+        logo
+        and not StoredFile.objects.filter(
+            pk=logo,
+            owner=actor,
+            business=business,
+            purpose="business_logo",
+            scan_status="clean",
+            deleted_at__isnull=True,
+        ).exists()
+    ):
+        raise ValidationError({"logo": "لوگوی معتبر متعلق به کسب‌وکار لازم است."})
     identity, activity = data["identity"], data["activity"]
     check_files(
         actor,
@@ -51,6 +67,8 @@ def propose(*, actor, business_id, changes):
         raise Conflict("کسب‌وکار تأییدشده بدون بازنگری باز لازم است.")
     before = snapshot(business)
     proposed = {**copy.deepcopy(before), **json.loads(json.dumps(changes, cls=DjangoJSONEncoder))}
+    if "profile" in changes and "logo" not in changes["profile"] and business.logo_id:
+        proposed["profile"]["logo"] = str(business.logo_id)
     if proposed == before:
         raise ValidationError("تغییری ثبت نشده است.")
     validate_documents(actor, business, proposed)
@@ -92,6 +110,10 @@ def resubmit(*, actor, revision_id, changes):
         section = "activity" if key == "profile" else key
         if getattr(revision, f"{section}_status") != "changes_requested":
             raise Conflict("فقط بخش برگشتی قابل‌اصلاح است.")
+    changes = copy.deepcopy(changes)
+    if "profile" in changes and "logo" not in changes["profile"]:
+        if "logo" in revision.proposed["profile"]:
+            changes["profile"]["logo"] = revision.proposed["profile"]["logo"]
     revision.proposed = {
         **revision.proposed,
         **json.loads(json.dumps(changes, cls=DjangoJSONEncoder)),
@@ -160,7 +182,9 @@ def review(*, actor, revision_id, kind, decision, reason):
             profile["phone"],
             profile["description"],
         )
-        business.save(update_fields=["name", "phone", "description", "updated_at"])
+        validate_documents(business.membership.user, business, revision.proposed)
+        business.logo_id = profile.get("logo")
+        business.save(update_fields=["name", "phone", "description", "logo", "updated_at"])
         address = business.addresses.order_by("created_at", "id").first()
         for key, value in profile["address"].items():
             setattr(address, key, value)

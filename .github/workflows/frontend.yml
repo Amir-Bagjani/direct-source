@@ -10,6 +10,12 @@ jobs:
   frontend:
     runs-on: ubuntu-latest
     services:
+      clamav:
+        image: clamav/clamav:1.4
+        ports: ["3310:3310"]
+        options: >-
+          --health-cmd "clamdcheck.sh"
+          --health-interval 10s --health-timeout 5s --health-retries 30
       postgres:
         image: postgres:16.10-alpine
         env:
@@ -69,6 +75,21 @@ jobs:
         env:
           PLAYWRIGHT_SERVER_MODE: production
           RECOVERY_LOCALE: en
+          ACCOUNTS_MOBILE: "true"
+      - run: pnpm test:e2e:business
+        env:
+          PLAYWRIGHT_SERVER_MODE: production
+      - run: pnpm test:e2e:business
+        env:
+          PLAYWRIGHT_SERVER_MODE: production
+          ACCOUNTS_MOBILE: "true"
+      - run: pnpm test:e2e:onboarding
+        env:
+          PLAYWRIGHT_SERVER_MODE: production
+      - run: pnpm test:e2e:onboarding
+        env:
+          PLAYWRIGHT_SERVER_MODE: production
+          ONBOARDING_LOCALE: en
           ACCOUNTS_MOBILE: "true"
   container:
     runs-on: ubuntu-latest

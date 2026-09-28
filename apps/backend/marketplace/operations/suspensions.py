@@ -47,13 +47,21 @@ def propose(*, actor, reason, business_id=None, user_id=None, evidence=()):
     target = get_object_or_404(
         (Business if business_id else User).objects.select_for_update(), pk=business_id or user_id
     )
-    files = list(
-        StoredFile.objects.filter(
-            pk__in=evidence,
-            owner=actor,
-            scan_status="clean",
-            deleted_at__isnull=True,
-            purpose__in=["support", "discrepancy"],
+    evidence_business = (
+        target if business_id else getattr(getattr(target, "membership", None), "business", None)
+    )
+    files = (
+        []
+        if evidence_business is None
+        else list(
+            StoredFile.objects.filter(
+                pk__in=evidence,
+                owner=actor,
+                scan_status="clean",
+                deleted_at__isnull=True,
+                purpose__in=["support", "discrepancy", "suspension"],
+                business_id=evidence_business.pk,
+            )
         )
     )
     if len(files) != len(set(evidence)) or len(files) > 10:

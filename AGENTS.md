@@ -46,6 +46,36 @@ Light is the application default even on a dark operating system. Dark is an exp
 persisted user choice. Use the existing SSR-validated theme cookie and shadcn semantic
 tokens; do not add a second theme provider, persistence key, or per-component palette.
 
+## Design and visual review skills
+
+Use the project-local entrypoints in `apps/frontend/.agents/skills`; existing
+architecture, shadcn, UI kit, testing, and vendor skills remain in force.
+
+- `ecommerce-ux/SKILL.md`: before designing or reviewing catalog discovery,
+  product selection, wholesale pricing, cart/order journeys, or manufacturer
+  publication flows. Read the applicable PRD/requirement/API contract; the skill
+  does not authorize implementing a later PRD or changing access rules.
+- `frontend-design/SKILL.md`: when creating or reshaping page/component visual
+  hierarchy and composition. This is the official Anthropic skill. Read
+  `design-system/SKILL.md` first and treat project design rules as its brief;
+  preserve shadcn, semantic tokens, Inter/Vazirmatn, localization, and theme policy
+  over upstream suggestions for new palettes, fonts, CSS, or dependencies.
+  Prefer this project-local copy over similarly named global/community skills.
+- `design-system/SKILL.md`: before any UI work, shared primitive, token, typography,
+  theme, or RTL/LTR decision. It routes to the existing `shadcn`,
+  `design-system-architecture`, and `ui-kit-architecture` skills; it is not a
+  replacement or a second design specification.
+- `visual-qa/SKILL.md`: after visible UI changes or for an explicit rendered visual
+  audit. Verify the relevant locale, viewport, theme, state, and keyboard matrix
+  with inspected browser screenshots and existing Playwright tooling. Keep static
+  guideline audits in `web-design-guidelines` and test ownership in
+  `testing-architecture`; report unavailable runtime checks as unverified.
+
+Read only the skills applicable to the task. Documentation-only skill maintenance
+does not require running the application or changing application source.
+Inventory, upstream provenance, and selection reasons are recorded in
+[`docs/frontend/design-skills.md`](docs/frontend/design-skills.md).
+
 ## Frontend rules
 
 - Reuse installed shadcn components; add only components needed by the current task.

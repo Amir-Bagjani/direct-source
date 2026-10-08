@@ -19,6 +19,9 @@ export async function SiteHeader({ initialTheme }: { initialTheme: Theme }) {
         {meta("title")}
       </Link>
       <nav className="flex flex-wrap items-center gap-4" aria-label={t("primary")}>
+        <Link href="/catalog" className="inline-flex min-h-11 items-center">
+          {t("catalog")}
+        </Link>
         <Link href="/account" className="inline-flex min-h-11 items-center">
           {t("account")}
         </Link>

@@ -6,7 +6,12 @@ import { authConfig } from "./auth/config";
 // Server callers provide fixed API paths; never accept a browser-supplied destination.
 export async function djangoResponse(
   path: `/api/v1/${string}`,
-  options: { method: "GET" | "POST" | "PUT"; access?: string; body?: unknown; form?: FormData },
+  options: {
+    method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+    access?: string;
+    body?: unknown;
+    form?: FormData;
+  },
 ) {
   return fetch(`${authConfig().backend}${path}`, {
     method: options.method,

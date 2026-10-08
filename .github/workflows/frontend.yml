@@ -91,6 +91,9 @@ jobs:
           PLAYWRIGHT_SERVER_MODE: production
           ONBOARDING_LOCALE: en
           ACCOUNTS_MOBILE: "true"
+      - run: pnpm test:e2e:catalog
+        env:
+          PLAYWRIGHT_SERVER_MODE: production
   container:
     runs-on: ubuntu-latest
     defaults:

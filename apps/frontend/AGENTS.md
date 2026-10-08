@@ -32,6 +32,25 @@ Before any UI work, read `.agents/skills/shadcn/SKILL.md`,
 `.agents/skills/ui-kit-architecture/SKILL.md`, `components.json`, and
 `../../docs/frontend/shadcn.md`.
 
+## Design and visual review skills
+
+Follow the root [skill activation rules](../../AGENTS.md#design-and-visual-review-skills).
+Project-local entrypoints are:
+
+- `.agents/skills/ecommerce-ux/SKILL.md` for wholesale discovery, selection, pricing,
+  cart/order, and manufacturer journey decisions.
+- `.agents/skills/frontend-design/SKILL.md` for page/component visual hierarchy and
+  composition; use the official local Anthropic copy with the project design brief.
+- `.agents/skills/design-system/SKILL.md` before UI, theme, token, typography,
+  primitive, or direction work; it routes to the existing design architecture and
+  shadcn skills. Read it before `frontend-design` and keep all existing UI constraints.
+- `.agents/skills/visual-qa/SKILL.md` after visible changes or when requested to
+  audit rendered UI; use existing Playwright and inspect screenshot evidence.
+
+These skills complement existing skills. PRDs own behavior and access, shadcn owns
+appearance, and testing architecture owns regression coverage. Documentation-only
+skill maintenance does not require application code changes or browser checks.
+
 ## UI source of truth: shadcn/ui
 
 - shadcn/ui is the sole design system and UI kit. Use the official `@shadcn` registry,

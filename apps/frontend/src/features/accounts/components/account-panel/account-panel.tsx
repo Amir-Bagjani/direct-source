@@ -148,6 +148,9 @@ export function AccountPanel() {
       <Button onClick={() => void leave()} disabled={mutation.isPending}>
         {t(blocked && mutation.isError ? "retryLogout" : "logout")}
       </Button>
+      <Button variant="outline" render={<Link href="/account/catalog" />}>
+        {t("catalogWorkspace")}
+      </Button>
       <Link href="/">{common("backHome")}</Link>
     </div>
   );

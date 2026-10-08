@@ -3,6 +3,7 @@
   "sortPackageJson": false,
   "ignorePatterns": [
     ".next/**",
+    ".next-e2e-*/**",
     "node_modules/**",
     "src/shared/api/openapi.ts",
     "next-env.d.ts",

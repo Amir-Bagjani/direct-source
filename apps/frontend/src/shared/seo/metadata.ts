@@ -7,6 +7,7 @@ interface BuildMetadataOptions {
   title: string;
   description: string;
   indexable?: boolean;
+  images?: string[];
 }
 
 export const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(
@@ -38,6 +39,7 @@ export function buildMetadata({
   title,
   description,
   indexable = true,
+  images,
 }: BuildMetadataOptions): Metadata {
   const url = canonicalUrl(`/${locale}${path === "/" ? "" : path}`);
   return {
@@ -52,7 +54,13 @@ export function buildMetadata({
       url,
       locale: locale === "fa" ? "fa_IR" : "en_US",
       alternateLocale: locale === "fa" ? "en_US" : "fa_IR",
+      ...(images?.length ? { images } : {}),
     },
-    twitter: { card: "summary", title, description },
+    twitter: {
+      card: images?.length ? "summary_large_image" : "summary",
+      title,
+      description,
+      images,
+    },
   };
 }

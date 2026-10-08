@@ -278,3 +278,24 @@ still clear private queries and require a new authorization epoch before showing
 ### PRD-01 trust and restricted continuity
 
 Account trust reads use `trustOptions` and the existing `accountKeys.trust` factory beneath the account onboarding prefix. Revision, directory, safety work, immutable order snapshots and existing support tickets remain private CSR queries; no RSC hydration or persistent cache is used. All mutations reuse `useOnboardingMutation` with void variables, no retry, immediate private-data collection and targeted invalidation. Commands and support replies retain the same idempotency key for an explicitly repeated identical attempt. Account page lifecycle hides and clears all these queries before history restoration or identity changes. Support attachment routing reuses the bounded multipart onboarding BFF and the existing purpose-specific Django authorization.
+
+### PRD-02 public catalogue boundary — 2026-09-28
+
+`catalogKeys.public()` owns anonymous list, product and manufacturer keys. Neutral option factories
+receive either the server adapter or same-origin browser BFF adapter, so RSC prefetch and
+`useSuspenseQuery` share the exact key and result schema without crossing environment imports.
+Each server boundary creates its own QueryClient and dehydrates only the successful public queries.
+
+The anonymous Zod contract is strict and rejects wholesale plan or representative-price fields.
+All URL inputs are normalized before joining the key or the fixed upstream path; anonymous filters
+cannot request price sorting/filtering. Public queries use `no-store` because the backend publication
+contract is currently `no-store`; publication-triggered cache tags are therefore not claimed.
+Retailer prices use `catalogKeys.wholesale()` beneath a Business-scoped key after a live private
+access query. The accounts feature exposes a narrow server-only catalogue session contract: it
+keeps JWT access inside a callback, verifies the current retailer Business on every priced BFF read,
+and leaves Django as the final authorization authority. Both access and price responses are
+`private, no-store`; their zero-GC client queries are never prefetched or dehydrated. The public
+adapter strips price URL controls before its request, while the wholesale adapter converts the
+shareable toman range to IRR only at the backend boundary. Logout clears the whole browser
+QueryClient, and the price E2E verifies that a later public visit cannot reuse the prior identity's
+amounts.

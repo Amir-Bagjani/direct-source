@@ -16,12 +16,20 @@ src/
   features/accounts/
     api/                browser BFF adapters (registration, session, recovery, business)
     client/             session-events: browser lifecycle communication, not a pure utility
+    contracts/          reviewed server-only integration for authenticated catalogue reads
     components/         component directories with exclusive props and tests
     hooks/              registration, recovery, session and business mutation hooks
     queries/            accounts.keys and session/business query options
     schemas/            login, registration, recovery and business runtime contracts
     server/             BFF handlers, guard, NextAuth integration and session orchestration
     utils/              pure accounts-specific digit/mobile normalization
+  features/catalog/
+    api/                browser adapters for fixed public catalogue BFF routes
+    components/         catalogue, product and public manufacturer presentation
+    queries/            catalog.keys and neutral public query option factories
+    schemas/            distinct strict anonymous and authenticated price response contracts
+    server/             fixed public and authorized private BFF orchestration
+    utils/              deterministic URL normalization and exact IRR/toman presentation
   shared/
     api/                bffRequest, unwrap, ApiError, generated OpenAPI
     query/              QueryClient factory, provider, hydration/error infrastructure
@@ -32,8 +40,8 @@ src/
   i18n/                 locale routing/navigation/messages
 ```
 
-There is currently one business feature, accounts. Do not scaffold catalog/profile or
-empty folders. `src/shared/hooks/` is the canonical location when a genuinely neutral
+The implemented business features are accounts and catalog. Do not scaffold future features
+or empty folders. `src/shared/hooks/` is the canonical location when a genuinely neutral
 hook gains a second independent consumer; `src/shared/utils/` is the equivalent for pure
 utilities without another existing category. Neither is needed yet. Do not add parallel
 `src/hooks`, `src/utils`, `src/lib`, or `src/components/shared` trees. Existing category
@@ -67,7 +75,8 @@ browser-neutral modules cannot import server. Avoid cycles, including type-only 
 Routes may directly import the needed canonical component or server handler. No barrel
 files or re-exports. Cross-feature imports must target a small intentional `contracts/`
 module, not another feature's components, hooks, schemas or server internals. Prefer app
-composition before introducing a cross-feature contract. No such contract exists today.
+composition before introducing a cross-feature contract. The accounts catalogue-session contract
+is the current reviewed example: it owns session-vault access and never returns a bearer token.
 
 Use `import "server-only"` in secret-bearing modules. Use `"use client"` at actual browser
 boundaries, not `"use server"` as a folder label. No credentials in RSC props, query keys,

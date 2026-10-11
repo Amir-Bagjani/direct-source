@@ -3,8 +3,10 @@
 ## Scope and reference
 
 This is the implementation guide linked by root `AGENTS.md`. The foundation rules
-still apply. PRD-01 now has a public registration mutation and a fixed
-registration BFF route and authoritative session/logout handlers; other protected business reads remain pending.
+still apply. PRD-01 includes registration, authoritative session/logout, business
+onboarding and scoped trust operations. PRD-02 public Catalog uses RSC hydration;
+identity-scoped wholesale queries remain private and client-authorized. Historical
+initial-audit findings below describe the foundation before those feature slices.
 Do not add demo endpoints or scaffold unused feature layers just to demonstrate queries.
 
 Reference: [KevinVandy/react-data-fetching](https://github.com/KevinVandy/react-data-fetching),
@@ -299,3 +301,13 @@ adapter strips price URL controls before its request, while the wholesale adapte
 shareable toman range to IRR only at the backend boundary. Logout clears the whole browser
 QueryClient, and the price E2E verifies that a later public visit cannot reuse the prior identity's
 amounts.
+
+
+### Account form retention exception — 2026-10-09
+
+Guided Account retains validated business/sections/role view snapshots solely to keep
+masked same-identity form hosts mounted when lifecycle handling clears private Query
+cache. This solves draft and scroll loss without retaining usable authorization. Live
+query state and ProtectedSessionBoundary gate interaction; snapshots never enable a
+request, populate cache, cross identities, or persist to browser storage. Terminal
+session invalidation removes the host and its local memory. See `web-sessions.md`.

@@ -48,3 +48,15 @@ export function listenForSessionChange(invalidate: () => void) {
     window.removeEventListener("storage", storage);
   };
 }
+
+// Same-document logout masks protected forms before the server revocation starts.
+export function notifySessionClosing(failed = false) {
+  window.dispatchEvent(new CustomEvent("directsourcing-session-closing", { detail: failed }));
+}
+export function listenForSessionClosing(listener: (failed: boolean) => void) {
+  const receive = (event: Event) => {
+    if (event instanceof CustomEvent && typeof event.detail === "boolean") listener(event.detail);
+  };
+  window.addEventListener("directsourcing-session-closing", receive);
+  return () => window.removeEventListener("directsourcing-session-closing", receive);
+}

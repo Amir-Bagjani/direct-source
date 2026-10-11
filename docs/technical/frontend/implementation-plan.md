@@ -310,3 +310,24 @@ lint/architecture، format و build تولیدی موفق. جریان کامل �
 PRD-01 از نظر پیاده‌سازی محصول بسته است. گام محصول بعدی PRD-02 است. remote CI، مرورگرهای
 بومی Safari/Firefox، BFCache بومی و S3 مقصد همچنان شواهد انتشارند و در گزارش نشست/زیرساخت
 پیگیری می‌شوند.
+
+
+## Guided Account / Verification / Header — 2026-10-12
+
+Direction A و Route Map تأییدشده با layout اختصاصی Account، Overview کوتاه، Profile/Security،
+Business، Wizard پایدار، Documents/Revisions/Access و مسیرهای مستقل بررسی اپراتور/Trust
+پیاده شدند. Header با جست‌وجوی واقعی، منوی حساب وابسته به نقش و Sheet موبایل به‌روز شد.
+PRD-01 تغییر قرارداد/مجوز ندارد؛ اصلاح Boundary، cache gates و draft retention در
+`web-sessions.md` و `data-fetching.md` مستندند. تغییرات قبلی Catalog حفظ شدند.
+
+رگرسیون طبیعی polling با فرم واقعی، شبکه/Retry، pagehide، Back/Forward و منع Queue نامجاز،
+۱۸۲ تست Unit/Component، Oxlint و architecture checks، TypeScript بدون deprecation و build
+standalone موفق‌اند. تست‌های واقعی نشست چندتب/دو پردازش، بازیابی، Business و Catalog اجرا
+شدند. شواهد QA و وضعیت گیت‌ها در `handoff/account-redesign-2026-10-09/REPORT.md` ثبت شده‌اند؛
+تاریخ پوشه آغاز کار است، نه تاریخ آخرین تصویر. هیچ deploy یا تغییر دیتابیس اصلی انجام نشد.
+
+Accounts/PRD-01 در محدوده فعلی عملیاتی است. بخش‌های Discovery و مسیرهای Catalog Workspace/
+Operations موجودند، اما این Redesign به‌معنای تکمیل کل PRD-02 یا UI PRDهای بعدی نیست؛
+Cart/Checkout/Order/Finance/Logistics/Reviews جدید، Dashboard آماری، Wishlist/Compare و
+Notification در این تسک ایجاد نشدند. گیت‌های انتشار remote CI، مرورگرهای بومی و S3 مقصد
+همچنان مستقل از QA محلی هستند.

@@ -1,3 +1,4 @@
+import { signOut } from "./helpers/account-navigation";
 import { randomBytes, randomInt, randomUUID } from "node:crypto";
 import { Pool } from "pg";
 import { test, expect, type Page } from "@playwright/test";
@@ -41,13 +42,26 @@ test(`${locale}: draft/logo, real scanned documents, correction, rejection, reop
   const reviewer = await browser.newContext({ baseURL: "http://localhost:3100" });
   const outsider = await browser.newContext({ baseURL: "http://localhost:3100" });
   async function login(target: Page, mobile: string) {
+    await target.bringToFront();
     await target.goto(`/${locale}/login`);
     await target.getByLabel(copy.accounts.register.fields.mobile, { exact: true }).fill(mobile);
     await target.getByLabel(copy.accounts.register.fields.password, { exact: true }).fill(password);
     await target.getByRole("button", { name: copy.accounts.login.submit, exact: true }).click();
     await expect(target).toHaveURL(new RegExp(`/${locale}/account$`));
   }
+  async function capture(target: Page, state: string) {
+    if (!process.env.ACCOUNT_VISUAL_QA_DIR) return;
+    await target.bringToFront();
+    await expect(target.locator("main h1")).toBeVisible();
+    await target.waitForLoadState("networkidle");
+    await target.evaluate(() => document.fonts.ready);
+    await target.screenshot({
+      path: `${process.env.ACCOUNT_VISUAL_QA_DIR}/onboarding-${state}-${locale}.png`,
+      fullPage: true,
+    });
+  }
   async function upload(target: Page, label: string, number = 1) {
+    await target.bringToFront();
     const input = target.getByLabel(label, { exact: true });
     const field = target.getByText(label, { exact: true }).locator("..");
     await input.setInputFiles({ name: "evidence.png", mimeType: "image/png", buffer: png });
@@ -79,7 +93,10 @@ test(`${locale}: draft/logo, real scanned documents, correction, rejection, reop
         await context.request.post("/api/bff/accounts/business", { headers: origin, data: profile })
       ).status(),
     ).toBe(201);
-    await page.reload();
+    await page
+      .getByRole("link", { name: copy.accounts.workspace.business, exact: true })
+      .first()
+      .click();
     await page.getByRole("button", { name: t.editProfile, exact: true }).click();
     await page
       .getByLabel(copy.accounts.business.fields.name, { exact: true })
@@ -93,26 +110,34 @@ test(`${locale}: draft/logo, real scanned documents, correction, rejection, reop
     expect((await context.request.post(endpoint("submit"), { headers: origin })).status()).toBe(
       400,
     );
+    await page
+      .getByRole("link", { name: copy.accounts.workspace.verification, exact: true })
+      .first()
+      .click();
     await page.getByLabel(t.nationalId, { exact: true }).fill("۰۱۲۳۴۵۶۷۸۹");
     await page.getByLabel(t.birthDate, { exact: true }).fill("1370/01/01");
     await upload(page, t.cardFront);
     await upload(page, t.cardBack);
     await upload(page, t.selfie);
+    await capture(page, "identity-ready");
     const identity = page.getByRole("group", { name: t.identity, exact: true });
-    await identity.getByRole("button", { name: t.saveSection, exact: true }).click();
-    await expect(identity.getByText(t.saved, { exact: true })).toBeVisible();
+    await identity
+      .getByRole("button", { name: copy.accounts.workspace.saveContinue, exact: true })
+      .click();
+    await expect(page.getByLabel(t.evidenceType, { exact: true })).toBeVisible();
     await page.getByLabel(t.evidenceType, { exact: true }).selectOption("alternative");
     await upload(page, t.activityFiles);
     await upload(page, t.activityFiles, 2);
+    await capture(page, "activity-ready");
     const activity = page.getByRole("group", { name: t.activity, exact: true });
-    await activity.getByRole("button", { name: t.saveSection, exact: true }).click();
-    await expect(activity.getByText(t.saved, { exact: true })).toBeVisible();
+    await activity
+      .getByRole("button", { name: copy.accounts.workspace.saveContinue, exact: true })
+      .click();
+    await expect(page.getByRole("button", { name: t.submit, exact: true })).toBeVisible();
+    await capture(page, "review-ready");
     await page.getByRole("button", { name: t.submit, exact: true }).click();
     await expect(
-      page.getByText(
-        copy.accounts.business.status + ": " + copy.accounts.business.statuses.pending,
-        { exact: true },
-      ),
+      page.getByText(copy.accounts.business.statuses.pending, { exact: true }),
     ).toBeVisible();
     expect(
       (
@@ -122,6 +147,7 @@ test(`${locale}: draft/logo, real scanned documents, correction, rejection, reop
         })
       ).status(),
     ).toBe(409);
+    await capture(page, "pending");
     const sections = await (await context.request.get(endpoint("sections"))).json();
     const file = sections.find((s: { kind: string }) => s.kind === "identity").data.card_front;
     const content = `/api/bff/accounts/onboarding/content?id=${file}`;
@@ -139,11 +165,57 @@ test(`${locale}: draft/logo, real scanned documents, correction, rejection, reop
     const reviewPage = await reviewer.newPage();
     await login(reviewPage, numbers[1]!);
     expect((await reviewer.request.get(endpoint("sections"))).status()).toBe(404);
+    await reviewPage
+      .getByRole("button", { name: copy.accounts.workspace.accountMenu, exact: true })
+      .click();
+    await reviewPage
+      .getByRole("menuitem", { name: copy.accounts.workspace.operations, exact: true })
+      .click();
     await reviewPage.getByRole("button", { name: t.selectClaim, exact: true }).click();
     await reviewPage.getByRole("button", { name: t.claim, exact: true }).click();
     await expect(reviewPage.getByRole("heading", { name: "Edited workshop" })).toBeVisible();
+    if (process.env.ACCOUNT_VISUAL_QA_DIR) {
+      await reviewPage.evaluate(() => document.fonts.ready);
+      await reviewPage.screenshot({
+        path: `${process.env.ACCOUNT_VISUAL_QA_DIR}/operator-case-${locale}.png`,
+        animations: "disabled",
+        fullPage: true,
+      });
+      const originalViewport = reviewPage.viewportSize()!;
+      for (const theme of ["light", "dark"])
+        for (const [viewport, width, height] of [
+          ["desktop", 1440, 1000],
+          ["mobile", 390, 844],
+        ] as const) {
+          await reviewPage
+            .context()
+            .addCookies([
+              { name: "directsourcing-theme-v1", value: theme, url: "http://localhost:3100" },
+            ]);
+          await reviewPage.setViewportSize({ width, height });
+          await reviewPage.reload();
+          await expect(reviewPage.getByRole("heading", { name: "Edited workshop" })).toBeVisible();
+          await reviewPage.waitForLoadState("networkidle");
+          await reviewPage.evaluate(() => document.fonts.ready);
+          expect(
+            await reviewPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+          ).toBe(true);
+          await reviewPage.screenshot({
+            path: `${process.env.ACCOUNT_VISUAL_QA_DIR}/operator-case-${locale}-${theme}-${viewport}.png`,
+            animations: "disabled",
+          });
+        }
+      await reviewPage
+        .context()
+        .addCookies([
+          { name: "directsourcing-theme-v1", value: "light", url: "http://localhost:3100" },
+        ]);
+      await reviewPage.setViewportSize(originalViewport);
+      await reviewPage.reload();
+    }
     expect((await reviewer.request.get(content)).status()).toBe(200);
     async function decision(kind: string, value: string) {
+      await reviewPage.bringToFront();
       await reviewPage.getByLabel(t.section, { exact: true }).selectOption(kind);
       await reviewPage.getByLabel(t.decision, { exact: true }).selectOption(value);
       await reviewPage.getByLabel(t.reason, { exact: true }).fill("Review evidence reason");
@@ -152,40 +224,49 @@ test(`${locale}: draft/logo, real scanned documents, correction, rejection, reop
     }
     await decision("identity", "approved");
     await decision("activity", "changes_requested");
-    await page.reload();
+    await page.goto(`/${locale}/account/business/verification?step=identity`);
     await expect(page.getByLabel(t.nationalId, { exact: true })).toBeDisabled();
+    await capture(page, "approved-identity-correction");
+    await page
+      .getByRole("button", { name: copy.accounts.workspace.activityStep, exact: true })
+      .click();
     await page
       .getByRole("group", { name: t.activity, exact: true })
-      .getByRole("button", { name: t.saveSection, exact: true })
+      .getByRole("button", { name: copy.accounts.workspace.saveContinue, exact: true })
       .click();
-    await expect(page.getByText(t.saved, { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: t.submit, exact: true })).toBeVisible();
     await page.getByRole("button", { name: t.submit, exact: true }).click();
     // Refresh the review case after the owner's explicit resubmission.
-    await reviewPage.reload();
-    await reviewPage.getByRole("button", { name: t.openCase, exact: true }).click();
+    await reviewPage.goto(`/${locale}/account/operations/businesses`);
+    await reviewPage.getByRole("link", { name: t.openCase, exact: true }).click();
     await decision("activity", "rejected");
+    await page.bringToFront();
     await page.reload();
     await expect(page.getByRole("button", { name: t.submit, exact: true })).toHaveCount(0);
+    await capture(page, "rejected");
     await reviewPage.getByLabel(t.reason, { exact: true }).fill("New evidence may be supplied");
     await reviewPage.getByRole("button", { name: t.reopen, exact: true }).click();
     await expect(reviewPage.getByLabel(t.section, { exact: true })).toBeVisible();
+    await page.bringToFront();
     await page.reload();
     await page
-      .getByRole("group", { name: t.activity, exact: true })
-      .getByRole("button", { name: t.saveSection, exact: true })
+      .getByRole("button", { name: copy.accounts.workspace.activityStep, exact: true })
       .click();
-    await expect(page.getByText(t.saved, { exact: true })).toBeVisible();
+    await page
+      .getByRole("group", { name: t.activity, exact: true })
+      .getByRole("button", { name: copy.accounts.workspace.saveContinue, exact: true })
+      .click();
+    await expect(page.getByRole("button", { name: t.submit, exact: true })).toBeVisible();
     await page.getByRole("button", { name: t.submit, exact: true }).click();
-    await reviewPage.reload();
-    await reviewPage.getByRole("button", { name: t.openCase, exact: true }).click();
+    await reviewPage.goto(`/${locale}/account/operations/businesses`);
+    await reviewPage.getByRole("link", { name: t.openCase, exact: true }).click();
     await decision("activity", "approved");
+    await page.bringToFront();
     await page.reload();
     await expect(
-      page.getByText(
-        copy.accounts.business.status + ": " + copy.accounts.business.statuses.verified,
-        { exact: true },
-      ),
+      page.getByText(copy.accounts.business.statuses.verified, { exact: true }),
     ).toBeVisible();
+    await capture(page, "verified");
     const final = await (await context.request.get("/api/bff/accounts/business")).json();
     expect(final.controlled_access).toBe(false);
     expect(final.first_verified_at).toBeTruthy();
@@ -196,6 +277,7 @@ test(`${locale}: draft/logo, real scanned documents, correction, rejection, reop
     const trustUrl = (action: string, id = business.id) =>
       `/api/bff/accounts/trust/${action}?id=${id}`;
     // A verified profile stays published until the assigned reviewer approves the revision.
+    await page.goto(`/${locale}/account/business/revisions`);
     await page.getByRole("button", { name: trust.editRevision, exact: true }).click();
     await page.getByRole("checkbox", { name: trust.profile, exact: true }).check();
     await page
@@ -214,7 +296,7 @@ test(`${locale}: draft/logo, real scanned documents, correction, rejection, reop
     const revisions = await (await context.request.get(trustUrl("revisions"))).json();
     const revision = revisions.results[0];
     expect((await outsider.request.get(trustUrl("revision", revision.id))).status()).toBe(404);
-    await reviewPage.reload();
+    await reviewPage.goto(`/${locale}/account/operations/trust`);
     await reviewPage.getByRole("button", { name: trust.selectClaim, exact: true }).click();
     await reviewPage.getByRole("button", { name: trust.claim, exact: true }).click();
     await reviewPage.getByLabel(trust.section, { exact: true }).selectOption("activity");
@@ -223,6 +305,7 @@ test(`${locale}: draft/logo, real scanned documents, correction, rejection, reop
     await expect(reviewPage.getByRole("button", { name: trust.review, exact: true })).toHaveCount(
       0,
     );
+    await page.bringToFront();
     await page.reload();
     const revised = await (await context.request.get("/api/bff/accounts/business")).json();
     expect(revised.name).toBe("Revised workshop");
@@ -241,22 +324,25 @@ test(`${locale}: draft/logo, real scanned documents, correction, rejection, reop
       "INSERT INTO accounts_platformrole (id,created_at,updated_at,user_id,role,is_active) SELECT $1,now(),now(),id,'owner',true FROM accounts_user WHERE mobile=$2",
       [randomUUID(), `+98${numbers[2]!.slice(1)}`],
     );
-    await otherPage.reload();
+    await otherPage.goto(`/${locale}/account/operations/trust`);
+    const controls = otherPage
+      .getByRole("heading", { name: trust.accountControls, exact: true })
+      .locator("..");
     const directory = await (await outsider.request.get(trustUrl("directory"))).json();
     const member = directory.results.find(
       (row: { business: { id: string } | null }) => row.business?.id === business.id,
     );
-    await otherPage.getByLabel(trust.account, { exact: true }).selectOption(member.id);
-    await otherPage.getByLabel(trust.reason, { exact: true }).fill("Controlled trial granted");
-    await otherPage.getByRole("button", { name: trust.execute, exact: true }).click();
+    await controls.getByLabel(trust.account, { exact: true }).selectOption(member.id);
+    await controls.getByLabel(trust.reason, { exact: true }).fill("Controlled trial granted");
+    await controls.getByRole("button", { name: trust.execute, exact: true }).click();
     await expect(otherPage.getByText(trust.controlledOn, { exact: true })).toBeVisible();
-    await otherPage.getByLabel(trust.command, { exact: true }).selectOption("revoke");
-    await otherPage.getByLabel(trust.reason, { exact: true }).fill("Controlled trial ended");
+    await controls.getByLabel(trust.command, { exact: true }).selectOption("revoke");
+    await controls.getByLabel(trust.reason, { exact: true }).fill("Controlled trial ended");
     const revokeResponse = otherPage.waitForResponse(
       (response) =>
         response.request().method() === "POST" && response.url().includes("/trust/controlled"),
     );
-    await otherPage.getByRole("button", { name: trust.execute, exact: true }).click();
+    await controls.getByRole("button", { name: trust.execute, exact: true }).click();
     const revoked = await revokeResponse;
     expect(revoked.status(), await revoked.text()).toBe(200);
     await expect(otherPage.getByText(trust.controlledOff, { exact: true })).toBeVisible();
@@ -265,22 +351,45 @@ test(`${locale}: draft/logo, real scanned documents, correction, rejection, reop
       "INSERT INTO support_ticket (id,created_at,updated_at,number,business_id,creator_id,title,category,status,related_type,command_key,request_hash) VALUES ($1,now(),now(),$2,$3,$4,'Existing safety ticket','account','new','',$5,$6)",
       [ticketId, `E2E-${ticketId}`, business.id, member.id, randomUUID(), "0".repeat(64)],
     );
-    await otherPage.getByLabel(trust.command, { exact: true }).selectOption("suspendBusiness");
-    await otherPage.getByLabel(trust.reason, { exact: true }).fill("Business safety review");
-    await otherPage.getByRole("button", { name: trust.execute, exact: true }).click();
+    await controls.getByLabel(trust.command, { exact: true }).selectOption("suspendBusiness");
+    await controls
+      .getByLabel(trust.reason, { exact: true })
+      .fill(`Business safety review ${business.id}`);
+    await expect(controls.getByLabel(trust.command, { exact: true })).toHaveValue(
+      "suspendBusiness",
+    );
+    expect(
+      await otherPage.locator("form").evaluateAll((forms) =>
+        forms.flatMap((form) =>
+          Array.from(form.querySelectorAll<HTMLInputElement>("input,textarea,select"))
+            .filter((field) => !field.checkValidity())
+            .map((field) => ({
+              id: field.id,
+              type: field.type,
+              validation: field.validationMessage,
+            })),
+        ),
+      ),
+    ).toEqual([]);
+    await controls.getByRole("button", { name: trust.execute, exact: true }).click();
     const safety = otherPage
       .getByRole("heading", { name: trust.suspension, exact: true })
       .locator("..");
-    await safety.getByRole("button", { name: trust.open, exact: true }).click();
+    await safety
+      .getByText(`Business safety review ${business.id}`, { exact: true })
+      .locator("..")
+      .getByRole("button", { name: trust.open, exact: true })
+      .click();
     await safety.getByLabel(trust.reason, { exact: true }).fill("Business suspension approved");
     await safety.getByRole("button", { name: trust.execute, exact: true }).click();
     await expect(safety.getByLabel(trust.command, { exact: true })).toHaveValue(
       "suspension_restore",
     );
-    await page.reload();
+    await page.goto(`/${locale}/account/access`);
     await expect(page.getByText(trust.restricted, { exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: trust.orders, exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: trust.tickets, exact: true })).toBeVisible();
+    await capture(page, "suspended-access");
     expect((await context.request.get("/api/bff/auth/session")).status()).toBe(200);
     const ticketSection = page
       .getByRole("heading", { name: trust.tickets, exact: true })
@@ -305,14 +414,17 @@ test(`${locale}: draft/logo, real scanned documents, correction, rejection, reop
       ).status(),
     ).toBe(403);
 
+    await otherPage.bringToFront();
     await safety.getByLabel(trust.reason, { exact: true }).fill("Business restriction resolved");
     await safety.getByRole("button", { name: trust.execute, exact: true }).click();
-    await expect(safety.getByRole("button", { name: trust.execute, exact: true })).toHaveCount(0);
+    await expect(safety.getByLabel(trust.command, { exact: true })).toHaveCount(0);
+    await page.bringToFront();
     await page.reload();
     await expect(page.getByText(trust.restricted, { exact: true })).toHaveCount(0);
-    await otherPage.getByLabel(trust.command, { exact: true }).selectOption("suspendUser");
-    await otherPage.getByLabel(trust.reason, { exact: true }).fill("User safety review");
-    await otherPage.getByRole("button", { name: trust.execute, exact: true }).click();
+    await otherPage.bringToFront();
+    await controls.getByLabel(trust.command, { exact: true }).selectOption("suspendUser");
+    await controls.getByLabel(trust.reason, { exact: true }).fill("User safety review");
+    await controls.getByRole("button", { name: trust.execute, exact: true }).click();
     await safety
       .getByText("User safety review", { exact: true })
       .locator("..")
@@ -323,6 +435,7 @@ test(`${locale}: draft/logo, real scanned documents, correction, rejection, reop
     await expect(safety.getByLabel(trust.command, { exact: true })).toHaveValue(
       "suspension_restore",
     );
+    await page.bringToFront();
     await page.reload();
     await expect(page).toHaveURL(new RegExp(`/${locale}/login`));
     expect((await context.request.get("/api/bff/accounts/business")).status()).toBe(401);
@@ -330,22 +443,23 @@ test(`${locale}: draft/logo, real scanned documents, correction, rejection, reop
       business.id,
     ]);
     expect(stillVerified.rows[0].status).toBe("verified");
+    await otherPage.bringToFront();
     await safety.getByLabel(trust.reason, { exact: true }).fill("User access restored");
     await safety.getByRole("button", { name: trust.execute, exact: true }).click();
-    await expect(safety.getByRole("button", { name: trust.execute, exact: true })).toHaveCount(0);
+    await expect(safety.getByLabel(trust.command, { exact: true })).toHaveCount(0);
     await login(page, numbers[0]!);
 
     const operatorAccount = directory.results.find(
       (row: { mobile: string }) => row.mobile === `+98${numbers[1]!.slice(1)}`,
     );
-    await otherPage.getByLabel(trust.account, { exact: true }).selectOption(operatorAccount.id);
-    await otherPage.getByLabel(trust.command, { exact: true }).selectOption("revokeOperator");
-    await otherPage.getByLabel(trust.reason, { exact: true }).fill("Operator assignment ended");
-    await otherPage.getByRole("button", { name: trust.execute, exact: true }).click();
+    await controls.getByLabel(trust.account, { exact: true }).selectOption(operatorAccount.id);
+    await controls.getByLabel(trust.command, { exact: true }).selectOption("revokeOperator");
+    await controls.getByLabel(trust.reason, { exact: true }).fill("Operator assignment ended");
+    await controls.getByRole("button", { name: trust.execute, exact: true }).click();
     await expect(otherPage.getByText(trust.operatorOff, { exact: true })).toBeVisible();
     expect((await reviewer.request.get(content)).status()).toBe(404);
     expect((await reviewer.request.get("/api/bff/accounts/onboarding/queue")).status()).toBe(403);
-    await page.getByRole("button", { name: copy.accounts.account.logout, exact: true }).click();
+    await signOut(page, copy);
     await expect(page).toHaveURL(new RegExp(`/${locale}$`));
     expect((await context.request.get(content)).status()).toBe(401);
   } finally {

@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { CatalogLoading } from "@/features/catalog/components/catalog-loading/catalog-loading";
 import { getTranslations } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
@@ -32,12 +34,14 @@ export default async function CatalogPage({ params, searchParams }: CatalogPageP
   const t = await getTranslations({ locale, namespace: "catalog" });
   const filters = parseCatalogSearchParams(await searchParams);
   return (
-    <main id="main" className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 sm:py-14">
+    <main id="main" className="mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:gap-6 sm:px-6 sm:py-10">
       <div className="grid gap-2">
-        <h1 className="text-3xl font-semibold ltr:tracking-tight sm:text-4xl">{t("title")}</h1>
+        <h1 className="text-2xl font-semibold ltr:tracking-tight sm:text-3xl">{t("title")}</h1>
         <p className="max-w-3xl text-muted-foreground">{t("description")}</p>
       </div>
-      <CatalogSection filters={filters} />
+      <Suspense key={JSON.stringify(filters)} fallback={<CatalogLoading />}>
+        <CatalogSection filters={filters} />
+      </Suspense>
     </main>
   );
 }

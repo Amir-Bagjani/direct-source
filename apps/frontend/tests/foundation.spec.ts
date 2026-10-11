@@ -1,6 +1,13 @@
 import { inputClassName } from "../src/shared/ui/input/input";
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
+async function openPreferences(page: Page, locale: string) {
+  if (page.viewportSize()!.width < 1024 && !(await page.getByRole("dialog").isVisible()))
+    await page.getByRole("button", { name: locale === "fa" ? "منو" : "Menu", exact: true }).click();
+}
+async function closePreferences(page: Page) {
+  if (page.viewportSize()!.width < 1024) await page.keyboard.press("Escape");
+}
 function contrastRatio(foreground: string, background: string) {
   const channels = (color: string) =>
     color
@@ -28,6 +35,25 @@ function contrastRatio(foreground: string, background: string) {
 }
 
 for (const locale of ["fa", "en"]) {
+  test(`${locale}: global header search navigates to the localized catalog and preserves Back/Forward`, async ({
+    page,
+  }) => {
+    await page.goto(`/${locale}`);
+    const search = page.getByRole("search");
+    await search.getByRole("searchbox").fill("کفش & leather");
+    await search.getByRole("button").click();
+    await expect(page).toHaveURL(
+      (url) =>
+        url.pathname === `/${locale}/catalog` && url.searchParams.get("q") === "کفش & leather",
+    );
+    await page.goBack();
+    await expect(page).toHaveURL(new RegExp(`/${locale}$`));
+    await page.goForward();
+    await expect(page).toHaveURL(
+      (url) =>
+        url.pathname === `/${locale}/catalog` && url.searchParams.get("q") === "کفش & leather",
+    );
+  });
   test(`${locale}: direction, metadata, modal Back/Forward and responsive layout`, async ({
     page,
   }) => {
@@ -68,7 +94,7 @@ for (const locale of ["fa", "en"]) {
     const opener = page.getByRole("button", {
       name: locale === "fa" ? "دربارهٔ بازارگاه" : "About the marketplace",
     });
-    const foundation = await opener.evaluate((button, activeLocale) => {
+    const foundation = await opener.evaluate(async (button, activeLocale) => {
       const rgb = (color: string) => {
         const canvas = document.createElement("canvas");
         canvas.width = canvas.height = 1;
@@ -97,6 +123,11 @@ for (const locale of ["fa", "en"]) {
         (element) => getComputedStyle(element).fontFamily,
       );
       const mixedStyle = getComputedStyle(mixedText);
+      await document.fonts.load(
+        `${mixedStyle.fontSize} ${mixedStyle.fontFamily}`,
+        mixedText.textContent,
+      );
+      await document.fonts.ready;
       const canvas = document.createElement("canvas");
       const context = canvas.getContext("2d")!;
       context.font = `${mixedStyle.fontWeight} ${mixedStyle.fontSize} ${mixedStyle.fontFamily}`;
@@ -236,7 +267,9 @@ for (const locale of ["fa", "en"]) {
       });
     for (const theme of ["light", "dark"] as const) {
       if (theme === "dark") {
+        await openPreferences(page, locale);
         await page.getByRole("button", { name: locale === "fa" ? "تیره" : "Dark" }).click();
+        await closePreferences(page);
       }
       const normal = await inspect();
       expect(normal.height).toBeGreaterThanOrEqual(44);
@@ -280,6 +313,7 @@ for (const locale of ["fa", "en"]) {
     });
     page.on("pageerror", (error) => hydrationErrors.push(error.message));
     await page.goto(`/${locale}?keep=yes`);
+    await openPreferences(page, locale);
     const darkLabel = locale === "fa" ? "تیره" : "Dark";
     const lightLabel = locale === "fa" ? "روشن" : "Light";
     const dark = page.getByRole("button", { name: darkLabel });
@@ -331,6 +365,7 @@ for (const locale of ["fa", "en"]) {
       contrastRatio(darkStyles.buttonColor, darkStyles.buttonBackground),
     ).toBeGreaterThanOrEqual(4.5);
 
+    await closePreferences(page);
     await page
       .getByRole("button", {
         name: locale === "fa" ? "دربارهٔ بازارگاه" : "About the marketplace",
@@ -367,11 +402,13 @@ for (const locale of ["fa", "en"]) {
     await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#0a0a0a");
     expect(await page.evaluate(() => Reflect.get(window, "__themeAtFirstFrame"))).toBe("dark");
 
+    await openPreferences(page, locale);
     await page.getByRole("link", { name: locale === "fa" ? "زبان" : "Language" }).click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
     await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#0a0a0a");
     await expect(page).toHaveURL(new RegExp(`/${locale === "fa" ? "en" : "fa"}\\?keep=yes`));
 
+    await openPreferences(page, locale === "fa" ? "en" : "fa");
     const translatedLight = page.getByRole("button", {
       name: locale === "fa" ? "Light" : "روشن",
     });
@@ -409,6 +446,7 @@ for (const preference of [undefined, "system"] as const) {
     expect(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme)).toBe(
       "light",
     );
+    await openPreferences(page, "en");
     expect(
       await page.getByRole("button", { name: "Dark" }).evaluate((button) =>
         getComputedStyle(button)
@@ -432,6 +470,7 @@ test("direct modal links close within the page and retain other parameters", asy
 
 test("locale switch preserves URL state; unknown routes return 404", async ({ page }) => {
   await page.goto("/fa?keep=yes");
+  await openPreferences(page, "fa");
   await page.getByRole("link", { name: "زبان" }).click();
   await expect(page).toHaveURL(/\/en\?keep=yes/);
   await expect(page.locator("html")).toHaveAttribute("dir", "ltr");

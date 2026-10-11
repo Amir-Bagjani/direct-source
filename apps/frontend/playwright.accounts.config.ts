@@ -16,7 +16,7 @@ const device =
         : "Desktop Chrome";
 export default defineConfig({
   ...registration,
-  testMatch: "sessions.integration.spec.ts",
+  testMatch: ["sessions.integration.spec.ts", "account-redesign.integration.spec.ts"],
   use: {
     ...registration.use,
     ...devices[device],

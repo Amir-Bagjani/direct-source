@@ -5,4 +5,5 @@ export interface VerificationSectionProps {
   section: VerificationSection;
   prepareRevision?: (data: Record<string, unknown>) => Promise<void>;
   editable: boolean;
+  onSaved?: () => void;
 }

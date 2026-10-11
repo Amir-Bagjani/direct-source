@@ -53,10 +53,10 @@ Rotating the vault key invalidates existing sessions; deleting rows does not its
 revoke Django sessions. Unknown refresh outcomes stay unusable until expiry; the user
 can sign in again, and the UI never claims their old Django session was revoked.
 
-The account page is the first real protected consumer. It displays only the authenticated
-User DTO, not business permissions, prices or operations roles. Those require their own
-Django authorization and acceptance tests when implemented. There is no protected business
-mutation yet; logout is the only private mutation tested in this slice.
+The initial account slice displayed only the authenticated User DTO. PRD-01 now also
+implements business onboarding, scoped operator review, revisions and restricted continuity;
+these use their own live Django authorization, not the login DTO. Price access remains
+independent of controlled access and purchase permission.
 
 `test:e2e:accounts` starts real Django in a disposable PostgreSQL database and two
 independent Next.js processes sharing the encrypted vault. It covers both locales, real
@@ -93,6 +93,51 @@ session-change event. Other protected tabs hide/leave, and old cookies fail the 
 Django check. Email verification itself grants no business permissions.
 
 Email forms remain mounted during ordinary session polling so an in-progress password or
-email draft is not erased. The containing private region stays hidden until authorization
-finishes; pagehide, identity change and cache removal still discard private content.
+email draft is not erased. The containing private region stays hidden and inert until authorization finishes.
+Logout, 401, cross-document invalidation and identity change discard private content;
+pagehide clears the query cache while retaining the masked same-identity form host.
 See the email-link fragment contract in `../api/auth-and-trust.md`.
+
+
+## Guided Account lifecycle — 2026-10-09
+
+The protected boundary is the sole account session lifecycle owner. Its stable session
+key retains the 15-second live check; refetch hides/inerts the existing tree instead of
+replacing it with a loading component. Network errors show an explicit Retry against
+that query. Pending/fetching are not treated as invalid identities.
+
+Pagehide synchronously conceals and inerts the private region, cancels requests and
+clears the entire query cache. The boundary retains a component-local identity snapshot,
+and AccountScreen retains validated view data for its business/sections/role form hosts.
+This is an intentional form-draft exception to the no-query-data-copy rule: snapshots
+never enable requests or authorize UI and are never persisted or reinserted into Query
+cache. A live successful query gates interaction; failed section/business/role checks
+mask their existing hosts with real retry. Logout/401/identity changes unmount the host,
+remove the snapshots, cancel requests and clear the cache. The global header's local
+closing event also conceals protected content before its actual logout mutation.
+
+Keeping masked document height prevents scroll clamping; focus is restored with
+`preventScroll` only when it fell back to body. No `scrollTo`, polling suppression or
+private browser storage is used. Wizard steps stay mounted and use native history
+integration for the `step` query; reload reads the last complete server section, not an
+imaginary incremental autosave. Unsaved data stays in memory for the current identity.
+
+The server Header slot exposes only opaque session-cookie presence. Personal/role data
+is fetched on opening its menu and permissions come from the existing live BFF. The
+account navigation validates operator access before exposing operational links; Queue
+is never fetched by a denied account screen. Non-suspended manufacturers may use the
+private Catalog Workspace before verification, as specified by catalog-drafts.md.
+
+The new browser regression exercises natural 15-second polling with a real Account
+form and checks draft, focus and document scroll/height, a session 503/retry, explicit
+persisted lifecycle events, Wizard Back/Forward and unauthorized Queue suppression.
+Synthetic persisted events retain the native-BFCache limitation documented above.
+
+Private account GET observers also require the boundary's live `authorized` flag;
+keeping a masked form mounted must not restart a request after cache clearing. Operator
+subtrees receive authorization gated by the live successful role query. Their own
+business, section, revision, support and safety queries retain only same-key view data
+behind the private region. Unassigned safety cases expose Claim without a premature
+history query; reassignment removes the previous operator's history. Mutation fieldsets
+remain disabled through awaited invalidation so a late success callback cannot clear
+the user's next command draft. These paths have component regression coverage.

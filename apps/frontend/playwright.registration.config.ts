@@ -54,7 +54,7 @@ export default defineConfig({
       env: authEnv,
     },
     {
-      command: "node .next/standalone/server.js",
+      command: "node tooling/start-e2e-production.mjs",
       url: "http://127.0.0.1:3101/en/login",
       timeout: 120_000,
       reuseExistingServer: false,

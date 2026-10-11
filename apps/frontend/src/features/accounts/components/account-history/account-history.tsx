@@ -1,4 +1,5 @@
 "use client";
+import { useProtectedSession } from "../protected-session-boundary/protected-session-context";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations, useFormatter } from "next-intl";
@@ -13,17 +14,25 @@ import {
 import { SupportReply } from "../support-reply/support-reply";
 import type { AccountHistoryProps } from "./account-history.types";
 export function AccountHistory({ userId, restricted }: AccountHistoryProps) {
+  const { authorized } = useProtectedSession();
   const t = useTranslations("accounts.trust");
   const format = useFormatter();
   const [orderPage, setOrderPage] = useState(1);
   const [ticketPage, setTicketPage] = useState(1);
   const [historyPage, setHistoryPage] = useState(1);
   const [ticket, setTicket] = useState("");
-  const orders = useQuery(trustOptions(userId, "orders", orderHistorySchema, "", orderPage));
-  const tickets = useQuery(trustOptions(userId, "tickets", ticketPageSchema, "", ticketPage));
-  const history = useQuery(
-    trustOptions(userId, "own-suspensions", suspensionPageSchema, "", historyPage),
-  );
+  const orders = useQuery({
+    ...trustOptions(userId, "orders", orderHistorySchema, "", orderPage),
+    enabled: authorized,
+  });
+  const tickets = useQuery({
+    ...trustOptions(userId, "tickets", ticketPageSchema, "", ticketPage),
+    enabled: authorized,
+  });
+  const history = useQuery({
+    ...trustOptions(userId, "own-suspensions", suspensionPageSchema, "", historyPage),
+    enabled: authorized,
+  });
   return (
     <section className="flex flex-col gap-4">
       {restricted && (

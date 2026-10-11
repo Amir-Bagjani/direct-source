@@ -25,9 +25,12 @@ export function VerificationSectionForm({
   section,
   editable,
   prepareRevision,
+  onSaved,
 }: VerificationSectionProps) {
   const id = useId();
   const t = useTranslations("accounts.onboarding");
+  const w = useTranslations("accounts.workspace");
+  const [invalid, setInvalid] = useState(false);
   const identity = identitySchema.safeParse(section.data);
   const activity = activitySchema.safeParse(section.data);
   const [nationalId, setNationalId] = useState(identity.success ? identity.data.national_id : "");
@@ -60,7 +63,23 @@ export function VerificationSectionForm({
     <form
       onSubmit={(event) => {
         event.preventDefault();
-        if (!disabled) mutation.mutate();
+        if (disabled) return;
+        let valid = false;
+        if (section.kind === "identity") {
+          try {
+            valid = identitySchema.safeParse({
+              national_id: nationalId,
+              birth_date: fromJalaliBirthDate(birth),
+              card_front: front[0],
+              card_back: back[0],
+              selfie: selfie[0],
+            }).success;
+          } catch {
+            valid = false;
+          }
+        } else valid = activitySchema.safeParse({ evidence_type: evidence, files }).success;
+        setInvalid(!valid);
+        if (valid) mutation.mutate(undefined, { onSuccess: () => onSaved?.() });
       }}
     >
       <FieldSet disabled={mutation.isPending}>
@@ -156,8 +175,15 @@ export function VerificationSectionForm({
           )}
           {editable && (
             <Button type="submit" disabled={disabled}>
-              {t(prepareRevision ? "prepareRevision" : "saveSection")}
+              {onSaved ? w("saveContinue") : t(prepareRevision ? "prepareRevision" : "saveSection")}
             </Button>
+          )}
+          {invalid && (
+            <Alert variant="destructive">
+              <AlertDescription>
+                {w(section.kind === "identity" ? "invalidIdentity" : "invalidActivity")}
+              </AlertDescription>
+            </Alert>
           )}
           {mutation.isError && (
             <Alert variant="destructive">

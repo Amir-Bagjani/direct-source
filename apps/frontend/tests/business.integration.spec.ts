@@ -1,3 +1,4 @@
+import { signOut } from "./helpers/account-navigation";
 import { randomBytes, randomInt } from "node:crypto";
 import { test, expect, type Page } from "@playwright/test";
 import { businessSchema } from "../src/features/accounts/schemas/business.schema";
@@ -43,6 +44,10 @@ for (const [locale, copy] of [
         .fill(password);
       await target.getByRole("button", { name: copy.accounts.login.submit, exact: true }).click();
       await expect(target).toHaveURL(new RegExp(`/${locale}/account$`));
+      await target
+        .getByRole("link", { name: copy.accounts.workspace.business, exact: true })
+        .first()
+        .click();
     }
     expect((await request.get("/api/bff/accounts/business")).status()).toBe(401);
     await register(owner);
@@ -133,7 +138,7 @@ for (const [locale, copy] of [
     } finally {
       await otherContext.close();
     }
-    await page.getByRole("button", { name: copy.accounts.account.logout, exact: true }).click();
+    await signOut(page, copy);
     await expect(page).toHaveURL(new RegExp(`/${locale}$`));
     await page.goBack();
     await expect(page.getByText(profile.name, { exact: true })).toHaveCount(0);

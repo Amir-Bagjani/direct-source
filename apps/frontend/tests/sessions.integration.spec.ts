@@ -1,3 +1,4 @@
+import { signOut } from "./helpers/account-navigation";
 import { randomInt, randomUUID, randomBytes, createCipheriv, createDecipheriv } from "node:crypto";
 import { test, expect } from "@playwright/test";
 import type { APIRequestContext, Page } from "@playwright/test";
@@ -87,14 +88,18 @@ for (const [locale, copy] of [
     );
     await expect(page.getByText(credentials.name, { exact: false })).toBeVisible();
     await page.getByRole("link", { name: copy.common.backHome, exact: true }).click();
-    await page.getByRole("link", { name: copy.nav.account, exact: true }).hover();
-    await page.getByRole("link", { name: copy.nav.account, exact: true }).click();
+    await page
+      .getByRole("button", { name: copy.accounts.workspace.accountMenu, exact: true })
+      .click();
+    await page
+      .getByRole("menuitem", { name: copy.accounts.workspace.overview, exact: true })
+      .click();
     await expect(page.getByText(credentials.name, { exact: false })).toBeVisible();
     const other = await context.newPage();
     await other.goto(`/${locale}/account`);
     await expect(other.getByText(credentials.name, { exact: false })).toBeVisible();
     await page.bringToFront();
-    await page.getByRole("button", { name: copy.accounts.account.logout, exact: true }).click();
+    await signOut(page, copy);
     await expect(page).toHaveURL(new RegExp(`/${locale}$`));
     await expect(other).toHaveURL(new RegExp(`/${locale}$`));
     await expect(page.getByText(credentials.name, { exact: false })).toHaveCount(0);
@@ -141,7 +146,7 @@ for (const [locale, copy] of [
     });
     await page.reload();
     await received;
-    await page.getByRole("button", { name: copy.accounts.account.logout, exact: true }).click();
+    await signOut(page, copy);
     await expect(page).toHaveURL(new RegExp(`/${locale}$`));
     release();
     await page.unrouteAll({ behavior: "wait" });
@@ -150,7 +155,7 @@ for (const [locale, copy] of [
       const nextPerson = await register(request);
       await login(page, locale, copy, nextPerson);
       await expect(page.getByText(credentials.name, { exact: false })).toHaveCount(0);
-      await page.getByRole("button", { name: copy.accounts.account.logout, exact: true }).click();
+      await signOut(page, copy);
       await expect(page).toHaveURL(new RegExp(`/${locale}$`));
     }
   });

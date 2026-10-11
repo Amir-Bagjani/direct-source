@@ -25,6 +25,8 @@ export function DocumentUpload({
   const id = useId();
   const input = useRef<HTMLInputElement>(null);
   const [consent, setConsent] = useState(false);
+  const [validFile, setValidFile] = useState(false);
+  const [invalidFile, setInvalidFile] = useState(false);
   const policy = useQuery(policyOptions());
   const upload = useDocumentUpload(
     () => {
@@ -35,6 +37,7 @@ export function DocumentUpload({
     (fileId) => {
       onChange([...value, fileId]);
       if (input.current) input.current.value = "";
+      setValidFile(false);
     },
   );
   return (
@@ -59,7 +62,7 @@ export function DocumentUpload({
       ))}
       {!disabled && value.length < max && (
         <>
-          <FieldDescription>
+          <FieldDescription id={`${id}-limit`}>
             {t(purpose === "business_logo" ? "logoLimit" : "fileLimit")}
           </FieldDescription>
           <Input
@@ -72,6 +75,20 @@ export function DocumentUpload({
                 : "image/jpeg,image/png,image/webp,application/pdf"
             }
             disabled={upload.isPending}
+            aria-invalid={invalidFile}
+            aria-describedby={`${id}-limit`}
+            onChange={(event) => {
+              const file = event.currentTarget.files?.[0];
+              const limit = (purpose === "business_logo" ? 5 : 10) * 1024 * 1024;
+              const accepted =
+                !!file &&
+                file.size > 0 &&
+                file.size <= limit &&
+                /\.(jpe?g|png|webp|pdf)$/i.test(file.name) &&
+                (purpose !== "business_logo" || !/\.pdf$/i.test(file.name));
+              setValidFile(accepted);
+              setInvalidFile(!!file && !accepted);
+            }}
           />
           <Field orientation="horizontal">
             <Checkbox
@@ -86,12 +103,19 @@ export function DocumentUpload({
           </Field>
           <FieldDescription>{t("retention")}</FieldDescription>
           <Button
-            disabled={!consent || !policy.data || upload.isPending}
+            disabled={!validFile || !consent || !policy.data || upload.isPending}
             onClick={() => upload.mutate()}
           >
             {upload.isPending && <Spinner aria-hidden="true" />}
             {t("upload")}
           </Button>
+          {invalidFile && (
+            <Alert variant="destructive">
+              <AlertDescription>
+                {t(purpose === "business_logo" ? "logoLimit" : "fileLimit")}
+              </AlertDescription>
+            </Alert>
+          )}
           {policy.isError && (
             <Button variant="outline" onClick={() => void policy.refetch()}>
               {t("retry")}

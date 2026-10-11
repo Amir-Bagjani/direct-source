@@ -50,6 +50,7 @@ test(`${locale}: real email verification, link rotation and password recovery re
   await page.getByRole("button", { name: copy.accounts.login.submit, exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/${locale}/account$`));
   const oldCookie = (await context.cookies()).find((entry) => entry.name === "ds.session")!;
+  await page.goto(`/${locale}/account/security`);
   await page.getByLabel(r.email, { exact: true }).fill(email);
   await page.getByLabel(r.current_password).fill("wrong-password");
   await page.getByRole("button", { name: r.saveEmail }).click();
@@ -140,6 +141,7 @@ test(`${locale}: real email verification, link rotation and password recovery re
     .fill(nextPassword);
   await recovery.getByRole("button", { name: copy.accounts.login.submit, exact: true }).click();
   await expect(recovery).toHaveURL(new RegExp(`/${locale}/account$`));
+  await recovery.goto(`/${locale}/account/security`);
   await expect(recovery.getByText(copy.accounts.account.emailVerified)).toBeVisible();
   await recovery.close();
 });

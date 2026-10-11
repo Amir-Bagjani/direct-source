@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { Button } from "@/shared/ui/button/button";
-import { Field, FieldLabel, FieldGroup } from "@/shared/ui/field/field";
+import { Field, FieldLabel, FieldGroup, FieldSet } from "@/shared/ui/field/field";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select/native-select";
 import { Textarea } from "@/shared/ui/textarea/textarea";
 import { VerificationSectionForm } from "../verification-section/verification-section";
@@ -83,57 +83,59 @@ export function RevisionRecord({ userId, revision, review = false }: RevisionRec
             mutation.mutate(undefined, { onSuccess: () => setReason("") });
           }}
         >
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="revision-review-kind">{t("section")}</FieldLabel>
-              <NativeSelect
-                id="revision-review-kind"
-                value={kind}
-                onChange={(e) => setKind(e.target.value)}
+          <FieldSet disabled={mutation.isPending}>
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="revision-review-kind">{t("section")}</FieldLabel>
+                <NativeSelect
+                  id="revision-review-kind"
+                  value={kind}
+                  onChange={(e) => setKind(e.target.value)}
+                >
+                  {(["identity", "activity"] as const).map((k) => (
+                    <NativeSelectOption key={k} value={k}>
+                      {t(k)}
+                    </NativeSelectOption>
+                  ))}
+                </NativeSelect>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="revision-decision">{t("decision")}</FieldLabel>
+                <NativeSelect
+                  id="revision-decision"
+                  value={decision}
+                  onChange={(e) => setDecision(e.target.value)}
+                >
+                  {(["approved", "changes_requested", "rejected"] as const).map((d) => (
+                    <NativeSelectOption key={d} value={d}>
+                      {t(`statuses.${d}`)}
+                    </NativeSelectOption>
+                  ))}
+                </NativeSelect>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="revision-reason">{t("reason")}</FieldLabel>
+                <Textarea
+                  id="revision-reason"
+                  required
+                  maxLength={2000}
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                />
+              </Field>
+              <Button
+                type="submit"
+                disabled={
+                  mutation.isPending ||
+                  (kind === "identity" ? revision.identity_status : revision.activity_status) !==
+                    "pending"
+                }
               >
-                {(["identity", "activity"] as const).map((k) => (
-                  <NativeSelectOption key={k} value={k}>
-                    {t(k)}
-                  </NativeSelectOption>
-                ))}
-              </NativeSelect>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="revision-decision">{t("decision")}</FieldLabel>
-              <NativeSelect
-                id="revision-decision"
-                value={decision}
-                onChange={(e) => setDecision(e.target.value)}
-              >
-                {(["approved", "changes_requested", "rejected"] as const).map((d) => (
-                  <NativeSelectOption key={d} value={d}>
-                    {t(`statuses.${d}`)}
-                  </NativeSelectOption>
-                ))}
-              </NativeSelect>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="revision-reason">{t("reason")}</FieldLabel>
-              <Textarea
-                id="revision-reason"
-                required
-                maxLength={2000}
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-              />
-            </Field>
-            <Button
-              type="submit"
-              disabled={
-                mutation.isPending ||
-                (kind === "identity" ? revision.identity_status : revision.activity_status) !==
-                  "pending"
-              }
-            >
-              {t("review")}
-            </Button>
-            {mutation.isError && <p role="alert">{t("error")}</p>}
-          </FieldGroup>
+                {t("review")}
+              </Button>
+              {mutation.isError && <p role="alert">{t("error")}</p>}
+            </FieldGroup>
+          </FieldSet>
         </form>
       )}
     </section>

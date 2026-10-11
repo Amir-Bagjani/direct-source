@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { QueryProvider } from "@/shared/query/query-provider/query-provider";
+import { HeaderAccountNavigation } from "@/features/accounts/components/header-account-menu/header-account-navigation";
 import { SiteHeader } from "@/shared/ui/site-header/site-header";
 import { siteUrl } from "@/shared/seo/metadata";
 import { parseTheme, THEME_COLORS, THEME_COOKIE_NAME } from "@/shared/theme/theme";
@@ -68,7 +69,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
           <DirectionProvider direction={locale === "fa" ? "rtl" : "ltr"}>
             <QueryProvider>
               <Suspense>
-                <SiteHeader initialTheme={theme} />
+                <SiteHeader initialTheme={theme} accountNavigation={<HeaderAccountNavigation />} />
               </Suspense>
               {children}
             </QueryProvider>

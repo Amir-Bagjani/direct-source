@@ -1,9 +1,10 @@
 "use client";
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert/alert";
+import { buttonVariants } from "@/shared/ui/button/button.variants";
 import { Button } from "@/shared/ui/button/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card/card";
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field/field";
@@ -46,7 +47,9 @@ export function CatalogStudio() {
           <p className="text-muted-foreground">{t("studioDescription")}</p>
         </div>
         {access.data.operator && (
-          <Button render={<Link href="/account/catalog/operations" />}>{t("operatorPanel")}</Button>
+          <Link href="/account/catalog/operations" className={buttonVariants()}>
+            {t("operatorPanel")}
+          </Link>
         )}
       </div>
       {manufacturer ? (
@@ -71,12 +74,12 @@ export function CatalogStudio() {
                         {t(`statuses.${product.status}`)}
                       </p>
                     </div>
-                    <Button
-                      variant="outline"
-                      render={<Link href={`/account/catalog/${product.id}`} />}
+                    <Link
+                      href={`/account/catalog/${product.id}`}
+                      className={buttonVariants({ variant: "outline" })}
                     >
                       {t("manage")}
-                    </Button>
+                    </Link>
                   </div>
                 ))
               ) : (
@@ -134,7 +137,7 @@ function ProductCreator({ access, taxonomy }: { access: StudioAccess; taxonomy: 
       uploadProductImage(access.business!.id, access.consent_version, file),
     onSuccess: (file) => setImages((current) => [...current, file.id]),
   });
-  function submit(event: FormEvent<HTMLFormElement>) {
+  function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     mutation.mutate(event.currentTarget);
   }

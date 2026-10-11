@@ -1,6 +1,9 @@
 "use client";
+import { useProtectedSession } from "../protected-session-boundary/protected-session-context";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link, useRouter } from "@/i18n/navigation";
+import { buttonVariants } from "@/shared/ui/button/button.variants";
 import { useTranslations } from "next-intl";
 import { ApiError } from "@/shared/api/unwrap";
 import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/card/card";
@@ -8,14 +11,14 @@ import { Button } from "@/shared/ui/button/button";
 import { reviewQueueOptions } from "../../queries/onboarding.queries";
 import { useOnboardingMutation } from "../../hooks/use-onboarding-mutation";
 import { writeOnboarding } from "../../api/onboarding.api";
-import { ReviewCase } from "../review-case/review-case";
 import type { VerificationReviewProps } from "./verification-review.types";
 export function VerificationReview({ userId }: VerificationReviewProps) {
+  const { authorized } = useProtectedSession();
   const t = useTranslations("accounts.onboarding");
   const [page, setPage] = useState(1);
-  const [selected, setSelected] = useState<string | null>(null);
+  const router = useRouter();
   const [claimId, setClaimId] = useState("");
-  const queue = useQuery(reviewQueueOptions(userId, page));
+  const queue = useQuery({ ...reviewQueueOptions(userId, page), enabled: authorized });
   const claim = useOnboardingMutation(userId, () => writeOnboarding("claim", claimId));
   if (queue.error instanceof ApiError && queue.error.status === 403) return null;
   return (
@@ -50,7 +53,12 @@ export function VerificationReview({ userId }: VerificationReviewProps) {
                     {t("selectClaim")}
                   </Button>
                 ) : (
-                  <Button onClick={() => setSelected(row.business_id)}>{t("openCase")}</Button>
+                  <Link
+                    className={buttonVariants({ variant: "outline" })}
+                    href={`/account/operations/businesses/${row.business_id}`}
+                  >
+                    {t("openCase")}
+                  </Link>
                 )}
               </div>
             ))}
@@ -60,7 +68,7 @@ export function VerificationReview({ userId }: VerificationReviewProps) {
                 onClick={() =>
                   claim.mutate(undefined, {
                     onSuccess: () => {
-                      setSelected(claimId);
+                      router.push(`/account/operations/businesses/${claimId}`);
                       setClaimId("");
                     },
                   })
@@ -84,7 +92,6 @@ export function VerificationReview({ userId }: VerificationReviewProps) {
             </div>
           </>
         )}
-        {selected && <ReviewCase key={selected} userId={userId} businessId={selected} />}
       </CardContent>
     </Card>
   );

@@ -1,3 +1,4 @@
+import { signOut } from "./helpers/account-navigation";
 import { test, expect } from "@playwright/test";
 import en from "../messages/en.json" with { type: "json" };
 import fa from "../messages/fa.json" with { type: "json" };
@@ -32,7 +33,7 @@ for (const [locale, messages] of [
     ).toBeVisible();
     await expect(page.getByText("کفش چرمی آفتاب", { exact: true })).toBeVisible();
     await page.getByLabel(messages.catalog.filters.search, { exact: true }).fill("كفش چرمي");
-    await page.getByRole("button", { name: messages.catalog.filters.apply, exact: true }).click();
+    await page.getByRole("button", { name: messages.catalog.filters.search, exact: true }).click();
     await expect(page).toHaveURL(/q=%D9%83%D9%81%D8%B4/);
     await expect(page.getByText("کفش چرمی آفتاب", { exact: true })).toBeVisible();
 
@@ -97,8 +98,17 @@ test("en: verified retailer sees identity-scoped wholesale prices and logout rem
   expect(privateResponse.status()).toBe(200);
   expect(containsPrice(await privateResponse.json())).toBe(true);
 
+  await page.goto("/en/catalog");
+  await expect(page.getByText("From 125,000 toman", { exact: true })).toBeVisible();
+  await page.route("**/api/bff/catalog/wholesale/access", (route) => route.abort("failed"));
+  // Simulate a visibility refetch failure while an authorized price is already cached.
+  await page.evaluate(() => window.dispatchEvent(new Event("visibilitychange")));
+  await expect(page.getByText("From 125,000 toman", { exact: true })).toHaveCount(0);
+  await expect(page.getByText(en.catalog.priceProtected, { exact: true }).first()).toBeVisible();
+  await page.unroute("**/api/bff/catalog/wholesale/access");
+
   await page.goto("/en/account");
-  await page.getByRole("button", { name: en.accounts.account.logout, exact: true }).click();
+  await signOut(page, en);
   await expect(page).toHaveURL(/\/en$/u);
   await page.goto("/en/catalog");
   await expect(page.getByText(en.catalog.priceProtected, { exact: true }).first()).toBeVisible();
@@ -117,7 +127,7 @@ test("en: operator claims a submitted product and records a changes-requested de
   await page.getByRole("button", { name: en.accounts.login.submit, exact: true }).click();
   await expect(page).toHaveURL(/\/en\/account$/u, { timeout: 30_000 });
 
-  await page.getByRole("link", { name: en.accounts.account.catalogWorkspace, exact: true }).click();
+  await page.getByRole("link", { name: en.accounts.workspace.workspace, exact: true }).click();
   await expect(
     page.getByRole("heading", { level: 1, name: en.catalogManagement.studioTitle }),
   ).toBeVisible();
@@ -145,4 +155,49 @@ test("en: operator claims a submitted product and records a changes-requested de
     .click();
   await expect(page).toHaveURL(/\/en\/account\/catalog\/operations$/u);
   await expect(page.getByText("محصول در انتظار بررسی", { exact: true })).toHaveCount(0);
+});
+
+test("fa: guided catalog filters preserve draft, URL history, search and selections", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/fa/catalog?q=کفش&supply=hybrid");
+  const trigger = page.getByRole("button", { name: /^فیلترها/u });
+  await trigger.click();
+  const sheet = page.getByRole("dialog", { name: fa.catalog.filters.title, exact: true });
+  await expect(sheet).toBeVisible();
+  await expect(page).toHaveURL(/modal=catalog-filters/u);
+  await expect(
+    sheet.getByRole("checkbox", { name: fa.catalog.supply.hybrid, exact: true }),
+  ).toBeChecked();
+  await sheet.getByRole("checkbox", { name: fa.catalog.supply.ready, exact: true }).check();
+  await page.keyboard.press("Escape");
+  await expect(sheet).toBeHidden();
+  await expect(trigger).toBeFocused();
+  expect(new URL(page.url()).searchParams.getAll("supply")).toEqual(["hybrid"]);
+
+  await trigger.click();
+  await expect(sheet).toBeVisible();
+  await expect(
+    sheet.getByRole("checkbox", { name: fa.catalog.supply.ready, exact: true }),
+  ).not.toBeChecked();
+  await page.goBack();
+  await expect(sheet).toBeHidden();
+  await page.goForward();
+  await expect(sheet).toBeVisible();
+  await sheet.getByRole("checkbox", { name: fa.catalog.supply.ready, exact: true }).check();
+  await sheet.getByRole("button", { name: fa.catalog.filters.apply, exact: true }).click();
+  await expect(sheet).toBeHidden();
+  await expect(page.getByText("کفش چرمی آفتاب", { exact: true })).toBeVisible();
+  expect(new URL(page.url()).searchParams.get("q")).toBe("کفش");
+  expect(new URL(page.url()).searchParams.getAll("supply").sort()).toEqual(["hybrid", "ready"]);
+  expect(new URL(page.url()).searchParams.has("modal")).toBe(false);
+  await page.goBack();
+  await expect(page).toHaveURL(/supply=hybrid$/u);
+  await page.goForward();
+  await expect(page).toHaveURL(/supply=ready/u);
+  await page.getByLabel(fa.catalog.filters.sort, { exact: true }).selectOption("lead_time");
+  await expect(page).toHaveURL(/sort=lead_time/u);
+  expect(new URL(page.url()).searchParams.getAll("supply").sort()).toEqual(["hybrid", "ready"]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

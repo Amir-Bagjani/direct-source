@@ -16,6 +16,8 @@ export interface CatalogFilters {
   leadMax: string;
   priceMin: string;
   priceMax: string;
+  ratingMin: string;
+  attributes: Record<string, string[]>;
   sort: string;
   page: number;
 }
@@ -53,6 +55,13 @@ export function parseCatalogSearchParams(params: CatalogSearchParams): CatalogFi
   const rawOrderable = Array.isArray(params.orderable) ? params.orderable[0] : params.orderable;
   const rawSort = Array.isArray(params.sort) ? params.sort[0] : params.sort;
   const rawQuery = Array.isArray(params.q) ? params.q[0] : params.q;
+  const rawRating = Array.isArray(params.rating_min) ? params.rating_min[0] : params.rating_min;
+  const attributes = Object.fromEntries(
+    Object.entries(params)
+      .filter(([key]) => key.startsWith("attr.") && uuid.safeParse(key.slice(5)).success)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, value]) => [key.slice(5), [...new Set(values(value))].sort()]),
+  );
   return {
     q: rawQuery?.trim().slice(0, 200) ?? "",
     categories: ids(params.category),
@@ -64,6 +73,11 @@ export function parseCatalogSearchParams(params: CatalogSearchParams): CatalogFi
     leadMax: unsigned(params.lead_max),
     priceMin: toman(params.price_min),
     priceMax: toman(params.price_max),
+    ratingMin:
+      rawRating && /^(?:[0-4](?:\.\d{1,2})?|5(?:\.0{1,2})?)$/u.test(rawRating)
+        ? String(Number(rawRating))
+        : "",
+    attributes,
     sort: rawSort && sorts.has(rawSort) ? rawSort : "",
     page: Number.isSafeInteger(page) && page > 0 ? page : 1,
   };
@@ -81,6 +95,9 @@ export function catalogSearch(filters: CatalogFilters) {
   if (filters.leadMax) search.set("lead_max", filters.leadMax);
   if (filters.priceMin) search.set("price_min", filters.priceMin);
   if (filters.priceMax) search.set("price_max", filters.priceMax);
+  if (filters.ratingMin) search.set("rating_min", filters.ratingMin);
+  for (const [id, values] of Object.entries(filters.attributes))
+    for (const value of values) search.append(`attr.${id}`, value);
   if (filters.sort) search.set("sort", filters.sort);
   if (filters.page > 1) search.set("page", String(filters.page));
   return search;

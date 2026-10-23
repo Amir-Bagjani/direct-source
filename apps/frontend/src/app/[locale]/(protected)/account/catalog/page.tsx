@@ -15,8 +15,8 @@ export default async function CatalogStudioPage({
   if (!hasLocale(routing.locales, locale)) notFound();
   await requireAccount(locale);
   return (
-    <main id="main" className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6">
+    <>
       <CatalogStudio />
-    </main>
+    </>
   );
 }

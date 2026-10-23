@@ -224,3 +224,22 @@ Django validation/permissions/scanning are not mocked. Storage is removed after 
 Backend migrations accounts/0004 and operations/0011 must be applied before serving this UI.
 The existing signed download endpoint remains; the web UI streams private file bytes through
 its authenticated same-origin BFF. No private files are served through Next's image optimizer.
+
+PRD-02 verification: `pnpm test:e2e:prd02` starts isolated Django/PostgreSQL and Next.js.
+First run `docker compose up -d postgres clamav catalog-media` from `apps/backend`.
+The `catalog-media` profile service uses port 9002 and disposable tmpfs storage, separate
+from the application's MinIO volume. Its static fixture-only KMS key enables the existing
+AES256 server-side encryption; [MinIO's documented single-key setup](https://github.com/minio/minio/blob/master/docs/kms/IAM.md)
+is sufficient for these diagnostic images. This does not certify a production KMS deployment.
+The fixture uploads two diagnostic PNGs through real validation and ClamAV into a fresh
+random bucket, refuses existing buckets and removes its bucket and database on shutdown.
+The gallery journey verifies successful signed downloads and rejection of a tampered signature.
+Stop the services with `docker compose stop postgres clamav catalog-media` after local checks;
+do not delete the PostgreSQL or ClamAV volumes. For a phase checkpoint, build with a dedicated
+`NEXT_DIST_DIR` and run the suite with the same directory and `PLAYWRIGHT_SERVER_MODE=production`.
+
+Run `pnpm exec playwright test --config playwright.pagination.config.ts` for the isolated
+26-product pagination fixture, or `--config playwright.error-recovery.config.ts` for real
+public timeout/Retry recovery. Use the same production environment variables above.
+The recovery config pauses only its disposable Django child and resumes it in `finally`;
+do not run these configs concurrently because they use the same local ports.

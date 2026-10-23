@@ -54,7 +54,20 @@ export async function withCatalogAccountMutation<T>(
   request: Request,
   mutate: (access: string) => Promise<T>,
 ) {
-  return withAccountMutation(await session(request), mutate);
+  const result = await withAccountMutation(
+    await session(request),
+    async (access): Promise<{ ok: true; data: T } | { ok: false; error: ApiError }> => {
+      try {
+        return { ok: true, data: await mutate(access) };
+      } catch (error) {
+        // Keep command validation out of session error sanitization; never replay a mutation.
+        if (error instanceof ApiError && error.status === 400) return { ok: false, error };
+        throw error;
+      }
+    },
+  );
+  if (!result.ok) throw result.error;
+  return result.data;
 }
 
 const catalogUserSchema = z.object({ id: z.uuid() });

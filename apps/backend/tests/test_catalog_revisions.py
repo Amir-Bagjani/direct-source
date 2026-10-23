@@ -6,6 +6,7 @@ from django.utils import timezone
 
 from marketplace.accounts.business_services import create_business
 from marketplace.catalog.models import ProductRevision, Variant
+from marketplace.operations.models import AuditEvent
 from tests.test_logistics_publication import ready_product as _ready_product
 
 ready_product = _ready_product
@@ -63,6 +64,10 @@ def test_approval_keeps_current_price_supply_and_public_content_until_decision(
         == 200
     )
     client.force_authenticate(user_factory(role="operator"))
+    queue = client.get("/api/v1/catalog/revision-queue/")
+    assert queue.status_code == 200
+    assert queue.data["results"][0]["product_name"] == old
+    assert queue.data["results"][0]["product"] == product.pk
     assert client.post(url + "claim/").status_code == 200
     response = client.post(
         url + "review/", {"decision": "approved", "code": "ok", "reason": "تأیید"}, format="json"
@@ -122,9 +127,49 @@ def test_cancel_and_private_revision(client, ready_product, user_factory):
     client.force_authenticate(actor)
     assert client.post(url + "submit/").status_code == 200
     assert client.post(url + "cancel/", {"reason": "انصراف"}, format="json").status_code == 200
+    cancelled = ProductRevision.objects.get(pk=revision["id"])
+    assert cancelled.status == "cancelled"
+    event = AuditEvent.objects.get(aggregate_id=cancelled.pk, action="catalog.revision_cancel")
+    assert event.actor == actor and event.reason == "انصراف"
+    assert event.created_at is not None
+    assert event.before == {"status": "pending"} and event.after == {"status": "cancelled"}
     product.refresh_from_db()
     assert product.description != "تغییر"
     propose(client, product, {"profile": {"description": "تازه"}})
+
+
+def test_owner_can_recover_revision_history_without_exposing_it_to_other_accounts(
+    client, ready_product, user_factory
+):
+    actor, product, _ = published(ready_product, client)
+    url, first = propose(client, product, {"profile": {"description": "تغییر اول"}})
+    assert client.post(url + "cancel/", {"reason": "انصراف"}, format="json").status_code == 200
+    _, second = propose(client, product, {"profile": {"description": "تغییر دوم"}})
+    collection = f"/api/v1/catalog/products/{product.pk}/revisions/"
+    response = client.get(collection)
+    assert response.status_code == 200
+    assert [row["id"] for row in response.data["results"]] == [second["id"], first["id"]]
+    assert response.data["results"][0]["proposed"]["profile"]["description"] == "تغییر دوم"
+    client.force_authenticate(user_factory())
+    assert client.get(collection).status_code == 404
+    client.force_authenticate(user_factory(role="operator"))
+    assert client.get(collection).status_code == 404
+    client.force_authenticate(None)
+    assert client.get(collection).status_code == 401
+
+
+@pytest.mark.parametrize("status", ["pending", "rejected"])
+def test_locked_product_can_be_read_by_owner_but_not_changed(client, ready_product, status):
+    actor, _, product, variant, _, _ = ready_product
+    product.status = status
+    product.save()
+    client.force_authenticate(actor)
+    plan_url = f"/api/v1/catalog/products/{product.pk}/sales-plan/"
+    supply_url = f"/api/v1/catalog/products/{product.pk}/variants/{variant.pk}/supply/"
+    plan, supply = client.get(plan_url), client.get(supply_url)
+    assert plan.status_code == supply.status_code == 200
+    assert client.put(plan_url, plan.data, format="json").status_code == 409
+    assert client.put(supply_url, supply.data, format="json").status_code == 409
 
 
 @pytest.mark.parametrize(

@@ -11,7 +11,7 @@ from marketplace.catalog.sales_api import StrictInteger
 
 from . import revisions
 from .api import ProductSerializer, VariantSerializer
-from .models import ProductRevision
+from .models import Product, ProductRevision
 from .publication_api import ReasonInput
 from .sales_api import SupplyInput
 
@@ -79,7 +79,20 @@ def visible(actor):
     return qs.filter(product__business__membership__user=actor)
 
 
-class RevisionCreate(APIView):
+class RevisionCreate(generics.ListAPIView):
+    serializer_class = RevisionOutput
+
+    def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return ProductRevision.objects.none()
+        # Owner history is separate from the operator's assigned review detail.
+        product = get_object_or_404(
+            Product,
+            pk=self.kwargs["product_id"],
+            business__membership__user=self.request.user,
+        )
+        return visible(self.request.user).filter(product=product).order_by("-created_at", "-id")
+
     @extend_schema(request=ProductRevisionInput, responses={201: RevisionOutput})
     def post(self, request, product_id):
         obj = revisions.save_revision(
@@ -153,9 +166,11 @@ class RevisionCancel(APIView):
 
 
 class RevisionQueueOutput(serializers.ModelSerializer):
+    product_name = serializers.CharField(source="product.name", read_only=True)
+
     class Meta:
         model = ProductRevision
-        fields = ["id", "product", "status", "assigned_to", "created_at"]
+        fields = ["id", "product", "product_name", "status", "assigned_to", "created_at"]
 
 
 class RevisionQueue(generics.ListAPIView):
@@ -165,4 +180,4 @@ class RevisionQueue(generics.ListAPIView):
         if getattr(self, "swagger_fake_view", False):
             return ProductRevision.objects.none()
         require_operator(self.request.user)
-        return ProductRevision.objects.filter(status="pending")
+        return ProductRevision.objects.filter(status="pending").select_related("product")

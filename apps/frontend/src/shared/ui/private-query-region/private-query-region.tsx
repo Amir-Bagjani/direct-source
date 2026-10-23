@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { Alert, AlertDescription } from "@/shared/ui/alert/alert";
 import { Button } from "@/shared/ui/button/button";
 import { Spinner } from "@/shared/ui/spinner/spinner";
+import { PortalContainer } from "@/shared/ui/portal-container/portal-container";
 import type { PrivateQueryRegionProps } from "./private-query-region.types";
 export function PrivateQueryRegion({ children, masked, error, retry }: PrivateQueryRegionProps) {
   const t = useTranslations("common"),
@@ -14,7 +15,7 @@ export function PrivateQueryRegion({ children, masked, error, retry }: PrivateQu
   }, [masked]);
   return (
     <div className="relative">
-      <div
+      <PortalContainer
         inert={masked}
         aria-hidden={masked}
         className={`flex flex-col gap-6${masked ? " invisible" : ""}`}
@@ -23,7 +24,7 @@ export function PrivateQueryRegion({ children, masked, error, retry }: PrivateQu
         }}
       >
         {children}
-      </div>
+      </PortalContainer>
       {masked && (
         <div className="absolute inset-0 bg-background">
           <div className="sticky top-4 flex flex-col gap-4">

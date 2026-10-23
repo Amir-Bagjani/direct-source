@@ -1,5 +1,25 @@
 import { expect, it } from "vitest";
-import { publicProductSchema, wholesaleProductSchema } from "./public-catalog.schema";
+import {
+  publicDiscoverySchema,
+  publicProductSchema,
+  wholesaleProductSchema,
+} from "./public-catalog.schema";
+
+it("rejects private manufacturer fields and wholesale amounts in public discovery", () => {
+  const discovery = {
+    categories: [],
+    attributes: [],
+    manufacturers: [{ id: "11111111-1111-4111-8111-111111111111", name: "Maker" }],
+  };
+  expect(publicDiscoverySchema.safeParse(discovery).success).toBe(true);
+  expect(publicDiscoverySchema.safeParse({ ...discovery, wholesale: {} }).success).toBe(false);
+  expect(
+    publicDiscoverySchema.safeParse({
+      ...discovery,
+      manufacturers: [{ ...discovery.manufacturers[0], phone: "private" }],
+    }).success,
+  ).toBe(false);
+});
 
 const product = {
   id: "8d29dde8-cb2e-48eb-9f5a-0f401e800f2b",
@@ -10,6 +30,7 @@ const product = {
   brand: "نمونه",
   manufacturer_model: "M-1",
   attributes: {},
+  display_attributes: [],
   image_urls: [],
   variants: [],
   published_at: "2026-09-28T10:00:00Z",
@@ -22,6 +43,7 @@ const product = {
     province: "تهران",
     city: "تهران",
     joined_at: "2026-09-01T10:00:00Z",
+    logo_url: null,
   },
   rating: { average: null, count: 0 },
   shipping_services: [],

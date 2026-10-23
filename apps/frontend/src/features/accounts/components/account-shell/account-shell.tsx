@@ -71,7 +71,9 @@ export function AccountShell({ children }: { children: ReactNode }) {
       ? [["/account/catalog", "workspace"]]
       : []),
   ] as const;
-  const current = links.find(([href]) => pathname === href)?.[1] ?? "case";
+  const current = pathname.startsWith("/account/catalog")
+    ? "workspace"
+    : (links.find(([href]) => pathname === href)?.[1] ?? "case");
   const navigation = (
     <nav aria-label={t("navigation")}>
       <SidebarMenu>

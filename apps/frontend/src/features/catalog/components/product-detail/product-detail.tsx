@@ -1,6 +1,8 @@
 "use client";
+import { useId } from "react";
 import { environmentManager, useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { useLocale, useTranslations } from "next-intl";
+import { useFormatter, useLocale, useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { readPublicProduct } from "../../api/public-catalog.api";
 import { readWholesaleAccess, readWholesaleProduct } from "../../api/wholesale-catalog.api";
@@ -10,11 +12,22 @@ import {
   wholesaleProductOptions,
 } from "../../queries/wholesale-catalog.queries";
 import type { WholesaleProduct } from "../../schemas/public-catalog.schema";
+import { attributeValueText } from "../../utils/attribute-value-text";
 import { formatToman } from "../../utils/money";
+import { PriceTable } from "../price-table/price-table";
+import { SelectionPreview } from "../selection-preview/selection-preview";
+import { quoteWholesaleProduct } from "../../api/catalog-quote.api";
+import { ProductGallery } from "../product-gallery/product-gallery";
+import { ProductReviews } from "../product-reviews/product-reviews";
+import { Badge } from "@/shared/ui/badge/badge";
+import { Modal } from "@/shared/ui/modal/modal";
+import { openModal } from "@/shared/ui/modal/modal-history";
+import { DialogTitle, DialogDescription } from "@/shared/ui/dialog/dialog";
 import { ProductImage } from "../product-image/product-image";
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert/alert";
 import { buttonVariants } from "@/shared/ui/button/button.variants";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card/card";
+import { Button } from "@/shared/ui/button/button";
 import { Separator } from "@/shared/ui/separator/separator";
 import {
   Table,
@@ -26,14 +39,6 @@ import {
   TableRow,
 } from "@/shared/ui/table/table";
 import { cn } from "@/shared/ui/cn";
-
-function valueText(value: unknown, locale: string): string {
-  if (typeof value === "string") return value;
-  if (typeof value === "number") return new Intl.NumberFormat(locale).format(value);
-  if (typeof value === "boolean") return value ? "✓" : "—";
-  if (Array.isArray(value)) return value.map((item) => valueText(item, locale)).join("، ");
-  return value && typeof value === "object" ? JSON.stringify(value) : "—";
-}
 
 function WholesalePrices({ product }: { product: WholesaleProduct }) {
   const t = useTranslations("catalog");
@@ -62,45 +67,11 @@ function WholesalePrices({ product }: { product: WholesaleProduct }) {
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <Table>
-          <TableCaption>{t("wholesale.caption")}</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("wholesale.quantity")}</TableHead>
-              <TableHead>{t("wholesale.defaultPrice")}</TableHead>
-              {product.variants.map((variant) => (
-                <TableHead key={variant.id}>{variant.sku}</TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {plan.tiers.map((tier) => (
-              <TableRow key={tier.min_quantity}>
-                <TableCell>
-                  {tier.max_quantity === null
-                    ? t("wholesale.openRange", { min: tier.min_quantity })
-                    : t("wholesale.closedRange", {
-                        min: tier.min_quantity,
-                        max: tier.max_quantity,
-                      })}
-                </TableCell>
-                <TableCell>
-                  {t("tomanAmount", { amount: formatToman(tier.unit_price_irr, locale) })}
-                </TableCell>
-                {product.variants.map((variant) => {
-                  const cell = tier.effective_prices.find((price) => price.variant === variant.id);
-                  return (
-                    <TableCell key={variant.id}>
-                      {cell
-                        ? t("tomanAmount", { amount: formatToman(cell.unit_price_irr, locale) })
-                        : t("priceUnavailable")}
-                    </TableCell>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <PriceTable
+          tiers={plan.tiers}
+          variants={product.variants}
+          caption={t("wholesale.caption")}
+        />
         {plan.free_mix_min ? (
           <p className="text-sm text-muted-foreground">
             {t("wholesale.freeMixMinimum", { count: plan.free_mix_min })}
@@ -130,11 +101,16 @@ export function ProductDetail({ id }: { id: string }) {
   const t = useTranslations("catalog");
   const locale = useLocale();
   const { data: product } = useSuspenseQuery(publicProductOptions(id, readPublicProduct));
+  const format = useFormatter();
+  const params = useSearchParams();
+  const galleryVariant = product.variants.find((variant) => variant.id === params.get("id"));
+  const galleryTitle = useId();
+  const common = useTranslations("common");
   const access = useQuery({
     ...wholesaleAccessOptions(readWholesaleAccess),
     enabled: !environmentManager.isServer(),
   });
-  const scope = access.data?.allowed ? access.data.scope : "";
+  const scope = access.isSuccess && access.data.allowed ? access.data.scope : "";
   const wholesale = useQuery({
     ...wholesaleProductOptions(scope, id, readWholesaleProduct),
     enabled: Boolean(scope),
@@ -162,31 +138,47 @@ export function ProductDetail({ id }: { id: string }) {
         ))}
       </nav>
 
+      <header className="grid gap-2">
+        <p className="text-sm text-muted-foreground">{product.brand || t("brandUnavailable")}</p>
+        <h1 className="text-3xl font-semibold ltr:tracking-tight">
+          <bdi>{product.name}</bdi>
+        </h1>
+      </header>
       <div className="grid gap-8 lg:grid-cols-2">
-        <div className="grid grid-cols-2 gap-3">
-          {(product.image_urls.length ? product.image_urls : [undefined]).map((image, index) => (
-            <ProductImage
-              key={image ?? "fallback"}
-              src={image}
-              alt={`${product.name} ${index + 1}`}
-              fallback={t("imageFallback")}
-            />
-          ))}
-        </div>
+        <ProductGallery
+          key={product.image_urls.join("\n")}
+          name={product.name}
+          images={product.image_urls}
+        />
         <div className="grid content-start gap-5">
-          <div>
-            <p className="text-sm text-muted-foreground">
-              {product.brand || t("brandUnavailable")}
-            </p>
-            <h1 className="mt-2 text-3xl font-semibold ltr:tracking-tight">{product.name}</h1>
-          </div>
           <p className="leading-7 text-muted-foreground">{product.description}</p>
+          <p className="text-sm text-muted-foreground">
+            {product.rating.average !== null && product.rating.count > 0
+              ? t("card.rating", {
+                  average: format.number(product.rating.average, { maximumFractionDigits: 1 }),
+                  count: format.number(product.rating.count),
+                })
+              : t("card.noRating")}
+          </p>
           <Card>
             <CardHeader>
               <CardTitle>{t("manufacturer.title")}</CardTitle>
+              {product.manufacturer.verified && (
+                <Badge variant="outline">{t("manufacturer.verified")}</Badge>
+              )}
               <CardDescription>{location || t("manufacturer.locationUnavailable")}</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3">
+              {product.manufacturer.logo_url && (
+                <ProductImage
+                  src={product.manufacturer.logo_url}
+                  alt={product.manufacturer.name}
+                  fallback={product.manufacturer.name}
+                  className="size-16"
+                  sizes="64px"
+                  fit="contain"
+                />
+              )}
               <Link
                 href={`/manufacturers/${product.manufacturer.id}`}
                 className="font-medium hover:underline"
@@ -196,19 +188,28 @@ export function ProductDetail({ id }: { id: string }) {
               <p className="text-sm text-muted-foreground">{product.manufacturer.description}</p>
             </CardContent>
           </Card>
-          {wholesale.isSuccess ? (
+          {scope && wholesale.isSuccess ? (
             <WholesalePrices product={wholesale.data} />
           ) : scope ? (
             wholesale.isError ? (
               <Alert variant="destructive">
                 <AlertTitle>{t("wholesale.unavailableTitle")}</AlertTitle>
-                <AlertDescription>{t("wholesale.unavailableDescription")}</AlertDescription>
+                <AlertDescription>
+                  {t("wholesale.unavailableDescription")}
+                  <Button variant="outline" onClick={() => void wholesale.refetch()}>
+                    {common("retry")}
+                  </Button>
+                </AlertDescription>
               </Alert>
             ) : (
               <p role="status" className="text-sm text-muted-foreground">
                 {t("wholesale.loading")}
               </p>
             )
+          ) : access.isPending ? (
+            <p role="status" className="text-sm text-muted-foreground">
+              {t("wholesale.loading")}
+            </p>
           ) : (
             <>
               <Alert>
@@ -233,11 +234,21 @@ export function ProductDetail({ id }: { id: string }) {
         <h2 id="product-specifications" className="text-2xl font-semibold">
           {t("specifications")}
         </h2>
+        {!product.display_attributes.length && !product.manufacturer_model && (
+          <p className="text-muted-foreground">{t("specificationsUnavailable")}</p>
+        )}
         <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {Object.entries(product.attributes).map(([key, value]) => (
-            <div key={key} className="rounded-lg border p-4">
-              <dt className="text-sm text-muted-foreground">{key}</dt>
-              <dd className="mt-1 font-medium">{valueText(value, locale)}</dd>
+          {product.display_attributes.map(({ code, name, value, unit }) => (
+            <div key={code} className="rounded-lg border p-4">
+              <dt className="text-sm text-muted-foreground">
+                <bdi>{name}</bdi>
+              </dt>
+              <dd className="mt-1 font-medium">
+                <bdi>
+                  {attributeValueText(value, locale)}
+                  {unit ? ` ${unit}` : ""}
+                </bdi>
+              </dd>
             </div>
           ))}
           {product.manufacturer_model ? (
@@ -256,49 +267,147 @@ export function ProductDetail({ id }: { id: string }) {
           </h2>
           <p className="mt-1 text-muted-foreground">{t("variants.description")}</p>
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          {product.variants.map((variant) => (
-            <Card key={variant.id}>
-              <CardHeader>
-                <CardTitle>{variant.sku}</CardTitle>
-                <CardDescription>
-                  {variant.orderable ? t("orderable") : t("notOrderable")}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-3">
-                <dl className="grid gap-2">
-                  {Object.entries(variant.attributes).map(([key, value]) => (
-                    <div key={key} className="flex justify-between gap-4">
-                      <dt className="text-muted-foreground">{key}</dt>
-                      <dd>{valueText(value, locale)}</dd>
+        <Table>
+          <TableCaption className="sr-only">{t("variants.comparisonCaption")}</TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t("variants.image")}</TableHead>
+              <TableHead>{t("variants.sku")}</TableHead>
+              <TableHead>{t("specifications")}</TableHead>
+              <TableHead>{t("variants.readyHeading")}</TableHead>
+              <TableHead>{t("variants.productionHeading")}</TableHead>
+              <TableHead>{t("card.preparation")}</TableHead>
+              <TableHead>{t("filters.availability")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {product.variants.map((variant) => (
+              <TableRow key={variant.id}>
+                <TableCell>
+                  {variant.image_urls[0] ? (
+                    <Button
+                      variant="outline"
+                      className="size-16 p-1"
+                      aria-label={t("variants.viewImages", { sku: variant.sku })}
+                      onClick={() => openModal("variant-gallery", variant.id)}
+                    >
+                      <ProductImage
+                        src={variant.image_urls[0]}
+                        alt=""
+                        fallback=""
+                        className="size-full"
+                        sizes="64px"
+                      />
+                    </Button>
+                  ) : (
+                    "—"
+                  )}
+                </TableCell>
+                <TableCell>
+                  <bdi>{variant.sku}</bdi>
+                </TableCell>
+                <TableCell>
+                  <dl className="grid gap-2">
+                    {variant.display_attributes.map((attribute) => (
+                      <div key={attribute.code} className="flex justify-between gap-4">
+                        <dt className="text-muted-foreground">
+                          <bdi>{attribute.name}</bdi>
+                        </dt>
+                        <dd>
+                          <bdi>
+                            {attributeValueText(attribute.value, locale)}
+                            {attribute.unit ? ` ${attribute.unit}` : ""}
+                          </bdi>
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </TableCell>
+                <TableCell>
+                  {variant.supply
+                    ? format.number(variant.supply.ready_stock)
+                    : t("variants.noSupply")}
+                </TableCell>
+                <TableCell>
+                  {variant.supply
+                    ? format.number(variant.supply.production_cap)
+                    : t("variants.noSupply")}
+                </TableCell>
+                <TableCell>
+                  {variant.supply ? (
+                    <div className="grid gap-1">
+                      <p>{t(`supply.${variant.supply.mode}`)}</p>
+                      {variant.supply.ready_stock > 0 && <p>{t("readyNow")}</p>}
+                      {variant.supply.production_cap > 0 && (
+                        <p>
+                          {t("variants.productionDays", {
+                            count: format.number(variant.supply.lead_time_days),
+                          })}
+                        </p>
+                      )}
                     </div>
-                  ))}
-                </dl>
-                {variant.supply ? (
-                  <div className="grid gap-1 border-t pt-3 text-sm text-muted-foreground">
-                    <p>{t(`supply.${variant.supply.mode}`)}</p>
-                    <p>{t("variants.readyStock", { count: variant.supply.ready_stock })}</p>
-                    <p>{t("variants.productionCap", { count: variant.supply.production_cap })}</p>
-                    <p>{t("leadDays", { count: variant.supply.lead_time_days })}</p>
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">{t("variants.noSupply")}</p>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  ) : (
+                    t("variants.noSupply")
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Badge variant={variant.orderable ? "secondary" : "outline"}>
+                    {variant.orderable ? t("orderable") : t("notOrderable")}
+                  </Badge>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        <p aria-hidden="true" className="text-sm text-muted-foreground">
+          {t("variants.comparisonCaption")}
+        </p>
+        {!product.variants.length && <p className="text-muted-foreground">{t("variants.empty")}</p>}
+        <p className="text-sm text-muted-foreground">{t("variants.preparationHint")}</p>
+        <Modal name="variant-gallery" labelledBy={galleryTitle}>
+          <DialogTitle id={galleryTitle}>{galleryVariant?.sku ?? t("variants.image")}</DialogTitle>
+          <DialogDescription>{t("variants.galleryDescription")}</DialogDescription>
+          {galleryVariant ? (
+            <ProductGallery
+              key={galleryVariant.image_urls.join("\n")}
+              name={galleryVariant.sku}
+              images={galleryVariant.image_urls}
+            />
+          ) : (
+            <p>{t("variants.galleryUnavailable")}</p>
+          )}
+        </Modal>
       </section>
+
+      {scope && wholesale.isSuccess && wholesale.data.wholesale && (
+        <SelectionPreview
+          key={`${scope}:${id}`}
+          scope={scope}
+          productId={id}
+          plan={wholesale.data.wholesale}
+          variants={wholesale.data.variants}
+          quote={quoteWholesaleProduct}
+        />
+      )}
 
       <section aria-labelledby="product-shipping" className="grid gap-4">
         <h2 id="product-shipping" className="text-2xl font-semibold">
           {t("shipping.title")}
         </h2>
+        <p className="text-sm text-muted-foreground">{t("shipping.costHint")}</p>
         {product.shipping_services.length ? (
           <ul className="grid gap-2 sm:grid-cols-2">
             {product.shipping_services.map((service) => (
               <li key={service.id} className="rounded-lg border p-4">
-                {service.name}
+                <p className="font-medium">
+                  <bdi>{service.name}</bdi>
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {t("shipping.deliveryRange", {
+                    min: format.number(service.delivery_days_min),
+                    max: format.number(service.delivery_days_max),
+                  })}
+                </p>
               </li>
             ))}
           </ul>
@@ -306,6 +415,7 @@ export function ProductDetail({ id }: { id: string }) {
           <p className="text-muted-foreground">{t("shipping.unavailable")}</p>
         )}
       </section>
+      <ProductReviews key={id} id={id} />
     </article>
   );
 }

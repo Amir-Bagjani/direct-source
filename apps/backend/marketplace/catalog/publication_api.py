@@ -1,33 +1,34 @@
 from django.core.files.storage import default_storage
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_field
 from rest_framework import generics, serializers
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from marketplace.accounts.api import validated
-from marketplace.accounts.permissions import can_view_wholesale, has_role, require_operator
+from marketplace.accounts.permissions import (
+    active_user,
+    can_view_wholesale,
+    has_role,
+    require_operator,
+)
 from marketplace.logistics.api import ShippingInput
 from marketplace.logistics.services import shipping_data
 
 from . import browsing
-from .api import ProductSerializer, VariantSerializer
+from .api import AttributeSerializer, CategorySerializer, ProductSerializer, VariantSerializer
 from .models import Product
-from .publication import transition
+from .publication import publication_readiness, transition
 from .sales_api import PackInput, PlanOutput, SupplyInput
 from .sales_services import plan_data
 
 
 class PublicationOutput(ProductSerializer):
     class Meta(ProductSerializer.Meta):
-        fields = ProductSerializer.Meta.fields + [
-            "assigned_to",
-            "submitted_at",
-            "published_at",
-            "decision_code",
-            "decision_reason",
-        ]
+        fields = ProductSerializer.Meta.fields
         read_only_fields = fields
 
 
@@ -128,49 +129,47 @@ class SupplyDetail(SupplyInput):
     variant = serializers.UUIDField()
 
 
-class ReviewDetailOutput(serializers.Serializer):
-    product = PublicationOutput()
-    variants = VariantSerializer(many=True)
-    sales_plan = PlanOutput(allow_null=True)
-    shipping = ShippingInput(allow_null=True)
-    supplies = SupplyDetail(many=True)
+class PublicationCheckOutput(serializers.Serializer):
+    code = serializers.ChoiceField(
+        choices=["business", "content", "variants", "supply", "pricing", "shipping"]
+    )
+    passed = serializers.BooleanField()
 
 
-class ReviewDetailView(APIView):
-    @extend_schema(responses=ReviewDetailOutput)
+class PublicationReadinessOutput(serializers.Serializer):
+    ready = serializers.BooleanField()
+    checks = PublicationCheckOutput(many=True)
+
+
+class PublicationReadinessView(APIView):
+    @extend_schema(responses=PublicationReadinessOutput)
     def get(self, request, pk):
-        require_operator(request.user)
-        qs = Product.objects.all()
-        if not has_role(request.user, "owner"):
-            qs = qs.filter(assigned_to_id=request.user.pk)
-        product = get_object_or_404(qs, pk=pk)
-        variants = list(product.variants.select_related("product", "supply"))
-        plan = getattr(product, "sales_plan", None)
-        return Response(
-            {
-                "product": PublicationOutput(product).data,
-                "variants": VariantSerializer(variants, many=True).data,
-                "sales_plan": plan_data(plan, {v.pk: v.sku for v in variants}) if plan else None,
-                "shipping": shipping_data(product) if hasattr(product, "shipping") else None,
-                "supplies": [
-                    {
-                        "variant": str(v.pk),
-                        **{
-                            key: getattr(v.supply, key)
-                            for key in ["mode", "ready_stock", "production_cap", "lead_time_days"]
-                        },
-                    }
-                    for v in variants
-                    if hasattr(v, "supply")
-                ],
-            }
+        product = get_object_or_404(
+            Product.objects.select_related("business", "category"),
+            pk=pk,
+            business__membership__user=request.user,
         )
+        if (
+            not active_user(request.user)
+            or product.business.kind != "manufacturer"
+            or product.business.status == "suspended"
+        ):
+            raise PermissionDenied()
+        return Response(publication_readiness(product), headers={"Cache-Control": "no-store"})
+
+
+class DisplayAttribute(serializers.Serializer):
+    code = serializers.CharField()
+    name = serializers.CharField()
+    value = serializers.JSONField()
+    unit = serializers.CharField(allow_blank=True)
 
 
 class PublicVariantSummary(serializers.Serializer):
     id = serializers.UUIDField()
     sku = serializers.CharField()
     attributes = serializers.DictField()
+    display_attributes = DisplayAttribute(many=True)
     image_urls = serializers.ListField(child=serializers.URLField())
     orderable = serializers.BooleanField()
     supply = SupplyInput(allow_null=True)
@@ -190,6 +189,7 @@ class ManufacturerOutput(serializers.Serializer):
     province = serializers.CharField(allow_null=True)
     city = serializers.CharField(allow_null=True)
     joined_at = serializers.DateTimeField(allow_null=True)
+    logo_url = serializers.URLField(allow_null=True)
 
 
 class RatingOutput(serializers.Serializer):
@@ -198,7 +198,6 @@ class RatingOutput(serializers.Serializer):
 
 
 class PublicManufacturerSerializer(ManufacturerOutput):
-    logo_url = serializers.URLField(allow_null=True)
     rating = RatingOutput()
     product_count = serializers.IntegerField()
     categories = CategoryPathOutput(many=True)
@@ -208,6 +207,8 @@ class PublicShippingOutput(serializers.Serializer):
     id = serializers.UUIDField()
     name = serializers.CharField()
     kind = serializers.CharField()
+    delivery_days_min = serializers.IntegerField(min_value=0)
+    delivery_days_max = serializers.IntegerField(min_value=0)
 
 
 class PublicProductSerializer(serializers.Serializer):
@@ -219,6 +220,7 @@ class PublicProductSerializer(serializers.Serializer):
     brand = serializers.CharField()
     manufacturer_model = serializers.CharField()
     attributes = serializers.DictField()
+    display_attributes = DisplayAttribute(many=True)
     image_urls = serializers.ListField(child=serializers.URLField())
     wholesale = PlanOutput(required=False)
     representative_price_irr = serializers.IntegerField(required=False, allow_null=True)
@@ -260,6 +262,93 @@ class PublicProductSerializer(serializers.Serializer):
         return representation
 
 
+class ProductPreviewOutput(PublicProductSerializer):
+    published_at = serializers.DateTimeField(allow_null=True)
+
+    def to_representation(self, instance):
+        # Private callers already authorize the producer or assigned reviewer.
+        return serializers.Serializer.to_representation(self, instance)
+
+
+def private_preview(product):
+    categories, _ = browsing.taxonomy()
+    data = browsing.public_data(product, True, categories, default_storage)
+    data["manufacturer"]["verified"] = product.business.status == "verified"
+    return data
+
+
+class ProductPreviewView(APIView):
+    @extend_schema(responses=ProductPreviewOutput)
+    def get(self, request, pk):
+        if not active_user(request.user):
+            raise PermissionDenied()
+        qs = browsing.catalog_projection_queryset()
+        if has_role(request.user, "owner"):
+            pass
+        elif has_role(request.user, "operator"):
+            qs = qs.filter(
+                Q(business__membership__user=request.user)
+                | Q(assigned_to=request.user, status="pending")
+            )
+        else:
+            qs = qs.filter(business__membership__user=request.user)
+        product = get_object_or_404(qs, pk=pk)
+        platform_access = has_role(request.user, "owner") or (
+            has_role(request.user, "operator")
+            and product.assigned_to_id == request.user.pk
+            and product.status == "pending"
+        )
+        if not platform_access and (
+            product.business.kind != "manufacturer" or product.business.status == "suspended"
+        ):
+            raise PermissionDenied()
+        return Response(
+            ProductPreviewOutput(private_preview(product)).data,
+            headers={"Cache-Control": "no-store"},
+        )
+
+
+class ReviewDetailOutput(serializers.Serializer):
+    product = PublicationOutput()
+    variants = VariantSerializer(many=True)
+    sales_plan = PlanOutput(allow_null=True)
+    shipping = ShippingInput(allow_null=True)
+    supplies = SupplyDetail(many=True)
+    readiness = PublicationReadinessOutput()
+
+
+class ReviewDetailView(APIView):
+    @extend_schema(responses=ReviewDetailOutput)
+    def get(self, request, pk):
+        require_operator(request.user)
+        qs = Product.objects.all()
+        if not has_role(request.user, "owner"):
+            qs = qs.filter(assigned_to_id=request.user.pk)
+        product = get_object_or_404(qs, pk=pk)
+        variants = list(product.variants.select_related("product", "supply"))
+        plan = getattr(product, "sales_plan", None)
+        return Response(
+            {
+                "product": PublicationOutput(product).data,
+                "variants": VariantSerializer(variants, many=True).data,
+                "sales_plan": plan_data(plan, {v.pk: v.sku for v in variants}) if plan else None,
+                "shipping": shipping_data(product) if hasattr(product, "shipping") else None,
+                "supplies": [
+                    {
+                        "variant": str(v.pk),
+                        **{
+                            key: getattr(v.supply, key)
+                            for key in ["mode", "ready_stock", "production_cap", "lead_time_days"]
+                        },
+                    }
+                    for v in variants
+                    if hasattr(v, "supply")
+                ],
+                "readiness": publication_readiness(product),
+            }
+        )
+
+
 class PublicProductList(generics.ListAPIView):
     permission_classes = [AllowAny]
     serializer_class = PublicProductSerializer
@@ -283,6 +372,43 @@ class PublicProductDetail(generics.RetrieveAPIView):
     permission_classes = [AllowAny]
     serializer_class = PublicProductSerializer
     queryset = browsing.public_queryset()
+
+
+class DiscoveryManufacturer(serializers.Serializer):
+    id = serializers.UUIDField()
+    name = serializers.CharField()
+
+
+class DiscoveryCategory(CategorySerializer):
+    path = serializers.SerializerMethodField()
+
+    @extend_schema_field(CategoryPathOutput(many=True))
+    def get_path(self, obj):
+        return browsing.category_path(obj.pk, self.context["categories"])
+
+    class Meta(CategorySerializer.Meta):
+        fields = [*CategorySerializer.Meta.fields, "path"]
+
+
+class DiscoveryOutput(serializers.Serializer):
+    categories = DiscoveryCategory(many=True)
+    attributes = AttributeSerializer(many=True)
+    manufacturers = DiscoveryManufacturer(many=True)
+
+
+class PublicDiscovery(APIView):
+    permission_classes = [AllowAny]
+
+    @extend_schema(responses=DiscoveryOutput)
+    def get(self, request):
+        data = browsing.discovery()
+        return Response(
+            DiscoveryOutput(
+                data,
+                context={"categories": {category.pk: category for category in data["categories"]}},
+            ).data,
+            headers={"Cache-Control": "no-store"},
+        )
 
 
 class PublicManufacturerDetail(generics.RetrieveAPIView):

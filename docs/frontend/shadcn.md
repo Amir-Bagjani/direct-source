@@ -83,3 +83,16 @@ Business onboarding adds official Base/Nova [Native Select](https://ui.shadcn.co
 and [Textarea](https://ui.shadcn.com/docs/components/base/textarea), installed through the
 configured registry and moved into their canonical shared/ui component directories. The form
 composes existing Field, Input, Button, Spinner, Alert and Card without custom CSS.
+
+
+Product previews use the official Base/Nova Collapsible from `@shadcn/collapsible` in
+`src/shared/ui/collapsible/collapsible.tsx` to expand a variant's gallery inline. It uses
+the existing Base UI dependency and Button `render` composition; no second gallery,
+portal or theme implementation is introduced.
+
+Private workspace overlays use Base UI's existing `container` prop. Shared
+`PortalContainer` keeps Dialog, Sheet, DropdownMenu and Tooltip inside the same
+DOM region as their owner, including nested private query regions. Public overlays
+retain Base UI's default container. Inert regions force invisible descendants and
+disable their transitions so `transition-all` cannot delay concealment. The retained
+tree keeps document height, form state and the existing Modal history contract.

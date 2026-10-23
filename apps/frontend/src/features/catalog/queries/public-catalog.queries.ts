@@ -3,9 +3,14 @@ import type {
   PublicManufacturer,
   PublicProduct,
   PublicProductPage,
+  PublicDiscovery,
 } from "../schemas/public-catalog.schema";
 import type { CatalogFilters } from "../utils/catalog-search";
 import { catalogKeys } from "./catalog.keys";
+
+export function publicDiscoveryOptions(read: (signal?: AbortSignal) => Promise<PublicDiscovery>) {
+  return queryOptions({ queryKey: catalogKeys.discovery(), queryFn: ({ signal }) => read(signal) });
+}
 
 export type ReadPublicProducts = (
   filters: CatalogFilters,

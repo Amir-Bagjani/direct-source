@@ -108,11 +108,14 @@ def test_price_boundaries_and_ready_first(client, sale, method, count, expected)
         "duplicate",
         "rising_default",
         "rising_effective",
+        "rising_override",
         "duplicate_pack",
         "duplicate_item",
         "empty_methods",
         "float",
         "bool",
+        "fractional_toman_default",
+        "fractional_toman_override",
         "empty_pack",
     ],
 )
@@ -131,6 +134,8 @@ def test_invalid_plan_preserves_previous_plan_and_audit(client, sale, case):
     elif case == "rising_effective":
         data["tiers"][0]["overrides"][0]["unit_price_irr"] = 7_000_000
         data["tiers"][1]["overrides"] = []
+    elif case == "rising_override":
+        data["tiers"][1]["overrides"][0]["unit_price_irr"] = 9_000_000
     elif case == "duplicate_pack":
         data["packs"].append(deepcopy(data["packs"][0]))
     elif case == "duplicate_item":
@@ -141,9 +146,27 @@ def test_invalid_plan_preserves_previous_plan_and_audit(client, sale, case):
         data["tiers"][0]["unit_price_irr"] = 1.5
     elif case == "bool":
         data["tiers"][0]["unit_price_irr"] = True
+    elif case == "fractional_toman_default":
+        data["tiers"][0]["unit_price_irr"] = 8_000_001
+    elif case == "fractional_toman_override":
+        data["tiers"][0]["overrides"][0]["unit_price_irr"] = 8_500_001
     elif case == "empty_pack":
         data["packs"][0]["items"] = []
-    assert client.put(url + "sales-plan/", data, format="json").status_code == 400
+    response = client.put(url + "sales-plan/", data, format="json")
+    assert response.status_code == 400
+    paths = {
+        "first": "tiers.0.min_quantity",
+        "order": "tiers.0.min_quantity",
+        "duplicate": "tiers.1.min_quantity",
+        "rising_default": "tiers.1.unit_price_irr",
+        "rising_effective": "tiers.1.unit_price_irr",
+        "rising_override": f"tiers.1.overrides.{variants[1].pk}.unit_price_irr",
+        "duplicate_pack": "packs.1.code",
+        "fractional_toman_default": "tiers.0.unit_price_irr",
+        "fractional_toman_override": f"tiers.0.overrides.{variants[1].pk}.unit_price_irr",
+    }
+    if case in paths:
+        assert paths[case] in response.data["fields"], response.data
     assert client.get(url + "sales-plan/").data == baseline
     assert AuditEvent.objects.filter(action="catalog.sales_plan_saved").count() == 1
 

@@ -43,7 +43,7 @@ src/
 The implemented business features are accounts and catalog. Do not scaffold future features
 or empty folders. `src/shared/hooks/` is the canonical location when a genuinely neutral
 hook gains a second independent consumer; `src/shared/utils/` is the equivalent for pure
-utilities without another existing category. Neither is needed yet. Do not add parallel
+utilities without another existing category. Catalogue and account form hosts now share `shared/hooks/use-retained-query-data.ts` and `shared/ui/private-query-region/` for masked, same-identity in-memory form retention. These do not authorize requests. Do not add parallel
 `src/hooks`, `src/utils`, `src/lib`, or `src/components/shared` trees. Existing category
 owners (theme, SEO, UI, API) take priority. `src/server` is shared server infrastructure.
 
@@ -75,7 +75,7 @@ browser-neutral modules cannot import server. Avoid cycles, including type-only 
 Routes may directly import the needed canonical component or server handler. No barrel
 files or re-exports. Cross-feature imports must target a small intentional `contracts/`
 module, not another feature's components, hooks, schemas or server internals. Prefer app
-composition before introducing a cross-feature contract. The accounts catalogue-session contract
+composition before introducing a cross-feature contract. The accounts catalogue-session server contract and catalog-workspace client session contract
 is the current reviewed example: it owns session-vault access and never returns a bearer token.
 
 Use `import "server-only"` in secret-bearing modules. Use `"use client"` at actual browser

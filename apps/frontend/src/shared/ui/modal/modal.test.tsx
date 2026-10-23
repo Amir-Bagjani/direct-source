@@ -3,6 +3,7 @@ import { StrictMode, useSyncExternalStore } from "react";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { DialogTitle } from "@/shared/ui/dialog/dialog";
+import { PrivateQueryRegion } from "@/shared/ui/private-query-region/private-query-region";
 import { Modal } from "./modal";
 import { openModal } from "./modal-history";
 
@@ -74,6 +75,35 @@ it("closes on Back by default and reopens on Forward", async () => {
   await traverse("forward");
   expect(screen.getByRole("dialog", { name: "Example" })).toBeDefined();
   expect(window.location.hash).toBe("#details");
+});
+
+it("keeps an open private dialog inside the masked region and preserves its draft", async () => {
+  const privateView = (masked: boolean) => (
+    <PrivateQueryRegion masked={masked} error={masked ? "Unavailable" : undefined} retry={() => {}}>
+      {modal()}
+    </PrivateQueryRegion>
+  );
+  const view = render(privateView(false));
+  act(() => openModal("example"));
+  const dialog = await screen.findByRole("dialog", { name: "Example" });
+  const input = screen.getByRole("textbox", { name: "Draft" });
+  fireEvent.change(input, { target: { value: "Private unsaved content" } });
+  view.rerender(privateView(true));
+  expect(dialog.closest('[inert][aria-hidden="true"]')).not.toBeNull();
+  expect(screen.getByRole("button", { name: "retry" })).toBeDefined();
+  view.rerender(privateView(false));
+  expect(await screen.findByRole("textbox", { name: "Draft" })).toBe(input);
+  expect((input as HTMLInputElement).value).toBe("Private unsaved content");
+});
+it("contains a private dialog opened directly by URL from its first mount", async () => {
+  history.replaceState({}, "", "/en?modal=example");
+  render(
+    <PrivateQueryRegion masked={false} error={undefined} retry={() => {}}>
+      {modal()}
+    </PrivateQueryRegion>,
+  );
+  const dialog = await screen.findByRole("dialog", { name: "Example" });
+  expect(dialog.closest('[aria-hidden="false"]')).not.toBeNull();
 });
 
 it("false adds no modal entry: Back reaches the previous page and Forward restores the modal", async () => {

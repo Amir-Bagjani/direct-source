@@ -228,6 +228,37 @@ def test_incomplete_submission_and_changes_cycle(client, ready_product, user_fac
     assert product.assigned_to_id is None
 
 
+@pytest.mark.parametrize("decision", ["changes_requested", "rejected"])
+def test_product_review_records_reason_actor_time_and_state(
+    client, ready_product, user_factory, decision
+):
+    actor, _, product, *_ = ready_product
+    url = f"/api/v1/catalog/products/{product.pk}/"
+    client.force_authenticate(actor)
+    assert client.post(url + "submit/").status_code == 200
+    reviewer = user_factory(role="operator")
+    client.force_authenticate(reviewer)
+    assert client.post(url + "claim/").status_code == 200
+    response = client.post(
+        url + "review/",
+        {"decision": decision, "code": "content_incomplete", "reason": "اصلاح محتوای محصول"},
+        format="json",
+    )
+    assert response.status_code == 200, response.data
+    product.refresh_from_db()
+    assert product.status == decision
+    assert product.decision_code == "content_incomplete"
+    assert product.decision_reason == "اصلاح محتوای محصول"
+    from marketplace.operations.models import AuditEvent
+
+    event = AuditEvent.objects.get(
+        aggregate_id=product.pk, action="catalog.publication_transition", actor=reviewer
+    )
+    assert event.created_at is not None
+    assert event.reason == product.decision_reason
+    assert event.after == {"status": decision, "code": "content_incomplete"}
+
+
 def test_shipping_configuration_and_package_validation(client, ready_product):
     actor, _, product, variant, service, _ = ready_product
     client.force_authenticate(actor)

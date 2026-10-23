@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { productPreviewSchema } from "../schemas/public-catalog.schema";
 import {
   withCatalogAccountMutation,
   withCatalogAccountRead,
@@ -10,6 +11,8 @@ import { djangoResponse } from "@/server/django-request";
 import { readBodyBytes, readJsonBody } from "@/server/read-body";
 import { isSameOriginMutation } from "@/server/request-policy";
 import { ApiError, unwrap } from "@/shared/api/unwrap";
+import { quoteInputSchema } from "../schemas/catalog-quote.schema";
+import { readQuoteResponse } from "./catalog-quote.server";
 import {
   attributePageSchema,
   attributeSchema,
@@ -28,10 +31,14 @@ import {
   proposalSchema,
   reasonInputSchema,
   reviewDetailSchema,
+  publicationReadinessSchema,
   reviewInputSchema,
   revisionQueueSchema,
+  revisionPageSchema,
   revisionReviewInputSchema,
   revisionSchema,
+  revisionReviewSchema,
+  revisionInputSchema,
   salesPlanInputSchema,
   salesPlanSchema,
   servicePageSchema,
@@ -53,6 +60,7 @@ const actionSchema = z.enum([
   "editor",
   "operator",
   "review-detail",
+  "preview",
   "revision",
   "product-save",
   "product-delete",
@@ -60,6 +68,7 @@ const actionSchema = z.enum([
   "variant-delete",
   "variant-activation",
   "sales-save",
+  "quote",
   "supply-save",
   "shipping-save",
   "upload",
@@ -135,34 +144,48 @@ function queryId(request: Request, name: string) {
 }
 
 async function editorData(access: string, productId: string) {
-  const [product, variants, tax, services, salesPlan, shipping] = await Promise.all([
-    catalogRequest(`/api/v1/catalog/products/${productId}/`, productSchema, {
-      method: "GET",
-      access,
-    }),
-    catalogRequest(
-      `/api/v1/catalog/products/${productId}/variants/?page_size=100`,
-      variantPageSchema,
-      { method: "GET", access },
-    ),
-    taxonomy(access),
-    catalogRequest("/api/v1/logistics/services/?page_size=100", servicePageSchema, {
-      method: "GET",
-      access,
-    }),
-    optionalRequest(
-      catalogRequest(`/api/v1/catalog/products/${productId}/sales-plan/`, salesPlanSchema, {
+  const [product, variants, tax, services, salesPlan, shipping, revisions, readiness] =
+    await Promise.all([
+      catalogRequest(`/api/v1/catalog/products/${productId}/`, productSchema, {
         method: "GET",
         access,
       }),
-    ),
-    optionalRequest(
-      catalogRequest(`/api/v1/logistics/products/${productId}/shipping/`, shippingInputSchema, {
+      catalogRequest(
+        `/api/v1/catalog/products/${productId}/variants/?page_size=100`,
+        variantPageSchema,
+        { method: "GET", access },
+      ),
+      taxonomy(access),
+      catalogRequest("/api/v1/logistics/services/?page_size=100", servicePageSchema, {
         method: "GET",
         access,
       }),
-    ),
-  ]);
+      optionalRequest(
+        catalogRequest(`/api/v1/catalog/products/${productId}/sales-plan/`, salesPlanSchema, {
+          method: "GET",
+          access,
+        }),
+      ),
+      optionalRequest(
+        catalogRequest(`/api/v1/logistics/products/${productId}/shipping/`, shippingInputSchema, {
+          method: "GET",
+          access,
+        }),
+      ),
+      catalogRequest(
+        `/api/v1/catalog/products/${productId}/revisions/?page_size=100`,
+        revisionPageSchema,
+        {
+          method: "GET",
+          access,
+        },
+      ),
+      catalogRequest(
+        `/api/v1/catalog/products/${productId}/readiness/`,
+        publicationReadinessSchema,
+        { method: "GET", access },
+      ),
+    ]);
   if (variants.next || services.next) throw new ApiError(409, "catalog_editor_page_limit");
   const supplyEntries = await Promise.all(
     variants.results.map(
@@ -187,6 +210,8 @@ async function editorData(access: string, productId: string) {
     supplies: Object.fromEntries(supplyEntries.filter((entry) => entry[1] !== null)),
     services: services.results,
     taxonomy: tax,
+    revisions: revisions.results,
+    readiness,
   });
 }
 
@@ -217,9 +242,15 @@ export async function catalogManagementBff(request: Request, actionName: string)
   const headers = { "Cache-Control": "private, no-store" };
   try {
     const action = actionSchema.parse(actionName);
-    const read = ["access", "studio", "editor", "operator", "review-detail", "revision"].includes(
-      action,
-    );
+    const read = [
+      "access",
+      "studio",
+      "editor",
+      "operator",
+      "review-detail",
+      "revision",
+      "preview",
+    ].includes(action);
     if (request.method !== (read ? "GET" : "POST")) throw new ApiError(405, "method_not_allowed");
     if (!isSameOriginMutation(request, authConfig().origin))
       throw new ApiError(403, "invalid_request_origin");
@@ -250,18 +281,28 @@ export async function catalogManagementBff(request: Request, actionName: string)
           });
         }
         if (action === "editor") return editorData(access, queryId(request, "id"));
+        if (action === "preview")
+          return catalogRequest(
+            `/api/v1/catalog/products/${queryId(request, "id")}/preview/`,
+            productPreviewSchema,
+            { method: "GET", access },
+          );
         if (action === "review-detail")
           return catalogRequest(
             `/api/v1/catalog/review-products/${queryId(request, "id")}/`,
             reviewDetailSchema,
             { method: "GET", access },
           );
-        if (action === "revision")
-          return catalogRequest(
-            `/api/v1/catalog/revisions/${queryId(request, "id")}/`,
-            revisionSchema,
-            { method: "GET", access },
-          );
+        if (action === "revision") {
+          const [revision, tax] = await Promise.all([
+            catalogRequest(`/api/v1/catalog/revisions/${queryId(request, "id")}/`, revisionSchema, {
+              method: "GET",
+              access,
+            }),
+            taxonomy(access),
+          ]);
+          return revisionReviewSchema.parse({ revision, taxonomy: tax });
+        }
         const [tax, products, revisions, proposals] = await Promise.all([
           taxonomy(access),
           catalogRequest("/api/v1/catalog/review-queue/?page_size=100", productQueueSchema, {
@@ -321,6 +362,14 @@ export async function catalogManagementBff(request: Request, actionName: string)
         });
       }
       const body = await readJsonBody(request, 256 * 1024);
+      if (action === "quote")
+        return readQuoteResponse(
+          await djangoResponse(`/api/v1/catalog/products/${idSchema.parse(productId)}/quote/`, {
+            method: "POST",
+            access,
+            body: quoteInputSchema.parse(body),
+          }),
+        );
       if (action === "product-save") {
         const input = productInputSchema.parse(body);
         return catalogRequest(
@@ -467,13 +516,7 @@ export async function catalogManagementBff(request: Request, actionName: string)
           },
         );
       if (action === "revision-save") {
-        const changes = z
-          .object({
-            profile: productInputSchema.partial().optional(),
-            variants: z.array(z.unknown()).optional(),
-          })
-          .refine((value) => Object.keys(value).length > 0)
-          .parse(body);
+        const changes = revisionInputSchema.parse(body);
         return catalogRequest(
           id
             ? `/api/v1/catalog/revisions/${idSchema.parse(id)}/`

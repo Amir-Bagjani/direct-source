@@ -1,7 +1,9 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import PermissionDenied, ValidationError
 
+from marketplace.accounts.models import Business
+from marketplace.accounts.permissions import can_view_wholesale
 from marketplace.common.exceptions import Conflict
 from marketplace.logistics.services import coverage, lock_services
 from marketplace.operations.services import audit
@@ -19,13 +21,13 @@ from .models import (
 from .services import locked_actor, producer, snapshot
 
 
-def locked_product(actor, product_id):
+def locked_product(actor, product_id, *, editable=True):
     actor = locked_actor(actor)
     reference = get_object_or_404(Product, pk=product_id, business__membership__user=actor)
     producer(actor, reference.business_id)
     lock_services()
     product = Product.objects.select_for_update().get(pk=product_id)
-    if product.status not in ["draft", "changes_requested", "published", "inactive"]:
+    if editable and product.status not in ["draft", "changes_requested", "published", "inactive"]:
         raise Conflict("این فرمان فعلاً فقط برای پیش‌نویس مجاز است.")
     return actor, product
 
@@ -89,7 +91,7 @@ def plan_data(plan, variants):
 
 @transaction.atomic
 def read_plan(*, actor, product_id):
-    _, product = locked_product(actor, product_id)
+    _, product = locked_product(actor, product_id, editable=False)
     plan = get_object_or_404(SalesPlan, product=product)
     return plan_data(plan, dict(product.variants.filter(is_active=True).values_list("id", "sku")))
 
@@ -98,36 +100,58 @@ def validate_plan(variants, data):
     if not variants:
         raise ValidationError("ابتدا حداقل یک تنوع بسازید.")
     minima = [data["free_mix_min"]] if data["free_mix_min"] else []
-    codes = [pack["code"] for pack in data["packs"]]
-    if len(codes) != len(set(codes)):
-        raise ValidationError({"packs": "کد بسته تکراری است."})
-    for pack in data["packs"]:
+    codes = set()
+    for index, pack in enumerate(data["packs"]):
+        if pack["code"] in codes:
+            raise ValidationError({f"packs.{index}.code": "کد بسته تکراری است."})
+        codes.add(pack["code"])
         unique_variants(pack["items"], variants)
         total = sum(item["quantity"] for item in pack["items"])
         if total > 1_000_000_000:
-            raise ValidationError({"packs": "تعداد واحدهای بسته بیش از حد مجاز است."})
+            raise ValidationError(
+                {f"packs.{index}.items": "تعداد واحدهای بسته بیش از حد مجاز است."}
+            )
         minima.append(total)
     if not minima:
         raise ValidationError("حداقل یک روش فروش لازم است.")
     tiers = data["tiers"]
     starts = [tier["min_quantity"] for tier in tiers]
-    if starts[0] != min(minima) or starts != sorted(set(starts)):
+    if starts[0] != min(minima):
         raise ValidationError(
-            {"tiers": "شروع پله‌ها باید صعودی، یکتا و از کمترین تعداد قابل سفارش باشد."}
+            {"tiers.0.min_quantity": "پلهٔ اول باید از کمترین تعداد قابل سفارش شروع شود."}
         )
     previous_default = None
     previous: dict = {}
-    for tier in tiers:
+    for index, tier in enumerate(tiers):
+        if index and tier["min_quantity"] <= starts[index - 1]:
+            raise ValidationError(
+                {f"tiers.{index}.min_quantity": "شروع پله‌ها باید صعودی و یکتا باشد."}
+            )
         unique_variants(tier["overrides"], variants)
         default = tier["unit_price_irr"]
         overrides = {row["variant"]: row["unit_price_irr"] for row in tier["overrides"]}
-        effective = {pk: overrides.get(pk, default) for pk in variants}
-        if (previous_default is not None and default > previous_default) or any(
-            price > previous[pk] for pk, price in effective.items() if pk in previous
-        ):
+        if default % 10:
             raise ValidationError(
-                {"tiers": "قیمت پیش‌فرض و قیمت نهایی هر تنوع نباید با تعداد افزایش یابد."}
+                {f"tiers.{index}.unit_price_irr": "قیمت ریالی باید بدون اعشار به تومان تبدیل شود."}
             )
+        for pk, price in overrides.items():
+            if price % 10:
+                raise ValidationError(
+                    {
+                        f"tiers.{index}.overrides.{pk}.unit_price_irr": "قیمت ریالی باید بدون اعشار به تومان تبدیل شود."
+                    }
+                )
+        effective = {pk: overrides.get(pk, default) for pk in variants}
+        if previous_default is not None and default > previous_default:
+            raise ValidationError(
+                {f"tiers.{index}.unit_price_irr": "قیمت پیش‌فرض نباید با تعداد افزایش یابد."}
+            )
+        for pk, price in effective.items():
+            if pk in previous and price > previous[pk]:
+                field = f"overrides.{pk}.unit_price_irr" if pk in overrides else "unit_price_irr"
+                raise ValidationError(
+                    {f"tiers.{index}.{field}": "قیمت نهایی تنوع نباید با تعداد افزایش یابد."}
+                )
         previous_default, previous = default, effective
 
 
@@ -205,7 +229,7 @@ def save_supply(*, actor, product_id, pk, data):
 
 @transaction.atomic
 def read_supply(*, actor, product_id, pk):
-    _, product = locked_product(actor, product_id)
+    _, product = locked_product(actor, product_id, editable=False)
     supply = get_object_or_404(VariantSupply, variant_id=pk, variant__product=product)
     return {
         key: getattr(supply, key)
@@ -216,6 +240,20 @@ def read_supply(*, actor, product_id, pk):
 @transaction.atomic
 def quote(*, actor, product_id, data):
     _, product = locked_product(actor, product_id)
+    return quote_product(product=product, data=data)
+
+
+@transaction.atomic
+def retailer_quote(*, actor, product_id, data):
+    from .browsing import public_queryset
+
+    actor = locked_actor(actor)
+    business = Business.objects.select_for_update().filter(membership__user=actor).first()
+    if business is None or not can_view_wholesale(actor):
+        raise PermissionDenied()
+    lock_services()
+    product = get_object_or_404(Product.objects.select_for_update(), pk=product_id)
+    get_object_or_404(public_queryset(), pk=product.pk)
     return quote_product(product=product, data=data)
 
 

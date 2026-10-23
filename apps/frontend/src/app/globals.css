@@ -129,7 +129,8 @@ html[data-theme="dark"] {
 /* Locale and browser accessibility integration; component appearance belongs to shadcn. */
 @layer base {
   html {
-    font-family: var(--font-inter-loaded), sans-serif;
+    /* Next's Inter variable includes Arial before the Persian fallback. */
+    font-family: Inter, var(--font-vazirmatn-loaded), Arial, sans-serif;
   }
   html[lang="fa"] {
     font-family: var(--font-vazirmatn-loaded), Tahoma, sans-serif;

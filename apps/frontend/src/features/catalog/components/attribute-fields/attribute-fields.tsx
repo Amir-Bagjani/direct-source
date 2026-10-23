@@ -1,7 +1,8 @@
 "use client";
+import { useId } from "react";
 import { Input } from "@/shared/ui/input/input";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select/native-select";
-import { Field, FieldDescription, FieldLabel } from "@/shared/ui/field/field";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/shared/ui/field/field";
 import type { Taxonomy } from "../../schemas/catalog-management.schema";
 
 type Props = {
@@ -14,6 +15,7 @@ type Props = {
 };
 
 export function AttributeFields({ category, scope, taxonomy, value, onChange, disabled }: Props) {
+  const prefix = useId();
   const attributes = taxonomy.attributes
     .filter(
       (attribute) =>
@@ -22,7 +24,7 @@ export function AttributeFields({ category, scope, taxonomy, value, onChange, di
     .sort((left, right) => left.position - right.position);
   if (!attributes.length) return null;
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
+    <FieldGroup className="grid gap-4 sm:grid-cols-2">
       {attributes.map((attribute) => {
         const current = value[attribute.code];
         const update = (next: unknown) => {
@@ -33,13 +35,13 @@ export function AttributeFields({ category, scope, taxonomy, value, onChange, di
         };
         return (
           <Field key={attribute.id}>
-            <FieldLabel htmlFor={`${scope}-${attribute.id}`}>
+            <FieldLabel htmlFor={`${prefix}-${attribute.id}`}>
               {attribute.name}
               {attribute.required ? " *" : ""}
             </FieldLabel>
             {attribute.kind === "choice" ? (
               <NativeSelect
-                id={`${scope}-${attribute.id}`}
+                id={`${prefix}-${attribute.id}`}
                 className="w-full"
                 value={typeof current === "string" ? current : ""}
                 required={attribute.required}
@@ -57,8 +59,10 @@ export function AttributeFields({ category, scope, taxonomy, value, onChange, di
               </NativeSelect>
             ) : (
               <Input
-                id={`${scope}-${attribute.id}`}
+                id={`${prefix}-${attribute.id}`}
                 type={attribute.kind === "number" ? "number" : "text"}
+                step={attribute.kind === "number" ? "any" : undefined}
+                maxLength={attribute.kind === "text" ? 120 : undefined}
                 value={typeof current === "string" || typeof current === "number" ? current : ""}
                 required={attribute.required}
                 disabled={disabled}
@@ -79,6 +83,6 @@ export function AttributeFields({ category, scope, taxonomy, value, onChange, di
           </Field>
         );
       })}
-    </div>
+    </FieldGroup>
   );
 }

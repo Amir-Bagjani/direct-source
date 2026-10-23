@@ -9,6 +9,7 @@ if (!process.env.E2E_AUTH_ENV) {
   );
   database.pathname = `/${databaseName}`;
   process.env.E2E_AUTH_ENV = JSON.stringify({
+    HOSTNAME: "localhost",
     E2E_DATABASE_NAME: databaseName,
     NEXTAUTH_URL: "http://localhost:3100",
     DJANGO_API_URL: "http://127.0.0.1:8001",

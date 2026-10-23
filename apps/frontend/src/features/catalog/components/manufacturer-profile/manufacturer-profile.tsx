@@ -1,6 +1,6 @@
 "use client";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useLocale, useTranslations } from "next-intl";
+import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { readPublicManufacturer, readPublicProducts } from "../../api/public-catalog.api";
 import {
   publicManufacturerOptions,
@@ -8,10 +8,13 @@ import {
 } from "../../queries/public-catalog.queries";
 import type { CatalogFilters } from "../../utils/catalog-search";
 import { ProductCard } from "../product-card/product-card";
+import { ProductImage } from "../product-image/product-image";
 import { Card, CardContent, CardDescription, CardHeader } from "@/shared/ui/card/card";
 
 export function ManufacturerProfile({ id, filters }: { id: string; filters: CatalogFilters }) {
   const t = useTranslations("catalog.manufacturer");
+  const catalog = useTranslations("catalog");
+  const format = useFormatter();
   const locale = useLocale();
   const { data: manufacturer } = useSuspenseQuery(
     publicManufacturerOptions(id, readPublicManufacturer),
@@ -24,12 +27,27 @@ export function ManufacturerProfile({ id, filters }: { id: string; filters: Cata
     <div className="grid gap-8">
       <Card>
         <CardHeader>
-          <h1 className="text-3xl font-semibold ltr:tracking-tight">{manufacturer.name}</h1>
-          <CardDescription>{manufacturer.verified ? t("verified") : null}</CardDescription>
+          <div className="flex items-center gap-4">
+            {manufacturer.logo_url && (
+              <ProductImage
+                src={manufacturer.logo_url}
+                alt={manufacturer.name}
+                fallback={manufacturer.name}
+                className="size-20 shrink-0"
+                sizes="80px"
+              />
+            )}
+            <div className="min-w-0 space-y-2">
+              <h1 className="text-3xl font-semibold wrap-break-word ltr:tracking-tight">
+                <bdi>{manufacturer.name}</bdi>
+              </h1>
+              <CardDescription>{manufacturer.verified ? t("verified") : null}</CardDescription>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="grid gap-4">
           <p className="leading-7 text-muted-foreground">{manufacturer.description}</p>
-          <dl className="grid gap-3 sm:grid-cols-3">
+          <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <dt className="text-sm text-muted-foreground">{t("location")}</dt>
               <dd className="mt-1 font-medium">{location || t("locationUnavailable")}</dd>
@@ -48,6 +66,19 @@ export function ManufacturerProfile({ id, filters }: { id: string; filters: Cata
               <dt className="text-sm text-muted-foreground">{t("productsCount")}</dt>
               <dd className="mt-1 font-medium">
                 {new Intl.NumberFormat(locale).format(manufacturer.product_count)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm text-muted-foreground">{t("rating")}</dt>
+              <dd className="mt-1 font-medium">
+                {manufacturer.rating.average !== null && manufacturer.rating.count > 0
+                  ? catalog("card.rating", {
+                      average: format.number(manufacturer.rating.average, {
+                        maximumFractionDigits: 1,
+                      }),
+                      count: format.number(manufacturer.rating.count),
+                    })
+                  : catalog("card.noRating")}
               </dd>
             </div>
           </dl>

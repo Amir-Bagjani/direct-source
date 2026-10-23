@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError as ModelValidationError
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -32,37 +33,78 @@ def set_status(product, actor, status, code, reason):
     )
 
 
-def validate_publication(product):
-    if product.business.status != "verified":
-        raise ValidationError("کسب‌وکار تولیدکننده باید تأییدشده باشد.")
-    active_category(product.category)
-    values_for(product.category, "product", product.attributes, product.attributes)
-    if not product.images:
-        raise ValidationError("تصویر اصلی الزامی است.")
-    image_ids(product.business, product.images, 8)
+def publication_checks(product):
     variants = list(product.variants.filter(is_active=True).select_related("supply", "package"))
-    if not variants:
-        raise ValidationError("حداقل یک تنوع الزامی است.")
-    for variant in variants:
-        values_for(product.category, "variant", variant.attributes, variant.attributes)
-        image_ids(product.business, variant.images, 3)
-        supply, package = getattr(variant, "supply", None), getattr(variant, "package", None)
-        if supply is None or package is None:
-            raise ValidationError("عرضه و مشخصات بستهٔ همهٔ تنوع‌ها لازم است.")
-        supply.full_clean()
-        package.full_clean()
-    plan = getattr(product, "sales_plan", None)
-    if plan is None or not plan.tiers.exists():
-        raise ValidationError("برنامهٔ قیمت لازم است.")
-    from .sales_api import SalesPlanInput
-    from .sales_services import plan_data, validate_plan
 
-    active_variants = {v.pk: v.sku for v in variants}
-    serializer = SalesPlanInput(data=plan_data(plan, active_variants))
-    serializer.is_valid(raise_exception=True)
-    validate_plan(active_variants, serializer.validated_data)
-    if not coverage(product):
-        raise ValidationError("حداقل یک انتخاب قابل سفارش با پوشش معتبر تمام استان‌ها لازم است.")
+    def business():
+        if product.business.status != "verified":
+            raise ValidationError("کسب‌وکار تولیدکننده باید تأییدشده باشد.")
+
+    def content():
+        active_category(product.category)
+        values_for(product.category, "product", product.attributes, product.attributes)
+        if not product.images:
+            raise ValidationError("تصویر اصلی الزامی است.")
+        image_ids(product.business, product.images, 8)
+
+    def variant_content():
+        if not variants:
+            raise ValidationError("حداقل یک تنوع الزامی است.")
+        for variant in variants:
+            values_for(product.category, "variant", variant.attributes, variant.attributes)
+            image_ids(product.business, variant.images, 3)
+
+    def supply_and_packaging():
+        if not variants:
+            raise ValidationError("حداقل یک تنوع الزامی است.")
+        for variant in variants:
+            supply, package = getattr(variant, "supply", None), getattr(variant, "package", None)
+            if supply is None or package is None:
+                raise ValidationError("عرضه و مشخصات بستهٔ همهٔ تنوع‌ها لازم است.")
+            supply.full_clean()
+            package.full_clean()
+
+    def pricing():
+        plan = getattr(product, "sales_plan", None)
+        if plan is None or not plan.tiers.exists():
+            raise ValidationError("برنامهٔ قیمت لازم است.")
+        from .sales_api import SalesPlanInput
+        from .sales_services import plan_data, validate_plan
+
+        active_variants = {v.pk: v.sku for v in variants}
+        serializer = SalesPlanInput(data=plan_data(plan, active_variants))
+        serializer.is_valid(raise_exception=True)
+        validate_plan(active_variants, serializer.validated_data)
+
+    def shipping():
+        if not coverage(product):
+            raise ValidationError("حداقل یک انتخاب قابل سفارش با پوشش معتبر تمام استان‌ها لازم است.")
+
+    return [
+        ("business", business),
+        ("content", content),
+        ("variants", variant_content),
+        ("supply", supply_and_packaging),
+        ("pricing", pricing),
+        ("shipping", shipping),
+    ]
+
+
+def validate_publication(product):
+    for _, check in publication_checks(product):
+        check()
+
+
+def publication_readiness(product):
+    checks = []
+    for code, check in publication_checks(product):
+        try:
+            check()
+            passed = True
+        except (ValidationError, ModelValidationError):
+            passed = False
+        checks.append({"code": code, "passed": passed})
+    return {"ready": all(row["passed"] for row in checks), "checks": checks}
 
 
 @transaction.atomic

@@ -100,6 +100,17 @@ class QuoteOutput(serializers.Serializer):
     lines = QuoteLine(many=True)
 
 
+class RetailerQuoteView(APIView):
+    @extend_schema(request=QuoteInput, responses=QuoteOutput)
+    def post(self, request, pk):
+        return Response(
+            sales_services.retailer_quote(
+                actor=request.user, product_id=pk, data=validated(QuoteInput, request)
+            ),
+            headers={"Cache-Control": "private, no-store"},
+        )
+
+
 class SalesPlanView(APIView):
     @extend_schema(responses=PlanOutput)
     def get(self, request, product_id):

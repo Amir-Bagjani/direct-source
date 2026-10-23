@@ -1,10 +1,20 @@
 import { z } from "zod";
+import { attributeSchema, categorySchema } from "./catalog-management.schema";
 
 const categoryPathSchema = z.object({
   id: z.uuid(),
   name: z.string(),
   slug: z.string(),
 });
+
+export const publicDiscoverySchema = z
+  .object({
+    categories: z.array(categorySchema.extend({ path: z.array(categoryPathSchema).min(1) })),
+    attributes: z.array(attributeSchema),
+    manufacturers: z.array(z.object({ id: z.uuid(), name: z.string() }).strict()),
+  })
+  .strict();
+export type PublicDiscovery = z.infer<typeof publicDiscoverySchema>;
 
 const manufacturerSummarySchema = z.object({
   id: z.uuid(),
@@ -14,6 +24,14 @@ const manufacturerSummarySchema = z.object({
   province: z.string().nullable(),
   city: z.string().nullable(),
   joined_at: z.iso.datetime().nullable(),
+  logo_url: z.url().nullable(),
+});
+
+const displayAttributeSchema = z.object({
+  code: z.string(),
+  name: z.string(),
+  value: z.unknown(),
+  unit: z.string(),
 });
 
 const ratingSchema = z.object({
@@ -32,9 +50,16 @@ const publicVariantSchema = z.object({
   id: z.uuid(),
   sku: z.string(),
   attributes: z.record(z.string(), z.unknown()),
+  display_attributes: z.array(displayAttributeSchema),
   image_urls: z.array(z.url()),
   orderable: z.boolean(),
   supply: supplySchema.nullable(),
+});
+
+const packSchema = z.object({
+  code: z.string(),
+  name: z.string(),
+  items: z.array(z.object({ variant: z.uuid(), quantity: z.number().int().positive() })),
 });
 
 const publicProductBaseSchema = z.object({
@@ -46,20 +71,29 @@ const publicProductBaseSchema = z.object({
   brand: z.string(),
   manufacturer_model: z.string(),
   attributes: z.record(z.string(), z.unknown()),
+  display_attributes: z.array(displayAttributeSchema),
   image_urls: z.array(z.url()),
   variants: z.array(publicVariantSchema),
   published_at: z.iso.datetime(),
   category_path: z.array(categoryPathSchema),
   manufacturer: manufacturerSummarySchema,
   rating: ratingSchema,
-  shipping_services: z.array(z.object({ id: z.uuid(), name: z.string(), kind: z.string() })),
+  shipping_services: z.array(
+    z.object({
+      id: z.uuid(),
+      name: z.string(),
+      kind: z.string(),
+      delivery_days_min: z.number().int().nonnegative(),
+      delivery_days_max: z.number().int().nonnegative(),
+    }),
+  ),
   orderable: z.boolean(),
   lead_time_days: z.number().int().nonnegative().nullable(),
   supply_modes: z.array(z.enum(["ready", "production", "hybrid"])),
   sale_methods: z.array(z.enum(["free_mix", "fixed_pack"])),
   minimum_order: z.number().int().positive().nullable(),
   free_mix_min: z.number().int().positive().nullable(),
-  packs: z.array(z.unknown()),
+  packs: z.array(packSchema),
   price_access_message: z.string().optional(),
 });
 
@@ -123,6 +157,10 @@ export const wholesaleProductPageSchema = z.object({
   previous: z.url().nullable().optional(),
   results: z.array(wholesaleProductSchema),
 });
+export const productPreviewSchema = wholesaleProductSchema.extend({
+  published_at: z.iso.datetime().nullable(),
+});
+export type ProductPreview = z.infer<typeof productPreviewSchema>;
 
 export const wholesaleAccessSchema = z.discriminatedUnion("allowed", [
   z.object({ allowed: z.literal(true), scope: z.uuid() }),

@@ -1,7 +1,11 @@
 """Public catalogue projection. Never project private business fields or wholesale by default."""
 
+from decimal import Decimal, DecimalException
+from uuid import UUID
+
 from django.core.files.storage import default_storage
-from django.db.models import Prefetch, Q, Sum
+from django.db.models import Avg, Count, FloatField, OuterRef, Prefetch, Q, Subquery, Sum
+from django.db.models.functions import Cast, Coalesce
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.pagination import PageNumberPagination
@@ -9,6 +13,7 @@ from rest_framework.pagination import PageNumberPagination
 from marketplace.accounts.models import Business
 from marketplace.accounts.permissions import can_view_wholesale
 from marketplace.operations.models import StoredFile
+from marketplace.reviews.services import visible_reviews
 
 from .models import Attribute, Category, Product, Variant
 from .proposals import normalize
@@ -46,15 +51,37 @@ class BrowseInput(serializers.Serializer):
     page = serializers.IntegerField(required=False, min_value=1)
 
 
+def rating_annotations(topic, subject):
+    reviews = (
+        visible_reviews()
+        .filter(entitlement__topic=topic, **{subject: OuterRef("pk")})
+        .order_by()
+        .values(subject)
+        .annotate(average=Avg(Cast("scores__overall", FloatField())), count=Count("pk"))
+    )
+    return {
+        "rating_average": Subquery(reviews.values("average")),
+        "rating_count": Coalesce(Subquery(reviews.values("count")), 0),
+    }
+
+
 def public_queryset():
+    return catalog_projection_queryset().filter(
+        status="published",
+        business__status="verified",
+        business__membership__user__is_active=True,
+        business__membership__user__is_suspended=False,
+    )
+
+
+def catalog_projection_queryset():
+    # Callers must apply public eligibility or explicit private owner/assignee access.
     return (
-        Product.objects.filter(
-            status="published",
-            business__status="verified",
-            business__membership__user__is_active=True,
-            business__membership__user__is_suspended=False,
+        Product.objects.all()
+        .annotate(**rating_annotations("product", "entitlement__product_id"))
+        .select_related(
+            "business__logo", "business__membership", "category", "sales_plan", "shipping__origin"
         )
-        .select_related("business", "sales_plan", "shipping__origin")
         .prefetch_related(
             Prefetch(
                 "variants",
@@ -77,18 +104,38 @@ def public_queryset():
             "sales_plan__tiers__overrides",
             "sales_plan__packs__items",
             "shipping__services",
+            "category__attributes__options",
         )
         .order_by("-published_at", "id")
     )
 
 
 def public_manufacturer_queryset():
-    return Business.objects.filter(
-        kind="manufacturer",
-        status="verified",
-        membership__user__is_active=True,
-        membership__user__is_suspended=False,
-    ).prefetch_related("addresses")
+    return (
+        Business.objects.filter(
+            kind="manufacturer",
+            status="verified",
+            membership__user__is_active=True,
+            membership__user__is_suspended=False,
+        )
+        .annotate(**rating_annotations("manufacturer", "entitlement__recipient_id"))
+        .select_related("logo", "membership")
+        .prefetch_related("addresses")
+    )
+
+
+def business_logo_url(business, storage=default_storage):
+    logo = business.logo
+    return (
+        storage.url(logo.object_key)
+        if logo
+        and logo.business_id == business.pk
+        and logo.owner_id == business.membership.user_id
+        and logo.purpose == "business_logo"
+        and logo.scan_status == "clean"
+        and logo.deleted_at is None
+        else None
+    )
 
 
 def manufacturer_data(business):
@@ -110,8 +157,8 @@ def manufacturer_data(business):
         "province": address.province if address else None,
         "city": address.city if address else None,
         "joined_at": business.first_verified_at,
-        "logo_url": None,
-        "rating": {"average": None, "count": 0},
+        "logo_url": business_logo_url(business),
+        "rating": {"average": business.rating_average, "count": business.rating_count},
         "product_count": len(products),
         "categories": sorted(categories.values(), key=lambda row: row["name"]),
     }
@@ -121,6 +168,37 @@ def taxonomy():
     categories = {obj.pk: obj for obj in Category.objects.all()}
     definitions = list(Attribute.objects.prefetch_related("options"))
     return categories, definitions
+
+
+def discovery():
+    categories = {obj.pk: obj for obj in Category.objects.all()}
+    published = public_queryset()
+    used = set(published.values_list("category_id", flat=True))
+    included: set[UUID] = set()
+    for pk, category in categories.items():
+        path = category_path(pk, categories)
+        if pk in used or (
+            category.is_active and all(categories[UUID(row["id"])].is_active for row in path)
+        ):
+            included.update(UUID(row["id"]) for row in path)
+    selected = [category for pk, category in categories.items() if pk in included]
+    selected.sort(
+        key=lambda category: tuple(
+            (categories[UUID(row["id"])].position, row["slug"], row["id"])
+            for row in category_path(category.pk, categories)
+        )
+    )
+    return {
+        "categories": selected,
+        "attributes": Attribute.objects.filter(
+            category_id__in=included, is_active=True, filterable=True
+        ).prefetch_related("options"),
+        "manufacturers": Business.objects.filter(
+            pk__in=published.values("business_id"), kind="manufacturer"
+        )
+        .order_by("name", "id")
+        .values("id", "name"),
+    }
 
 
 def category_path(category_id, categories):
@@ -237,6 +315,19 @@ def search_score(product, query, categories, definitions):
     return sum(10 if word in name else 1 for word in words) + (10 if query in name else 0)
 
 
+def filter_value(definition, value):
+    if definition.kind != "number":
+        return normalize(value)
+    try:
+        number = Decimal(str(value))
+        if not number.is_finite() or abs(number) > Decimal("1e18"):
+            return None
+        exponent = number.as_tuple().exponent
+        return number if isinstance(exponent, int) and exponent >= -6 else None
+    except (DecimalException, ValueError, TypeError):
+        return None
+
+
 def browse(request):
     data = request.query_params
     allowed = set(BrowseInput().fields)
@@ -270,12 +361,17 @@ def browse(request):
     for key in data:
         if key.startswith("attr."):
             aid = serializers.UUIDField().run_validation(key[5:])
-            definition = next((a for a in definitions if a.pk == aid and a.filterable), None)
+            definition = next(
+                (a for a in definitions if a.pk == aid and a.filterable and a.is_active), None
+            )
             if not definition:
                 raise ValidationError({key: "ویژگی قابل فیلتر نیست."})
             values = [normalize(v) for entry in data.getlist(key) for v in entry.split(",")]
             if not values or len(values) > 100 or any(not v or len(v) > 120 for v in values):
                 raise ValidationError({key: "مقادیر فیلتر معتبر نیستند."})
+            values = [filter_value(definition, value) for value in values]
+            if None in values:
+                raise ValidationError({key: "مقدار عددی فیلتر معتبر نیست."})
             attribute_filters.append((definition, values))
     qs = public_queryset()
     if params.get("manufacturer"):
@@ -318,13 +414,14 @@ def browse(request):
             ]
         ):
             continue
-        # No published ratings exist until PRD-07; unknown is never treated as zero stars.
-        if "rating_min" in params:
+        if "rating_min" in params and (
+            product.rating_average is None or product.rating_average < params["rating_min"]
+        ):
             continue
         if any(
             a.category_id != product.category_id
             or not any(
-                normalize(row.get(a.code, "")) in values
+                filter_value(a, row.get(a.code, "")) in values
                 for row in (
                     [product.attributes]
                     if a.scope == "product"
@@ -338,6 +435,8 @@ def browse(request):
     sort = params.get("sort", "relevance" if query else "newest")
     if sort == "relevance":
         results.sort(key=lambda p: -p.search_rank)
+    elif sort == "rating":
+        results.sort(key=lambda p: (p.rating_average is None, -(p.rating_average or 0)))
     elif sort in ["price_asc", "price_desc", "lead_time"]:
         field = "lead_time_days" if sort == "lead_time" else "representative_price_irr"
         results.sort(
@@ -363,6 +462,37 @@ def image_urls(business_id, ids, storage=default_storage):
     return [storage.url(files[pk].object_key) for pk in ids if pk in files]
 
 
+def display_attributes(product, values, scope):
+    definitions = {
+        attribute.code: attribute
+        for attribute in product.category.attributes.all()
+        if attribute.scope == scope
+    }
+    rows = []
+    for code, value in sorted(
+        values.items(),
+        key=lambda item: (
+            definitions[item[0]].position if item[0] in definitions else 2**31,
+            item[0],
+        ),
+    ):
+        definition = definitions.get(code)
+        label = value
+        if definition and definition.kind == "choice":
+            label = next(
+                (option.label for option in definition.options.all() if option.code == value), value
+            )
+        rows.append(
+            {
+                "code": code,
+                "name": definition.name if definition else code,
+                "value": label,
+                "unit": definition.unit if definition else "",
+            }
+        )
+    return rows
+
+
 def public_data(product, wholesale, categories, storage=default_storage):
     m = getattr(product, "catalog_metrics", None) or metrics(product)
     shipping = getattr(product, "shipping", None)
@@ -384,6 +514,7 @@ def public_data(product, wholesale, categories, storage=default_storage):
         category=str(product.category_id),
         category_path=category_path(product.category_id, categories),
         image_urls=image_urls(product.business_id, product.images, storage),
+        display_attributes=display_attributes(product, product.attributes, "product"),
         manufacturer={
             "id": str(product.business_id),
             "name": product.business.name,
@@ -392,10 +523,17 @@ def public_data(product, wholesale, categories, storage=default_storage):
             "province": origin.province if origin else None,
             "city": origin.city if origin else None,
             "joined_at": product.business.first_verified_at,
+            "logo_url": business_logo_url(product.business, storage),
         },
-        rating={"average": None, "count": 0},
+        rating={"average": product.rating_average, "count": product.rating_count},
         shipping_services=[
-            {"id": str(s.pk), "name": s.name, "kind": s.kind}
+            {
+                "id": str(s.pk),
+                "name": s.name,
+                "kind": s.kind,
+                "delivery_days_min": s.delivery_days_min,
+                "delivery_days_max": s.delivery_days_max,
+            }
             for s in shipping.services.all()
             if s.is_active and s.operational
         ]
@@ -424,6 +562,7 @@ def public_data(product, wholesale, categories, storage=default_storage):
                 "id": str(v.pk),
                 "sku": v.sku,
                 "attributes": v.attributes,
+                "display_attributes": display_attributes(product, v.attributes, "variant"),
                 "image_urls": image_urls(
                     product.business_id, v.images or product.images[:1], storage
                 ),

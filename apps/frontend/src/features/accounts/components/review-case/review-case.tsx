@@ -1,6 +1,6 @@
 "use client";
-import { useRetainedQueryData } from "../../hooks/use-retained-query-data";
-import { PrivateQueryRegion } from "../private-query-region/private-query-region";
+import { useRetainedQueryData } from "@/shared/hooks/use-retained-query-data";
+import { PrivateQueryRegion } from "@/shared/ui/private-query-region/private-query-region";
 import { useProtectedSession } from "../protected-session-boundary/protected-session-context";
 import { SuspensionProposal } from "../suspension-proposal/suspension-proposal";
 import Image from "next/image";

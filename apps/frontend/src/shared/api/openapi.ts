@@ -660,6 +660,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/catalog/products/{id}/preview/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["catalog_products_preview_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/catalog/products/{id}/readiness/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["catalog_products_readiness_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/catalog/products/{id}/reassign/": {
         parameters: {
             query?: never;
@@ -747,7 +779,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["catalog_products_revisions_list"];
         put?: never;
         post: operations["catalog_products_revisions_create"];
         delete?: never;
@@ -884,6 +916,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/catalog/public/discovery/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["catalog_public_discovery_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/catalog/public/manufacturers/{id}/": {
         parameters: {
             query?: never;
@@ -926,6 +974,22 @@ export interface paths {
         get: operations["catalog_public_products_retrieve"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/catalog/public/products/{id}/quote/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["catalog_public_products_quote_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3256,6 +3320,16 @@ export interface components {
             token: string;
             reason: string;
         };
+        /**
+         * @description * `business` - business
+         *     * `content` - content
+         *     * `variants` - variants
+         *     * `supply` - supply
+         *     * `pricing` - pricing
+         *     * `shipping` - shipping
+         * @enum {string}
+         */
+        CodeEnum: "business" | "content" | "variants" | "supply" | "pricing" | "shipping";
         CodeInputRequest: {
             token: string;
             code: string;
@@ -3337,6 +3411,28 @@ export interface components {
             recipient_name: string;
             recipient_mobile: string;
         };
+        DiscoveryCategory: {
+            /** Format: uuid */
+            readonly id: string;
+            name: string;
+            slug: string;
+            /** Format: uuid */
+            parent?: string | null;
+            description?: string;
+            position?: number;
+            is_active?: boolean;
+            readonly path: components["schemas"]["CategoryPathOutput"][];
+        };
+        DiscoveryManufacturer: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        DiscoveryOutput: {
+            categories: components["schemas"]["DiscoveryCategory"][];
+            attributes: components["schemas"]["Attribute"][];
+            manufacturers: components["schemas"]["DiscoveryManufacturer"][];
+        };
         /**
          * @description * `shortage` - shortage
          *     * `wrong_item` - wrong_item
@@ -3356,6 +3452,12 @@ export interface components {
             kind: components["schemas"]["DiscrepancyClaimInputKindEnum"];
             description: string;
             evidence: string[];
+        };
+        DisplayAttribute: {
+            code: string;
+            name: string;
+            value: unknown;
+            unit: string;
         };
         DisputeDecisionInputRequest: {
             /** Format: uuid */
@@ -3580,6 +3682,8 @@ export interface components {
             city: string | null;
             /** Format: date-time */
             joined_at: string | null;
+            /** Format: uri */
+            logo_url: string | null;
         };
         MessageInputRequest: {
             text: string;
@@ -4015,6 +4119,21 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["Revision"][];
         };
+        PaginatedRevisionOutputList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["RevisionOutput"][];
+        };
         PaginatedRevisionQueueList: {
             /** @example 123 */
             count: number;
@@ -4245,6 +4364,48 @@ export interface components {
             readonly created_at: string;
             /** Format: date-time */
             readonly updated_at: string;
+            /** Format: uuid */
+            readonly assigned_to: string | null;
+            /** Format: date-time */
+            readonly submitted_at: string | null;
+            /** Format: date-time */
+            readonly published_at: string | null;
+            readonly decision_code: string;
+            readonly decision_reason: string;
+        };
+        ProductPreviewOutput: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            business: string;
+            /** Format: uuid */
+            category: string;
+            name: string;
+            description: string;
+            brand: string;
+            manufacturer_model: string;
+            attributes: {
+                [key: string]: unknown;
+            };
+            display_attributes: components["schemas"]["DisplayAttribute"][];
+            image_urls: string[];
+            wholesale?: components["schemas"]["PlanOutput"];
+            representative_price_irr?: number | null;
+            price_access_message?: string;
+            variants: components["schemas"]["PublicVariantSummary"][];
+            /** Format: date-time */
+            published_at: string | null;
+            category_path: components["schemas"]["CategoryPathOutput"][];
+            manufacturer: components["schemas"]["ManufacturerOutput"];
+            rating: components["schemas"]["RatingOutput"];
+            shipping_services: components["schemas"]["PublicShippingOutput"][];
+            orderable: boolean;
+            lead_time_days: number | null;
+            supply_modes: string[];
+            sale_methods: string[];
+            minimum_order: number | null;
+            free_mix_min: number | null;
+            packs: components["schemas"]["PackInput"][];
         };
         /**
          * @description * `published` - published
@@ -4389,6 +4550,7 @@ export interface components {
             attributes: {
                 [key: string]: unknown;
             };
+            display_attributes: components["schemas"]["DisplayAttribute"][];
             image_urls: string[];
             wholesale?: components["schemas"]["PlanOutput"];
             representative_price_irr?: number | null;
@@ -4413,6 +4575,8 @@ export interface components {
             id: string;
             name: string;
             kind: string;
+            delivery_days_min: number;
+            delivery_days_max: number;
         };
         PublicVariantSummary: {
             /** Format: uuid */
@@ -4421,9 +4585,14 @@ export interface components {
             attributes: {
                 [key: string]: unknown;
             };
+            display_attributes: components["schemas"]["DisplayAttribute"][];
             image_urls: string[];
             orderable: boolean;
             supply: components["schemas"]["SupplyInput"] | null;
+        };
+        PublicationCheckOutput: {
+            code: components["schemas"]["CodeEnum"];
+            passed: boolean;
         };
         PublicationOutput: {
             /** Format: uuid */
@@ -4451,6 +4620,10 @@ export interface components {
             readonly published_at: string | null;
             readonly decision_code: string;
             readonly decision_reason: string;
+        };
+        PublicationReadinessOutput: {
+            ready: boolean;
+            checks: components["schemas"]["PublicationCheckOutput"][];
         };
         PublishedReply: {
             /** Format: uuid */
@@ -4727,6 +4900,7 @@ export interface components {
             sales_plan: components["schemas"]["PlanOutput"] | null;
             shipping: components["schemas"]["ShippingInput"] | null;
             supplies: components["schemas"]["SupplyDetail"][];
+            readiness: components["schemas"]["PublicationReadinessOutput"];
         };
         ReviewInputRequest: {
             decision: components["schemas"]["ProductPublicationDecisionEnum"];
@@ -4821,6 +4995,7 @@ export interface components {
             readonly id: string;
             /** Format: uuid */
             product: string;
+            readonly product_name: string;
             status?: string;
             /** Format: uuid */
             assigned_to?: string | null;
@@ -10730,6 +10905,210 @@ export interface operations {
             };
         };
     };
+    catalog_products_preview_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductPreviewOutput"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    catalog_products_readiness_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicationReadinessOutput"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     catalog_products_reassign_create: {
         parameters: {
             query?: never;
@@ -11171,6 +11550,113 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["QuoteOutput"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    catalog_products_revisions_list: {
+        parameters: {
+            query?: {
+                /** @description یک شماره صفحه‌ در مجموعه نتایج صفحه‌بندی شده. */
+                page?: number;
+                /** @description تعداد نتایج برای نمایش در هر صفحه. */
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                product_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedRevisionOutputList"];
                 };
             };
             /** @description API error with request correlation ID */
@@ -12830,6 +13316,106 @@ export interface operations {
             };
         };
     };
+    catalog_public_discovery_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiscoveryOutput"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     catalog_public_manufacturers_retrieve: {
         parameters: {
             query?: never;
@@ -13071,6 +13657,112 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicProduct"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description API error with request correlation ID */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    catalog_public_products_quote_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuoteInputRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuoteOutput"];
                 };
             };
             /** @description API error with request correlation ID */

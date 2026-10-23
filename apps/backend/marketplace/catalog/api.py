@@ -74,8 +74,22 @@ class ProductSerializer(serializers.ModelSerializer):
             "status",
             "created_at",
             "updated_at",
+            "assigned_to",
+            "submitted_at",
+            "published_at",
+            "decision_code",
+            "decision_reason",
         ]
-        read_only_fields = ["status", "created_at", "updated_at"]
+        read_only_fields = [
+            "status",
+            "created_at",
+            "updated_at",
+            "assigned_to",
+            "submitted_at",
+            "published_at",
+            "decision_code",
+            "decision_reason",
+        ]
 
 
 class VariantSerializer(serializers.ModelSerializer):

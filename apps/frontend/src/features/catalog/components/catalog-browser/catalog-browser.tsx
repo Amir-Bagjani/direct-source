@@ -5,9 +5,12 @@ import { useFormatter, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { SearchIcon, SlidersHorizontalIcon, XIcon } from "lucide-react";
 import { Link, useRouter } from "@/i18n/navigation";
-import { readPublicProducts } from "../../api/public-catalog.api";
+import { readPublicDiscovery, readPublicProducts } from "../../api/public-catalog.api";
 import { readWholesaleAccess, readWholesaleProducts } from "../../api/wholesale-catalog.api";
-import { publicProductsOptions } from "../../queries/public-catalog.queries";
+import {
+  publicDiscoveryOptions,
+  publicProductsOptions,
+} from "../../queries/public-catalog.queries";
 import {
   wholesaleAccessOptions,
   wholesaleProductsOptions,
@@ -45,7 +48,6 @@ import {
 } from "@/shared/ui/sheet/sheet";
 import { closeModal, openModal, prepareModalHistory } from "@/shared/ui/modal/modal-history";
 import { Spinner } from "@/shared/ui/spinner/spinner";
-import { Separator } from "@/shared/ui/separator/separator";
 import { cn } from "@/shared/ui/cn";
 
 export function CatalogBrowser({ filters }: { filters: CatalogFilters }) {
@@ -60,6 +62,7 @@ export function CatalogBrowser({ filters }: { filters: CatalogFilters }) {
     if (sheetOpen) prepareModalHistory();
   }, [sheetOpen]);
   const { data: publicData } = useSuspenseQuery(publicProductsOptions(filters, readPublicProducts));
+  const { data: discovery } = useSuspenseQuery(publicDiscoveryOptions(readPublicDiscovery));
   const access = useQuery({
     ...wholesaleAccessOptions(readWholesaleAccess),
     enabled: !environmentManager.isServer(),
@@ -77,13 +80,7 @@ export function CatalogBrowser({ filters }: { filters: CatalogFilters }) {
   const activeFilters = priceAllowed ? filters : publicCatalogFilters(filters);
   const query = catalogSearch({ ...activeFilters, page: 1 });
   const filterEntries = [...query.entries()].filter(([name]) => name !== "q" && name !== "sort");
-  const categories = [
-    ...new Map(
-      publicData.results
-        .flatMap((product) => product.category_path)
-        .map((category) => [category.id, category]),
-    ).values(),
-  ];
+  const categories = discovery.categories;
 
   function navigate(search: URLSearchParams, replace = false) {
     search.delete("page");
@@ -114,13 +111,22 @@ export function CatalogBrowser({ filters }: { filters: CatalogFilters }) {
     if (name === "orderable") return value === "true" ? t("orderable") : t("notOrderable");
     if (name === "category")
       return (
-        categories.find((category) => category.id === value)?.name ?? t("filters.selectedCategory")
+        categories
+          .find((category) => category.id === value)
+          ?.path.map((category) => category.name)
+          .join(t("filters.categoryPathSeparator")) ?? t("filters.selectedCategory")
       );
     if (name === "manufacturer")
       return (
-        publicData.results.find((product) => product.manufacturer.id === value)?.manufacturer
-          .name ?? t("filters.selectedManufacturer")
+        discovery.manufacturers.find((manufacturer) => manufacturer.id === value)?.name ??
+        t("filters.selectedManufacturer")
       );
+    if (name === "rating_min")
+      return t("filters.summaryRating", { count: format.number(Number(value)) });
+    if (name.startsWith("attr.")) {
+      const attribute = discovery.attributes.find((item) => item.id === name.slice(5));
+      return `${attribute?.name ?? t("filters.attributeValues")}: ${attribute?.options.find((option) => option.code === value)?.label ?? value}`;
+    }
     if (name === "lead_min")
       return t("filters.summaryLeadMin", { count: format.number(Number(value)) });
     if (name === "lead_max")
@@ -197,6 +203,7 @@ export function CatalogBrowser({ filters }: { filters: CatalogFilters }) {
             </h2>
             <CatalogFiltersForm
               filters={activeFilters}
+              discovery={discovery}
               priceAllowed={priceAllowed}
               id="catalog-desktop-filters"
               onSubmit={(event) => submitFilters(event)}
@@ -207,29 +214,6 @@ export function CatalogBrowser({ filters }: { filters: CatalogFilters }) {
                 </div>
               }
             />
-            {categories.length ? (
-              <nav aria-label={t("categories")} className="grid gap-2">
-                <Separator />
-                <p className="text-sm font-medium">{t("categories")}</p>
-                {categories.map((category) => {
-                  const search = new URLSearchParams(query);
-                  search.delete("category");
-                  search.append("category", category.id);
-                  return (
-                    <Link
-                      key={category.id}
-                      href={`/catalog?${search.toString()}`}
-                      className={cn(
-                        buttonVariants({ variant: "ghost" }),
-                        "justify-start whitespace-normal",
-                      )}
-                    >
-                      {category.name}
-                    </Link>
-                  );
-                })}
-              </nav>
-            ) : null}
           </div>
         </aside>
 
@@ -274,6 +258,7 @@ export function CatalogBrowser({ filters }: { filters: CatalogFilters }) {
                   <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-6">
                     <CatalogFiltersForm
                       filters={activeFilters}
+                      discovery={discovery}
                       priceAllowed={priceAllowed}
                       id="catalog-mobile-filters"
                       onSubmit={(event) => submitFilters(event, true)}

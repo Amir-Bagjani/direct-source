@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslations } from "next-intl";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { cn } from "@/shared/ui/cn";
+import { PortalContainerContext } from "@/shared/ui/portal-container/portal-container";
 
 import { Button } from "@/shared/ui/button/button";
 import { XIcon } from "lucide-react";
@@ -17,7 +18,8 @@ function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
 }
 
 function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {
-  return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />;
+  const container = React.useContext(PortalContainerContext);
+  return <DialogPrimitive.Portal data-slot="dialog-portal" container={container} {...props} />;
 }
 
 function DialogClose({ ...props }: DialogPrimitive.Close.Props) {

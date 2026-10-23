@@ -8,6 +8,7 @@ const database = new URL(
 );
 database.pathname = `/${databaseName}`;
 const environment = {
+  HOSTNAME: "localhost",
   E2E_DATABASE_NAME: databaseName,
   E2E_CATALOG: "1",
   NEXTAUTH_URL: "http://localhost:3100",

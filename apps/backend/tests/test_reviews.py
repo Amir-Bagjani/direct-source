@@ -57,6 +57,55 @@ def submit(order, topic, **kwargs):
     )
 
 
+def test_catalog_ratings_use_public_visibility_and_correlated_topic_aggregates(
+    client, completed, cart_world, monkeypatch
+):
+    from marketplace.catalog import browsing
+    from marketplace.catalog.models import Product
+    from marketplace.catalog.publication_api import PublicManufacturerDetail, PublicProductDetail
+
+    monkeypatch.setattr(browsing.default_storage, "url", lambda key: "http://test/image")
+    product = cart_world[2]
+    result = submit(completed, "product")
+    submit(completed, "manufacturer")
+    submit(completed, "retailer")
+    client.force_authenticate(None)
+    detail = f"/api/v1/catalog/public/products/{product.pk}/"
+    manufacturer = f"/api/v1/catalog/public/manufacturers/{product.business_id}/"
+    listing = "/api/v1/catalog/public/products/"
+    # Finance only creates simulated settlements today; these must remain private.
+    assert client.get(detail).data["rating"] == {"average": None, "count": 0}
+    assert client.get(manufacturer).data["rating"] == {"average": None, "count": 0}
+    assert client.get(listing, {"rating_min": 0}).data["count"] == 0
+
+    # Exercise aggregation with actual persisted reviews without forging a live settlement.
+    monkeypatch.setattr(
+        browsing, "visible_reviews", lambda: services.visible_reviews(cart_world[0], internal=True)
+    )
+    monkeypatch.setattr(PublicProductDetail, "queryset", browsing.public_queryset())
+    monkeypatch.setattr(
+        PublicManufacturerDetail, "queryset", browsing.public_manufacturer_queryset()
+    )
+    unrated = Product.objects.create(
+        business=product.business,
+        category=product.category,
+        name="بدون امتیاز",
+        status="published",
+        published_at=timezone.now(),
+    )
+    assert client.get(detail).data["rating"] == {"average": 4.0, "count": 1}
+    assert client.get(manufacturer).data["rating"] == {"average": 4.0, "count": 1}
+    rows = client.get(listing, {"sort": "rating"}).data["results"]
+    assert [row["id"] for row in rows] == [str(product.pk), str(unrated.pk)]
+    assert client.get(listing, {"rating_min": 4}).data["count"] == 1
+    assert client.get(listing, {"rating_min": 4.5}).data["count"] == 0
+    Review.objects.filter(pk=result["review"]["id"]).update(content_hidden=True)
+    assert client.get(detail).data["rating"] == {"average": 4.0, "count": 1}
+    Review.objects.filter(pk=result["review"]["id"]).update(invalidated=True)
+    assert client.get(detail).data["rating"] == {"average": None, "count": 0}
+    assert client.get(manufacturer).data["rating"] == {"average": 4.0, "count": 1}
+
+
 def test_entitlement_completion_retry_and_snapshot(completed, cart_world, settings):
     rights = list(completed.entitlements.all())
     assert len(rights) == 3

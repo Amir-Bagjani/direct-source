@@ -1,5 +1,9 @@
 "use client";
-import { useState, type SubmitEvent } from "react";
+import { ApiError } from "@/shared/api/unwrap";
+import { useRetainedQueryData } from "@/shared/hooks/use-retained-query-data";
+import { PrivateQueryRegion } from "@/shared/ui/private-query-region/private-query-region";
+import { useCatalogWorkspaceSession } from "@/features/accounts/contracts/catalog-workspace";
+import { useId, useState, type SubmitEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -7,7 +11,7 @@ import { Alert, AlertDescription } from "@/shared/ui/alert/alert";
 import { Button } from "@/shared/ui/button/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card/card";
 import { Checkbox } from "@/shared/ui/checkbox/checkbox";
-import { Field, FieldLabel } from "@/shared/ui/field/field";
+import { Field, FieldLabel, FieldSet } from "@/shared/ui/field/field";
 import { Input } from "@/shared/ui/input/input";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select/native-select";
 import { Spinner } from "@/shared/ui/spinner/spinner";
@@ -20,54 +24,105 @@ import {
 } from "../../api/catalog-management.api";
 import { operatorOptions, studioAccessOptions } from "../../queries/catalog-management.queries";
 import { catalogKeys } from "../../queries/catalog.keys";
-import type { Taxonomy } from "../../schemas/catalog-management.schema";
+import {
+  taxonomyMutationSchema,
+  type TaxonomyMutation,
+  type Taxonomy,
+} from "../../schemas/catalog-management.schema";
 
 export function CatalogOperations() {
   const t = useTranslations("catalogManagement");
-  const access = useQuery(studioAccessOptions());
+  const common = useTranslations("common");
+  const session = useCatalogWorkspaceSession();
+  const access = useQuery({ ...studioAccessOptions(session.scope), enabled: session.authorized });
+  const accessData = useRetainedQueryData(access, catalogKeys.studioAccess(session.scope));
   const dashboard = useQuery({
-    ...operatorOptions(access.data?.scope ?? "pending"),
-    enabled: access.data?.operator === true,
+    ...operatorOptions(session.scope),
+    enabled: session.authorized && access.isSuccess && access.data?.operator === true,
   });
-  if (access.isPending || (access.data?.operator && dashboard.isPending))
+  const dashboardData = useRetainedQueryData(dashboard, catalogKeys.operator(session.scope));
+  if (
+    [access.error, dashboard.error].some(
+      (error) => error instanceof ApiError && [401, 403, 404].includes(error.status),
+    )
+  )
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>{t("operatorRequired")}</AlertDescription>
+      </Alert>
+    );
+  if (
+    (!accessData || !dashboardData) &&
+    (access.isPending || (access.isSuccess && access.data.operator && dashboard.isPending))
+  )
     return (
       <p role="status" className="flex items-center gap-2">
         <Spinner />
         {t("loading")}
       </p>
     );
-  if (access.isError || !access.data?.operator)
+  if (access.isSuccess && !access.data.operator)
     return (
       <Alert variant="destructive">
         <AlertDescription>{t("operatorRequired")}</AlertDescription>
       </Alert>
     );
-  if (dashboard.isError)
+  if (!dashboardData && (dashboard.isError || access.isError))
     return (
       <Alert variant="destructive">
-        <AlertDescription>{t("loadError")}</AlertDescription>
+        <AlertDescription>
+          {t("loadError")}
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (access.isError) void access.refetch();
+              else void dashboard.refetch();
+            }}
+          >
+            {common("retry")}
+          </Button>
+        </AlertDescription>
       </Alert>
     );
-  if (!dashboard.data) return null;
+  if (!accessData || !dashboardData) return null;
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">{t("operatorTitle")}</h1>
-          <p className="text-muted-foreground">{t("operatorDescription")}</p>
+    <PrivateQueryRegion
+      masked={
+        !session.authorized ||
+        access.isFetching ||
+        !access.isSuccess ||
+        dashboard.isFetching ||
+        !dashboard.isSuccess
+      }
+      error={access.isError || dashboard.isError ? t("loadError") : undefined}
+      retry={() => {
+        if (access.isError) void access.refetch();
+        else void dashboard.refetch();
+      }}
+    >
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-semibold">{t("operatorTitle")}</h1>
+            <p className="text-muted-foreground">{t("operatorDescription")}</p>
+          </div>
+          <Button nativeButton={false} variant="outline" render={<Link href="/account/catalog" />}>
+            {t("studioTitle")}
+          </Button>
         </div>
-        <Button variant="outline" render={<Link href="/account/catalog" />}>
-          {t("studioTitle")}
-        </Button>
+        <ReviewQueues
+          scope={accessData.scope}
+          products={dashboardData.products}
+          revisions={dashboardData.revisions}
+        />
+        <ProposalQueue
+          scope={accessData.scope}
+          proposals={dashboardData.proposals}
+          taxonomy={dashboardData.taxonomy}
+        />
+        <TaxonomyManager scope={accessData.scope} taxonomy={dashboardData.taxonomy} />
       </div>
-      <ReviewQueues
-        scope={access.data.scope}
-        products={dashboard.data.products}
-        revisions={dashboard.data.revisions}
-      />
-      <ProposalQueue scope={access.data.scope} proposals={dashboard.data.proposals} />
-      <TaxonomyManager scope={access.data.scope} taxonomy={dashboard.data.taxonomy} />
-    </div>
+    </PrivateQueryRegion>
   );
 }
 
@@ -78,7 +133,7 @@ function ReviewQueues({
 }: {
   scope: string;
   products: Array<{ id: string; name: string; submitted_at: string | null }>;
-  revisions: Array<{ id: string; product: string; created_at: string }>;
+  revisions: Array<{ id: string; product: string; product_name: string; created_at: string }>;
 }) {
   const t = useTranslations("catalogManagement");
   const router = useRouter();
@@ -110,6 +165,8 @@ function ReviewQueues({
               <div
                 key={item.id}
                 className="flex items-center justify-between gap-3 rounded-lg border p-3"
+                role="group"
+                aria-label={item.name}
               >
                 <div>
                   <bdi>{item.name}</bdi>
@@ -132,10 +189,12 @@ function ReviewQueues({
             revisions.map((item) => (
               <div
                 key={item.id}
+                role="group"
+                aria-label={item.product_name}
                 className="flex items-center justify-between gap-3 rounded-lg border p-3"
               >
                 <div>
-                  <span>{item.product}</span>
+                  <span dir="auto">{item.product_name}</span>
                   <p className="text-sm text-muted-foreground">
                     {new Date(item.created_at).toLocaleString()}
                   </p>
@@ -165,6 +224,7 @@ function ReviewQueues({
 function ProposalQueue({
   scope,
   proposals,
+  taxonomy,
 }: {
   scope: string;
   proposals: Array<{
@@ -176,58 +236,20 @@ function ProposalQueue({
     description: string;
     example: string;
   }>;
+  taxonomy: Taxonomy;
 }) {
   const t = useTranslations("catalogManagement");
   const client = useQueryClient();
   const review = useMutation({
     mutationFn: ({
-      proposal,
-      decision,
-      reason,
+      id,
+      ...body
     }: {
-      proposal: (typeof proposals)[number];
+      id: string;
       decision: "approved" | "rejected";
       reason: string;
-    }) =>
-      reviewProposal(proposal.id, {
-        decision,
-        reason,
-        ...(decision === "approved"
-          ? {
-              definition:
-                proposal.kind === "category"
-                  ? {
-                      name: proposal.name,
-                      slug: slug(proposal.name),
-                      parent: proposal.category,
-                      description: proposal.description,
-                      position: 0,
-                      is_active: true,
-                    }
-                  : proposal.kind === "attribute"
-                    ? {
-                        category: proposal.category,
-                        code: slug(proposal.name),
-                        name: proposal.name,
-                        description: proposal.description,
-                        kind: "text",
-                        scope: "product",
-                        unit: "",
-                        required: false,
-                        filterable: false,
-                        position: 0,
-                        is_active: true,
-                      }
-                    : {
-                        attribute: proposal.attribute,
-                        code: slug(proposal.name),
-                        label: proposal.name,
-                        position: 0,
-                        is_active: true,
-                      },
-            }
-          : {}),
-      }),
+      definition?: Record<string, unknown>;
+    }) => reviewProposal(id, body),
     onSuccess: () => client.invalidateQueries({ queryKey: catalogKeys.operator(scope) }),
   });
   return (
@@ -241,8 +263,16 @@ function ProposalQueue({
             <ProposalReview
               key={proposal.id}
               proposal={proposal}
+              taxonomy={taxonomy}
               pending={review.isPending}
-              onReview={(decision, reason) => review.mutate({ proposal, decision, reason })}
+              onReview={(decision, reason, definition) =>
+                review.mutate({
+                  id: proposal.id,
+                  decision,
+                  reason,
+                  ...(definition ? { definition } : {}),
+                })
+              }
             />
           ))
         ) : (
@@ -260,21 +290,69 @@ function ProposalQueue({
 
 function ProposalReview({
   proposal,
+  taxonomy,
   pending,
   onReview,
 }: {
-  proposal: { kind: string; name: string; description: string; example: string };
+  proposal: {
+    kind: "category" | "attribute" | "option";
+    category: string | null;
+    attribute: string | null;
+    name: string;
+    description: string;
+    example: string;
+  };
+  taxonomy: Taxonomy;
   pending: boolean;
-  onReview: (decision: "approved" | "rejected", reason: string) => void;
+  onReview: (
+    decision: "approved" | "rejected",
+    reason: string,
+    definition?: Record<string, unknown>,
+  ) => void;
 }) {
   const t = useTranslations("catalogManagement");
+  const id = useId();
   const [reason, setReason] = useState("");
+  const initial: TaxonomyMutation =
+    proposal.kind === "category"
+      ? {
+          kind: "category",
+          name: proposal.name,
+          slug: "",
+          parent: proposal.category,
+          description: proposal.description,
+          position: 0,
+          is_active: true,
+        }
+      : proposal.kind === "attribute"
+        ? {
+            kind: "attribute",
+            category: proposal.category ?? "",
+            code: "",
+            name: proposal.name,
+            description: proposal.description,
+            type: "text",
+            scope: "product",
+            unit: "",
+            required: false,
+            filterable: false,
+            position: 0,
+            is_active: true,
+          }
+        : {
+            kind: "option",
+            attribute: proposal.attribute ?? "",
+            code: "",
+            label: proposal.name,
+            position: 0,
+            is_active: true,
+          };
   return (
-    <div className="grid gap-3 rounded-lg border p-3">
+    <section className="grid gap-4 rounded-lg border p-4" aria-labelledby={`${id}-title`}>
       <div>
-        <p className="font-medium">
+        <h3 id={`${id}-title`} className="font-medium">
           {t(`proposalKinds.${proposal.kind}`)}: <bdi>{proposal.name}</bdi>
-        </p>
+        </h3>
         <p>
           <bdi>{proposal.description}</bdi>
         </p>
@@ -282,86 +360,115 @@ function ProposalReview({
           <bdi>{proposal.example}</bdi>
         </p>
       </div>
-      <Textarea
-        value={reason}
-        placeholder={t("reason")}
-        onChange={(event) => setReason(event.target.value)}
+      <Field>
+        <FieldLabel htmlFor={`${id}-reason`}>{t("reason")}</FieldLabel>
+        <Textarea
+          id={`${id}-reason`}
+          maxLength={2000}
+          value={reason}
+          disabled={pending}
+          onChange={(event) => setReason(event.target.value)}
+        />
+      </Field>
+      <p className="text-sm text-muted-foreground">{t("proposalDefinitionHint")}</p>
+      <TaxonomyCreate
+        taxonomy={taxonomy}
+        initial={initial}
+        pending={pending}
+        submitDisabled={!reason.trim()}
+        submitLabel={t("approve")}
+        save={(input) => {
+          if (input.kind === "attribute") {
+            const { kind: _kind, id: _id, reason: _reason, type, ...definition } = input;
+            onReview("approved", reason, { ...definition, kind: type });
+          } else {
+            const { kind: _kind, id: _id, reason: _reason, ...definition } = input;
+            onReview("approved", reason, definition);
+          }
+        }}
       />
-      <div className="flex gap-2">
-        <Button disabled={pending || !reason.trim()} onClick={() => onReview("approved", reason)}>
-          {t("approve")}
-        </Button>
-        <Button
-          variant="destructive"
-          disabled={pending || !reason.trim()}
-          onClick={() => onReview("rejected", reason)}
-        >
-          {t("reject")}
-        </Button>
-      </div>
-    </div>
+      <Button
+        variant="destructive"
+        disabled={pending || !reason.trim()}
+        onClick={() => onReview("rejected", reason)}
+      >
+        {t("reject")}
+      </Button>
+    </section>
   );
 }
 
 function TaxonomyManager({ scope, taxonomy }: { scope: string; taxonomy: Taxonomy }) {
   const t = useTranslations("catalogManagement");
   const client = useQueryClient();
+  const [editing, setEditing] = useState<TaxonomyMutation>();
   const mutation = useMutation({
     mutationFn: saveTaxonomy,
-    onSuccess: () => client.invalidateQueries({ queryKey: catalogKeys.operator(scope) }),
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: catalogKeys.operator(scope) });
+      setEditing(undefined);
+    },
   });
+  const definitions: TaxonomyMutation[] = [
+    ...taxonomy.categories.map((item) => ({ ...item, kind: "category" as const })),
+    ...taxonomy.attributes.map(({ kind, options: _options, ...item }) => ({
+      ...item,
+      kind: "attribute" as const,
+      type: kind,
+    })),
+    ...taxonomy.options.map((item) => ({ ...item, kind: "option" as const })),
+  ];
   return (
     <Card>
       <CardHeader>
         <CardTitle>{t("taxonomy")}</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-6">
-        <TaxonomyCreate
-          taxonomy={taxonomy}
-          pending={mutation.isPending}
-          save={(body) => mutation.mutate(body)}
-        />
-        <div className="grid gap-3">
-          <h3 className="font-medium">{t("categories")}</h3>
-          {taxonomy.categories.map((item) => (
-            <TaxonomyRow
-              key={item.id}
-              label={item.name}
-              active={item.is_active}
-              onToggle={(reason) =>
-                mutation.mutate({ kind: "category", ...item, is_active: !item.is_active, reason })
-              }
+        {editing ? (
+          <section className="grid gap-3">
+            <h3 className="font-medium">{t("editDefinition")}</h3>
+            <p className="text-sm text-muted-foreground">{t("definitionHistoryHint")}</p>
+            <TaxonomyCreate
+              key={editing.id}
+              taxonomy={taxonomy}
+              initial={editing}
+              pending={mutation.isPending}
+              save={(body) => mutation.mutate(body)}
             />
-          ))}
-        </div>
-        <div className="grid gap-3">
-          <h3 className="font-medium">{t("attributes")}</h3>
-          {taxonomy.attributes.map((item) => (
-            <TaxonomyRow
-              key={item.id}
-              label={item.name}
-              active={item.is_active}
-              onToggle={(reason) =>
-                mutation.mutate({
-                  kind: "attribute",
-                  id: item.id,
-                  category: item.category,
-                  code: item.code,
-                  name: item.name,
-                  description: item.description,
-                  type: item.kind,
-                  scope: item.scope,
-                  unit: item.unit,
-                  required: item.required,
-                  filterable: item.filterable,
-                  position: item.position,
-                  is_active: !item.is_active,
-                  reason,
-                })
-              }
-            />
-          ))}
-        </div>
+            <Button
+              variant="outline"
+              disabled={mutation.isPending}
+              onClick={() => setEditing(undefined)}
+            >
+              {t("cancel")}
+            </Button>
+          </section>
+        ) : (
+          <TaxonomyCreate
+            taxonomy={taxonomy}
+            pending={mutation.isPending}
+            save={(body) => mutation.mutate(body)}
+          />
+        )}
+        {(["category", "attribute", "option"] as const).map((kind) => (
+          <section key={kind} className="grid gap-3">
+            <h3 className="font-medium">{t(`proposalKinds.${kind}`)}</h3>
+            {definitions
+              .filter((item) => item.kind === kind)
+              .map((item) => (
+                <TaxonomyRow
+                  key={item.id}
+                  label={item.kind === "option" ? item.label : item.name}
+                  active={item.is_active}
+                  pending={mutation.isPending}
+                  onEdit={() => setEditing(item)}
+                  onToggle={(reason) =>
+                    mutation.mutate({ ...item, is_active: !item.is_active, reason })
+                  }
+                />
+              ))}
+          </section>
+        ))}
         {mutation.isError && (
           <Alert variant="destructive">
             <AlertDescription>{t("saveError")}</AlertDescription>
@@ -376,147 +483,256 @@ function TaxonomyCreate({
   taxonomy,
   pending,
   save,
+  initial,
+  submitLabel,
+  submitDisabled = false,
 }: {
   taxonomy: Taxonomy;
   pending: boolean;
-  save: (body: unknown) => void;
+  save: (body: TaxonomyMutation) => void;
+  initial?: TaxonomyMutation;
+  submitLabel?: string;
+  submitDisabled?: boolean;
 }) {
   const t = useTranslations("catalogManagement");
-  const [kind, setKind] = useState<"category" | "attribute" | "option">("category");
+  const id = useId();
+  const [kind, setKind] = useState<TaxonomyMutation["kind"]>(initial?.kind ?? "category");
+  const [attributeKind, setAttributeKind] = useState(
+    initial?.kind === "attribute" ? initial.type : "text",
+  );
+  const [invalid, setInvalid] = useState(false);
+  const category = initial?.kind === "category" ? initial : undefined;
+  const attribute = initial?.kind === "attribute" ? initial : undefined;
+  const option = initial?.kind === "option" ? initial : undefined;
   function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (pending || submitDisabled) return;
     const data = new FormData(event.currentTarget);
+    const reason = String(data.get("reason") ?? "").trim();
     const common = {
-      name: String(data.get("name")),
+      ...(initial?.id ? { id: initial.id } : {}),
       position: Number(data.get("position")),
-      is_active: true,
+      is_active: initial?.is_active ?? true,
+      ...(reason ? { reason } : {}),
     };
-    save(
+    const name = String(data.get("name"));
+    const result = taxonomyMutationSchema.safeParse(
       kind === "category"
         ? {
-            kind,
             ...common,
+            kind,
+            name,
             slug: String(data.get("code")),
             parent: String(data.get("category") || "") || null,
             description: String(data.get("description")),
           }
         : kind === "attribute"
           ? {
-              kind,
               ...common,
+              kind,
+              name,
               category: String(data.get("category")),
               code: String(data.get("code")),
               description: String(data.get("description")),
-              type: String(data.get("type")),
+              type: attributeKind,
               scope: String(data.get("scope")),
-              unit: String(data.get("unit")),
+              unit: attributeKind === "number" ? String(data.get("unit")) : "",
               required: data.get("required") === "on",
               filterable: data.get("filterable") === "on",
             }
           : {
+              ...common,
               kind,
               attribute: String(data.get("attribute")),
               code: String(data.get("code")),
-              label: common.name,
-              position: common.position,
-              is_active: true,
+              label: name,
             },
     );
+    setInvalid(!result.success);
+    if (result.success) save(result.data);
   }
   return (
-    <form className="grid gap-4 rounded-lg border p-4" onSubmit={submit}>
-      <Field>
-        <FieldLabel>{t("type")}</FieldLabel>
-        <NativeSelect
-          className="w-full"
-          value={kind}
-          onChange={(event) => setKind(event.target.value as typeof kind)}
-        >
-          {["category", "attribute", "option"].map((value) => (
-            <NativeSelectOption key={value} value={value}>
-              {t(`proposalKinds.${value}`)}
-            </NativeSelectOption>
-          ))}
-        </NativeSelect>
-      </Field>
-      {kind !== "option" && (
+    <form key={kind} className="grid gap-4 rounded-lg border p-4" onSubmit={submit}>
+      {!initial && (
         <Field>
-          <FieldLabel>{t("categoryParent")}</FieldLabel>
-          <NativeSelect name="category" className="w-full" required={kind === "attribute"}>
-            <NativeSelectOption value="">—</NativeSelectOption>
-            {taxonomy.categories.map((item) => (
-              <NativeSelectOption key={item.id} value={item.id}>
-                {item.name}
+          <FieldLabel htmlFor={`${id}-kind`}>{t("type")}</FieldLabel>
+          <NativeSelect
+            id={`${id}-kind`}
+            className="w-full"
+            value={kind}
+            onChange={(event) => {
+              const value = event.target.value;
+              if (value === "category" || value === "attribute" || value === "option") {
+                setKind(value);
+                setInvalid(false);
+              }
+            }}
+          >
+            {(["category", "attribute", "option"] as const).map((value) => (
+              <NativeSelectOption key={value} value={value}>
+                {t(`proposalKinds.${value}`)}
               </NativeSelectOption>
             ))}
           </NativeSelect>
         </Field>
       )}
-      {kind === "option" && (
-        <Field>
-          <FieldLabel>{t("attribute")}</FieldLabel>
-          <NativeSelect name="attribute" className="w-full" required>
-            {taxonomy.attributes
-              .filter((item) => item.kind === "choice")
-              .map((item) => (
-                <NativeSelectOption key={item.id} value={item.id}>
-                  {item.name}
-                </NativeSelectOption>
-              ))}
-          </NativeSelect>
-        </Field>
-      )}
-      <Field>
-        <FieldLabel>{t("name")}</FieldLabel>
-        <Input name="name" required />
-      </Field>
-      <Field>
-        <FieldLabel>{t("code")}</FieldLabel>
-        <Input name="code" required pattern="[a-z0-9_-]+" dir="ltr" />
-      </Field>
-      {kind !== "option" && (
-        <Field>
-          <FieldLabel>{t("description")}</FieldLabel>
-          <Textarea name="description" />
-        </Field>
-      )}
-      {kind === "attribute" && (
-        <>
+      <FieldSet disabled={pending}>
+        {kind !== "option" && (
           <Field>
-            <FieldLabel>{t("attributeKind")}</FieldLabel>
-            <NativeSelect name="type" className="w-full">
-              <NativeSelectOption value="text">{t("attributeKinds.text")}</NativeSelectOption>
-              <NativeSelectOption value="number">{t("attributeKinds.number")}</NativeSelectOption>
-              <NativeSelectOption value="choice">{t("attributeKinds.choice")}</NativeSelectOption>
+            <FieldLabel htmlFor={`${id}-category`}>{t("categoryParent")}</FieldLabel>
+            <NativeSelect
+              id={`${id}-category`}
+              name="category"
+              className="w-full"
+              required={kind === "attribute"}
+              defaultValue={category?.parent ?? attribute?.category ?? ""}
+            >
+              <NativeSelectOption value="">—</NativeSelectOption>
+              {taxonomy.categories
+                .filter((item) => item.id !== initial?.id)
+                .map((item) => (
+                  <NativeSelectOption key={item.id} value={item.id}>
+                    {item.name}
+                  </NativeSelectOption>
+                ))}
             </NativeSelect>
           </Field>
+        )}
+        {kind === "option" && (
           <Field>
-            <FieldLabel>{t("attributeScope")}</FieldLabel>
-            <NativeSelect name="scope" className="w-full">
-              <NativeSelectOption value="product">{t("scopes.product")}</NativeSelectOption>
-              <NativeSelectOption value="variant">{t("scopes.variant")}</NativeSelectOption>
+            <FieldLabel htmlFor={`${id}-attribute`}>{t("attribute")}</FieldLabel>
+            <NativeSelect
+              id={`${id}-attribute`}
+              name="attribute"
+              className="w-full"
+              required
+              defaultValue={option?.attribute ?? ""}
+            >
+              <NativeSelectOption value="">—</NativeSelectOption>
+              {taxonomy.attributes
+                .filter((item) => item.kind === "choice")
+                .map((item) => (
+                  <NativeSelectOption key={item.id} value={item.id}>
+                    {item.name}
+                  </NativeSelectOption>
+                ))}
             </NativeSelect>
           </Field>
+        )}
+        <Field>
+          <FieldLabel htmlFor={`${id}-name`}>{t("name")}</FieldLabel>
+          <Input
+            id={`${id}-name`}
+            name="name"
+            required
+            maxLength={120}
+            defaultValue={category?.name ?? attribute?.name ?? option?.label ?? ""}
+          />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor={`${id}-code`}>{t("code")}</FieldLabel>
+          <Input
+            id={`${id}-code`}
+            name="code"
+            required
+            maxLength={50}
+            pattern="[a-zA-Z0-9_-]+"
+            dir="ltr"
+            defaultValue={category?.slug ?? attribute?.code ?? option?.code ?? ""}
+          />
+        </Field>
+        {kind !== "option" && (
           <Field>
-            <FieldLabel>{t("unit")}</FieldLabel>
-            <Input name="unit" />
+            <FieldLabel htmlFor={`${id}-description`}>{t("description")}</FieldLabel>
+            <Textarea
+              id={`${id}-description`}
+              name="description"
+              maxLength={1000}
+              defaultValue={category?.description ?? attribute?.description ?? ""}
+            />
           </Field>
-          <label className="flex items-center gap-2">
-            <Checkbox name="required" />
-            {t("required")}
-          </label>
-          <label className="flex items-center gap-2">
-            <Checkbox name="filterable" />
-            {t("filterable")}
-          </label>
-        </>
+        )}
+        {kind === "attribute" && (
+          <>
+            <Field>
+              <FieldLabel htmlFor={`${id}-type`}>{t("attributeKind")}</FieldLabel>
+              <NativeSelect
+                id={`${id}-type`}
+                name="type"
+                className="w-full"
+                value={attributeKind}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  if (value === "text" || value === "number" || value === "choice")
+                    setAttributeKind(value);
+                }}
+              >
+                {(["text", "number", "choice"] as const).map((value) => (
+                  <NativeSelectOption key={value} value={value}>
+                    {t(`attributeKinds.${value}`)}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+            </Field>
+            <Field>
+              <FieldLabel htmlFor={`${id}-scope`}>{t("attributeScope")}</FieldLabel>
+              <NativeSelect
+                id={`${id}-scope`}
+                name="scope"
+                className="w-full"
+                defaultValue={attribute?.scope ?? "product"}
+              >
+                <NativeSelectOption value="product">{t("scopes.product")}</NativeSelectOption>
+                <NativeSelectOption value="variant">{t("scopes.variant")}</NativeSelectOption>
+              </NativeSelect>
+            </Field>
+            <Field>
+              <FieldLabel htmlFor={`${id}-unit`}>{t("unit")}</FieldLabel>
+              <Input
+                id={`${id}-unit`}
+                name="unit"
+                maxLength={40}
+                required={attributeKind === "number"}
+                disabled={attributeKind !== "number"}
+                defaultValue={attribute?.unit ?? ""}
+              />
+            </Field>
+            <FieldLabel>
+              <Checkbox name="required" defaultChecked={attribute?.required ?? false} />
+              {t("required")}
+            </FieldLabel>
+            <FieldLabel>
+              <Checkbox name="filterable" defaultChecked={attribute?.filterable ?? false} />
+              {t("filterable")}
+            </FieldLabel>
+          </>
+        )}
+        <Field>
+          <FieldLabel htmlFor={`${id}-position`}>{t("position")}</FieldLabel>
+          <Input
+            id={`${id}-position`}
+            name="position"
+            type="number"
+            min={0}
+            max={2147483647}
+            defaultValue={initial?.position ?? 0}
+            required
+          />
+        </Field>
+        {initial?.id && (
+          <Field>
+            <FieldLabel htmlFor={`${id}-reason`}>{t("reason")}</FieldLabel>
+            <Textarea id={`${id}-reason`} name="reason" maxLength={2000} />
+          </Field>
+        )}
+      </FieldSet>
+      {invalid && (
+        <Alert variant="destructive">
+          <AlertDescription>{t("saveError")}</AlertDescription>
+        </Alert>
       )}
-      <Field>
-        <FieldLabel>{t("position")}</FieldLabel>
-        <Input name="position" type="number" defaultValue={0} />
-      </Field>
-      <Button type="submit" disabled={pending}>
-        {t("create")}
+      <Button type="submit" disabled={pending || submitDisabled}>
+        {submitLabel ?? (initial?.id ? t("saveDefinition") : t("create"))}
       </Button>
     </form>
   );
@@ -525,37 +741,50 @@ function TaxonomyCreate({
 function TaxonomyRow({
   label,
   active,
+  pending,
   onToggle,
+  onEdit,
 }: {
   label: string;
   active: boolean;
+  pending: boolean;
   onToggle: (reason: string) => void;
+  onEdit: () => void;
 }) {
   const t = useTranslations("catalogManagement");
   const [reason, setReason] = useState("");
+  const id = useId();
   return (
-    <div className="grid gap-2 rounded-lg border p-3 sm:grid-cols-[1fr_2fr_auto] sm:items-center">
-      <span>
+    <div
+      role="group"
+      aria-label={label}
+      className="grid gap-3 rounded-lg border p-3 sm:grid-cols-[1fr_2fr_auto] sm:items-end"
+    >
+      <p>
         <bdi>{label}</bdi> · {active ? t("active") : t("inactive")}
-      </span>
-      <Input
-        value={reason}
-        placeholder={t("statusReason")}
-        onChange={(event) => setReason(event.target.value)}
-      />
-      <Button variant="outline" disabled={!reason.trim()} onClick={() => onToggle(reason)}>
-        {active ? t("deactivate") : t("activate")}
-      </Button>
+      </p>
+      <Field>
+        <FieldLabel htmlFor={id}>{t("statusReason")}</FieldLabel>
+        <Input
+          id={id}
+          value={reason}
+          maxLength={2000}
+          disabled={pending}
+          onChange={(event) => setReason(event.target.value)}
+        />
+      </Field>
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" disabled={pending} onClick={onEdit}>
+          {t("editDefinition")}
+        </Button>
+        <Button
+          variant="outline"
+          disabled={pending || !reason.trim()}
+          onClick={() => onToggle(reason)}
+        >
+          {active ? t("deactivate") : t("activate")}
+        </Button>
+      </div>
     </div>
-  );
-}
-
-function slug(value: string) {
-  return (
-    value
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "") || `proposal-${Date.now()}`
   );
 }

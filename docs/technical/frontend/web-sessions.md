@@ -122,6 +122,15 @@ private browser storage is used. Wizard steps stay mounted and use native histor
 integration for the `step` query; reload reads the last complete server section, not an
 imaginary incremental autosave. Unsaved data stays in memory for the current identity.
 
+Private overlays use the existing Base UI portal container inside the same retained
+DOM boundary. Dialog, Sheet, DropdownMenu and Tooltip inherit that container through
+shared `PortalContainer`, including nested query regions. Inert descendants are hidden
+without a transition: an inherited visibility change must not remain visible for a
+control's animation duration. Modal unit tests cover a retained open draft and direct
+URL mounting; the catalogue preview browser flow checks synchronous pagehide concealment,
+same-node recovery, Escape and trigger focus. These synthetic events do not certify
+native persisted BFCache behavior.
+
 The server Header slot exposes only opaque session-cookie presence. Personal/role data
 is fetched on opening its menu and permissions come from the existing live BFF. The
 account navigation validates operator access before exposing operational links; Queue

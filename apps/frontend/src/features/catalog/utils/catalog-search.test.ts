@@ -10,6 +10,20 @@ import {
 const category = "b1f8d7b1-9143-4a85-a7c4-d52ee35640cc";
 
 describe("catalog URL state", () => {
+  it("preserves attribute OR selections and minimum rating in public queries and pagination", () => {
+    const filters = parseCatalogSearchParams({
+      [`attr.${category}`]: ["red,blue", "red"],
+      "attr.bad": "ignored",
+      rating_min: "4.50",
+    });
+    expect(filters.attributes).toEqual({ [category]: ["blue", "red"] });
+    expect(filters.ratingMin).toBe("4.5");
+    expect(publicCatalogSearch(filters).getAll(`attr.${category}`)).toEqual(["blue", "red"]);
+    expect(catalogPageHref(filters, 2)).toContain("rating_min=4.5");
+    expect(catalogPageHref(filters, 2)).toContain("page=2");
+    for (const value of ["-1", "5.1", "1e2", "NaN", "4.123"])
+      expect(parseCatalogSearchParams({ rating_min: value }).ratingMin).toBe("");
+  });
   it("normalizes repeated filters into a stable query and preserves them across pagination", () => {
     const filters = parseCatalogSearchParams({
       q: "  کیف چرمی  ",

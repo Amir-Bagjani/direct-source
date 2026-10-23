@@ -1,17 +1,41 @@
 "use client";
-import { useState } from "react";
+import { ApiError } from "@/shared/api/unwrap";
+import { useId, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
+import { useCatalogWorkspaceSession } from "@/features/accounts/contracts/catalog-workspace";
+import { catalogImageUrl } from "@/features/accounts/contracts/catalog-images";
+import { ProductPreview } from "../product-preview/product-preview";
+import { PublicationChecklist } from "../publication-checklist/publication-checklist";
+import { ProductImage } from "../product-image/product-image";
+import { PriceTable } from "../price-table/price-table";
+import { SelectionPreview } from "../selection-preview/selection-preview";
+import { quoteProducerProduct } from "../../api/catalog-quote.api";
+import { tomanToIrr } from "../../utils/money";
+import { useRetainedQueryData } from "@/shared/hooks/use-retained-query-data";
+import { PrivateQueryRegion } from "@/shared/ui/private-query-region/private-query-region";
 import { Link, useRouter } from "@/i18n/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert/alert";
 import { Button } from "@/shared/ui/button/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card/card";
 import { Checkbox } from "@/shared/ui/checkbox/checkbox";
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/shared/ui/field/field";
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldSet,
+  FieldLegend,
+} from "@/shared/ui/field/field";
 import { Input } from "@/shared/ui/input/input";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select/native-select";
 import { Spinner } from "@/shared/ui/spinner/spinner";
 import { Textarea } from "@/shared/ui/textarea/textarea";
+import { Modal } from "@/shared/ui/modal/modal";
+import { openModal, closeModal } from "@/shared/ui/modal/modal-history";
+import { DialogTitle, DialogDescription } from "@/shared/ui/dialog/dialog";
+import { buttonVariants } from "@/shared/ui/button/button.variants";
 import {
   deleteProduct,
   deleteVariant,
@@ -29,6 +53,7 @@ import {
 } from "../../api/catalog-management.api";
 import { editorOptions, studioAccessOptions } from "../../queries/catalog-management.queries";
 import { catalogKeys } from "../../queries/catalog.keys";
+import { hasFieldError } from "./product-editor.validation";
 import type {
   Editor,
   Product,
@@ -36,45 +61,102 @@ import type {
   SupplyInput,
   Taxonomy,
   Variant,
+  Revision,
 } from "../../schemas/catalog-management.schema";
 import { AttributeFields } from "../attribute-fields/attribute-fields";
 
 export function ProductEditor({ id }: { id: string }) {
   const t = useTranslations("catalogManagement");
-  const access = useQuery(studioAccessOptions());
+  const common = useTranslations("common");
+  const session = useCatalogWorkspaceSession();
+  const access = useQuery({ ...studioAccessOptions(session.scope), enabled: session.authorized });
+  const accessData = useRetainedQueryData(access, catalogKeys.studioAccess(session.scope));
   const editor = useQuery({
-    ...editorOptions(access.data?.scope ?? "pending", id),
-    enabled: access.isSuccess,
+    ...editorOptions(session.scope, id),
+    enabled: session.authorized && access.isSuccess,
   });
-  if (access.isPending || editor.isPending)
+  const editorData = useRetainedQueryData(editor, catalogKeys.editor(session.scope, id));
+  if (
+    [access.error, editor.error].some(
+      (error) => error instanceof ApiError && [401, 403, 404].includes(error.status),
+    )
+  )
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>{t("forbidden")}</AlertDescription>
+      </Alert>
+    );
+  if ((!accessData || !editorData) && (access.isPending || (access.isSuccess && editor.isPending)))
     return (
       <p role="status" className="flex items-center gap-2">
         <Spinner />
         {t("loading")}
       </p>
     );
-  if (access.isError || editor.isError)
+  if ((!accessData || !editorData) && (access.isError || editor.isError))
     return (
       <Alert variant="destructive">
-        <AlertDescription>{t("loadError")}</AlertDescription>
+        <AlertDescription>
+          {t("loadError")}
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (access.isError) void access.refetch();
+              else void editor.refetch();
+            }}
+          >
+            {common("retry")}
+          </Button>
+        </AlertDescription>
       </Alert>
     );
-  if (access.data.business?.id !== editor.data.product.business)
+  if (!accessData || !editorData) return null;
+  if (accessData.business?.id !== editorData.product.business)
     return (
       <Alert variant="destructive">
         <AlertDescription>{t("forbidden")}</AlertDescription>
       </Alert>
     );
   return (
-    <EditorWorkspace
-      key={`${editor.data.product.id}:${editor.data.product.updated_at}`}
-      access={access.data}
-      editor={editor.data}
-    />
+    <PrivateQueryRegion
+      masked={
+        !session.authorized ||
+        access.isFetching ||
+        !access.isSuccess ||
+        editor.isFetching ||
+        !editor.isSuccess
+      }
+      error={access.isError || editor.isError ? t("loadError") : undefined}
+      retry={() => {
+        if (access.isError) void access.refetch();
+        else void editor.refetch();
+      }}
+    >
+      <EditorWorkspace
+        key={editorData.product.id}
+        access={accessData}
+        editor={editorData}
+        previewEnabled={
+          session.authorized &&
+          access.isSuccess &&
+          !access.isFetching &&
+          editor.isSuccess &&
+          !editor.isFetching
+        }
+      />
+    </PrivateQueryRegion>
   );
 }
 
-function EditorWorkspace({ access, editor }: { access: StudioAccess; editor: Editor }) {
+function EditorWorkspace({
+  access,
+  editor,
+  previewEnabled,
+}: {
+  access: StudioAccess;
+  editor: Editor;
+  previewEnabled: boolean;
+}) {
   const t = useTranslations("catalogManagement");
   const client = useQueryClient();
   const router = useRouter();
@@ -88,7 +170,13 @@ function EditorWorkspace({ access, editor }: { access: StudioAccess; editor: Edi
     client.invalidateQueries({ queryKey: catalogKeys.editor(access.scope, product.id) });
   const submit = useMutation({
     mutationFn: () => submitProduct(product.id),
-    onSuccess: invalidate,
+    onError: () => {
+      void invalidate();
+    },
+    onSuccess: async () => {
+      await invalidate();
+      closeModal();
+    },
   });
   const remove = useMutation({
     mutationFn: () => deleteProduct(product.id),
@@ -113,7 +201,7 @@ function EditorWorkspace({ access, editor }: { access: StudioAccess; editor: Edi
           </h1>
           <p className="text-muted-foreground">{t(`statuses.${product.status}`)}</p>
         </div>
-        <Button variant="outline" render={<Link href="/account/catalog" />}>
+        <Button nativeButton={false} variant="outline" render={<Link href="/account/catalog" />}>
           {t("backToProducts")}
         </Button>
       </div>
@@ -125,26 +213,108 @@ function EditorWorkspace({ access, editor }: { access: StudioAccess; editor: Edi
           </AlertDescription>
         </Alert>
       )}
-      <ProductProfile
-        access={access}
-        editor={editor}
-        editable={editable}
-        revisionable={revisionable}
-        onSaved={invalidate}
-      />
-      <VariantsEditor access={access} editor={editor} editable={editable} onSaved={invalidate} />
-      <SalesPlanEditor editor={editor} editable={operational} onSaved={invalidate} />
-      <SupplyEditor editor={editor} editable={operational} onSaved={invalidate} />
-      <ShippingEditor access={access} editor={editor} editable={operational} onSaved={invalidate} />
-      <Card>
+      <nav aria-label={t("editorNavigation")} className="flex flex-wrap gap-2">
+        {(
+          [
+            "baseProduct",
+            "variants",
+            "salesAndPricing",
+            "supply",
+            "shipping",
+            "preview",
+            "publication",
+          ] as const
+        ).map((section) => (
+          <Link
+            key={section}
+            href={`#${section}`}
+            className={buttonVariants({ variant: "outline" })}
+          >
+            {section === "preview" ? t("preview.title") : t(section)}
+          </Link>
+        ))}
+      </nav>
+      <section id="baseProduct" className="scroll-mt-6">
+        <ProductProfile
+          key={JSON.stringify([
+            product.category,
+            product.name,
+            product.description,
+            product.brand,
+            product.manufacturer_model,
+            product.attributes,
+            product.images,
+            editor.revisions,
+          ])}
+          access={access}
+          editor={editor}
+          editable={editable}
+          revisionable={revisionable}
+          onSaved={invalidate}
+        />
+      </section>
+      <section id="variants" className="scroll-mt-6">
+        <VariantsEditor access={access} editor={editor} editable={editable} onSaved={invalidate} />
+      </section>
+      <section id="salesAndPricing" className="grid scroll-mt-6 gap-6">
+        <SalesPlanEditor
+          key={JSON.stringify(editor.sales_plan)}
+          editor={editor}
+          editable={operational}
+          onSaved={invalidate}
+        />
+        {operational && editor.sales_plan && (
+          <SelectionPreview
+            scope={access.scope}
+            productId={product.id}
+            plan={editor.sales_plan}
+            variants={editor.variants
+              .filter((variant) => variant.is_active)
+              .map((variant) => ({
+                id: variant.id,
+                sku: variant.sku,
+                supply: editor.supplies[variant.id] ?? null,
+                orderable:
+                  (editor.supplies[variant.id]?.ready_stock ?? 0) +
+                    (editor.supplies[variant.id]?.production_cap ?? 0) >
+                  0,
+              }))}
+            quote={quoteProducerProduct}
+          />
+        )}
+      </section>
+      <section id="supply" className="scroll-mt-6">
+        <SupplyEditor editor={editor} editable={operational} onSaved={invalidate} />
+      </section>
+      <section id="shipping" className="scroll-mt-6">
+        <ShippingEditor
+          key={JSON.stringify([editor.shipping, editor.variants.map((variant) => variant.id)])}
+          access={access}
+          editor={editor}
+          editable={operational}
+          onSaved={invalidate}
+        />
+      </section>
+      <section id="preview" className="scroll-mt-6">
+        <ProductPreview scope={access.scope} id={product.id} enabled={previewEnabled} />
+      </section>
+      <Card id="publication">
         <CardHeader>
           <CardTitle>{t("publication")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
+          <PublicationChecklist readiness={editor.readiness} links />
           {editable && (
             <>
               <p className="text-sm text-muted-foreground">{t("submitHint")}</p>
-              <Button onClick={() => submit.mutate()} disabled={submit.isPending}>
+              <Button
+                onClick={() => openModal("catalog-submit")}
+                disabled={
+                  submit.isPending ||
+                  !editor.readiness.ready ||
+                  access.business?.status !== "verified"
+                }
+              >
                 {t("submitReview")}
               </Button>
             </>
@@ -155,13 +325,13 @@ function EditorWorkspace({ access, editor }: { access: StudioAccess; editor: Edi
           {product.status === "inactive" && (
             <ReasonCommand label={t("activate")} action="activate" mutation={command} />
           )}
-          {product.status === "rejected" && (
+          {product.status === "rejected" && access.operator && (
             <ReasonCommand label={t("reopen")} action="reopen" mutation={command} />
           )}
-          {product.status === "draft" && (
+          {product.status === "draft" && !product.submitted_at && (
             <Button
               variant="destructive"
-              onClick={() => remove.mutate()}
+              onClick={() => openModal("catalog-delete")}
               disabled={remove.isPending}
             >
               {t("deleteDraft")}
@@ -174,6 +344,42 @@ function EditorWorkspace({ access, editor }: { access: StudioAccess; editor: Edi
           )}
         </CardContent>
       </Card>
+      <Modal name="catalog-submit" labelledBy="catalog-submit-title">
+        <DialogTitle id="catalog-submit-title">{t("submitReview")}</DialogTitle>
+        <DialogDescription>{t("submitHint")}</DialogDescription>
+        <Button
+          disabled={
+            submit.isPending ||
+            !editable ||
+            !editor.readiness.ready ||
+            access.business?.status !== "verified"
+          }
+          onClick={() => submit.mutate()}
+        >
+          {t("confirmSubmit")}
+        </Button>
+        {submit.isError && (
+          <Alert variant="destructive">
+            <AlertDescription>{t("commandError")}</AlertDescription>
+          </Alert>
+        )}
+      </Modal>
+      <Modal name="catalog-delete" labelledBy="catalog-delete-title">
+        <DialogTitle id="catalog-delete-title">{t("deleteDraft")}</DialogTitle>
+        <DialogDescription>{t("deleteDraftHint")}</DialogDescription>
+        <Button
+          variant="destructive"
+          disabled={remove.isPending || product.status !== "draft" || Boolean(product.submitted_at)}
+          onClick={() => remove.mutate()}
+        >
+          {t("confirmDelete")}
+        </Button>
+        {remove.isError && (
+          <Alert variant="destructive">
+            <AlertDescription>{t("commandError")}</AlertDescription>
+          </Alert>
+        )}
+      </Modal>
     </div>
   );
 }
@@ -194,12 +400,13 @@ function ReasonCommand({
   >;
 }) {
   const t = useTranslations("catalogManagement");
+  const fieldId = useId();
   const [reason, setReason] = useState("");
   return (
     <div className="grid gap-3">
       <Field>
-        <FieldLabel>{t("reason")}</FieldLabel>
-        <Textarea value={reason} onChange={(event) => setReason(event.target.value)} />
+        <FieldLabel htmlFor={fieldId}>{t("reason")}</FieldLabel>
+        <Textarea id={fieldId} value={reason} onChange={(event) => setReason(event.target.value)} />
       </Field>
       <Button
         variant="outline"
@@ -226,17 +433,34 @@ function ProductProfile({
   onSaved: () => void;
 }) {
   const t = useTranslations("catalogManagement");
+  const fieldId = useId();
   const product = editor.product;
-  const changeable = editable || revisionable;
-  const [attributes, setAttributes] = useState(product.attributes);
-  const [images, setImages] = useState(product.images);
-  const [availableImages, setAvailableImages] = useState(product.images);
+  const revision = editor.revisions.find((item) =>
+    ["draft", "pending", "changes_requested"].includes(item.status),
+  );
+  const profile = revision?.proposed.profile ?? product;
+  const changeable = editable || (revisionable && revision?.status !== "pending");
+  const [category, setCategory] = useState(profile.category);
+  const [attributes, setAttributes] = useState(profile.attributes);
+  const [images, setImages] = useState(profile.images);
+  const [availableImages, setAvailableImages] = useState([
+    ...new Set([...product.images, ...profile.images]),
+  ]);
+  const [revisionVariants, setRevisionVariants] = useState<RevisionVariantDraft[]>(
+    (
+      revision?.proposed.variants ??
+      editor.variants
+        .filter((variant) => variant.is_active)
+        .map(({ id, sku, attributes, images }) => ({ id, sku, attributes, images }))
+    ).map((variant) => ({ ...variant, clientKey: variant.id })),
+  );
+  const [uploadingVariants, setUploadingVariants] = useState<string[]>([]);
   const save = useMutation({
     mutationFn: async (form: HTMLFormElement) => {
       const data = new FormData(form);
       const input = {
         business: product.business,
-        category: product.category,
+        category,
         name: String(data.get("name")),
         description: String(data.get("description")),
         brand: String(data.get("brand")),
@@ -247,7 +471,11 @@ function ProductProfile({
       if (editable) return saveProduct(input, product.id);
       if (!revisionable) throw new Error("content_locked");
       const { business: _business, ...profile } = input;
-      return saveRevision(product.id, { profile });
+      return saveRevision(
+        product.id,
+        { profile, variants: revisionVariants.map(({ clientKey: _key, ...variant }) => variant) },
+        revision?.id,
+      );
     },
     onSuccess: onSaved,
   });
@@ -259,7 +487,12 @@ function ProductProfile({
     },
   });
   const submitRevision = useMutation({
-    mutationFn: () => revisionCommand("revision-submit", save.data!.id),
+    mutationFn: () => revisionCommand("revision-submit", revision!.id),
+    onSuccess: onSaved,
+  });
+  const [cancelReason, setCancelReason] = useState("");
+  const cancelRevision = useMutation({
+    mutationFn: () => revisionCommand("revision-cancel", revision!.id, { reason: cancelReason }),
     onSuccess: onSaved,
   });
   return (
@@ -269,6 +502,7 @@ function ProductProfile({
       </CardHeader>
       <CardContent>
         <form
+          aria-label={revisionable ? t("contentRevision") : t("baseProduct")}
           className="grid gap-4"
           onSubmit={(event) => {
             event.preventDefault();
@@ -277,34 +511,78 @@ function ProductProfile({
         >
           <FieldGroup className="grid gap-4 sm:grid-cols-2">
             <Field>
-              <FieldLabel>{t("name")}</FieldLabel>
-              <Input name="name" defaultValue={product.name} required disabled={!changeable} />
-            </Field>
-            <Field>
-              <FieldLabel>{t("brand")}</FieldLabel>
-              <Input name="brand" defaultValue={product.brand} required disabled={!changeable} />
-            </Field>
-            <Field>
-              <FieldLabel>{t("model")}</FieldLabel>
+              <FieldLabel htmlFor={`${fieldId}-name`}>{t("name")}</FieldLabel>
               <Input
-                name="model"
-                defaultValue={product.manufacturer_model}
+                id={`${fieldId}-name`}
+                name="name"
+                aria-label={t("name")}
+                defaultValue={profile.name}
                 required
+                disabled={!changeable}
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor={`${fieldId}-brand`}>{t("brand")}</FieldLabel>
+              <Input
+                id={`${fieldId}-brand`}
+                name="brand"
+                aria-label={t("brand")}
+                defaultValue={profile.brand}
+                maxLength={120}
+                disabled={!changeable}
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor={`${fieldId}-model`}>{t("model")}</FieldLabel>
+              <Input
+                id={`${fieldId}-model`}
+                name="model"
+                aria-label={t("model")}
+                defaultValue={profile.manufacturer_model}
+                maxLength={120}
                 disabled={!changeable}
               />
             </Field>
           </FieldGroup>
           <Field>
-            <FieldLabel>{t("description")}</FieldLabel>
+            <FieldLabel htmlFor="editor-category">{t("category")}</FieldLabel>
+            <NativeSelect
+              id="editor-category"
+              className="w-full"
+              value={category}
+              disabled={!changeable}
+              onChange={(event) => {
+                setCategory(event.target.value);
+                setAttributes({});
+              }}
+            >
+              {editor.taxonomy.categories
+                .filter(
+                  (item) =>
+                    item.id === category ||
+                    (item.is_active &&
+                      !editor.taxonomy.categories.some((child) => child.parent === item.id)),
+                )
+                .map((item) => (
+                  <NativeSelectOption key={item.id} value={item.id}>
+                    {item.name}
+                  </NativeSelectOption>
+                ))}
+            </NativeSelect>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor={`${fieldId}-description`}>{t("description")}</FieldLabel>
             <Textarea
+              id={`${fieldId}-description`}
               name="description"
-              defaultValue={product.description}
+              aria-label={t("description")}
+              defaultValue={profile.description}
               required
               disabled={!changeable}
             />
           </Field>
           <AttributeFields
-            category={product.category}
+            category={category}
             scope="product"
             taxonomy={editor.taxonomy}
             value={attributes}
@@ -312,8 +590,9 @@ function ProductProfile({
             disabled={!changeable}
           />
           <Field>
-            <FieldLabel>{t("images")}</FieldLabel>
+            <FieldLabel htmlFor={`${fieldId}-images`}>{t("images")}</FieldLabel>
             <Input
+              id={`${fieldId}-images`}
               type="file"
               accept="image/jpeg,image/png,image/webp"
               disabled={!changeable || upload.isPending || images.length >= 8}
@@ -332,7 +611,81 @@ function ProductProfile({
             label={t("productGallery")}
             disabled={!changeable}
           />
-          {(save.isError || upload.isError) && (
+          {revisionable && (
+            <FieldGroup>
+              <h3 className="font-medium">{t("revisionVariants")}</h3>
+              <p className="text-sm text-muted-foreground">{t("revisionVariantsHint")}</p>
+              {revisionVariants.map((variant) => (
+                <RevisionVariantFields
+                  key={variant.clientKey}
+                  access={access}
+                  category={category}
+                  taxonomy={editor.taxonomy}
+                  variant={variant}
+                  images={availableImages}
+                  disabled={!changeable}
+                  onChange={(next) =>
+                    setRevisionVariants((current) =>
+                      current.map((item) => (item.clientKey === variant.clientKey ? next : item)),
+                    )
+                  }
+                  onUploaded={(id) =>
+                    setRevisionVariants((current) =>
+                      current.map((item) =>
+                        item.clientKey === variant.clientKey
+                          ? { ...item, images: [...item.images, id] }
+                          : item,
+                      ),
+                    )
+                  }
+                  onUploading={(pending) =>
+                    setUploadingVariants((current) =>
+                      pending
+                        ? [...current, variant.clientKey]
+                        : current.filter((key) => key !== variant.clientKey),
+                    )
+                  }
+                  onRemove={() =>
+                    setRevisionVariants((current) =>
+                      current.filter((item) => item.clientKey !== variant.clientKey),
+                    )
+                  }
+                />
+              ))}
+              {changeable && (
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    setRevisionVariants((current) => [
+                      ...current,
+                      {
+                        clientKey: crypto.randomUUID(),
+                        sku: "",
+                        attributes: {},
+                        images: [],
+                        supply: {
+                          mode: "ready",
+                          ready_stock: 0,
+                          production_cap: 0,
+                          lead_time_days: 0,
+                        },
+                        package: {
+                          weight_g: 0,
+                          length_mm: 0,
+                          width_mm: 0,
+                          height_mm: 0,
+                          package_count: 1,
+                        },
+                      },
+                    ])
+                  }
+                >
+                  {t("addVariant")}
+                </Button>
+              )}
+            </FieldGroup>
+          )}
+          {(save.isError || upload.isError || submitRevision.isError || cancelRevision.isError) && (
             <Alert variant="destructive">
               <AlertDescription>{t("saveError")}</AlertDescription>
             </Alert>
@@ -340,15 +693,19 @@ function ProductProfile({
           {changeable && (
             <Button
               type="submit"
-              disabled={save.isPending || upload.isPending || images.length === 0}
+              disabled={
+                save.isPending ||
+                upload.isPending ||
+                uploadingVariants.length > 0 ||
+                images.length === 0
+              }
             >
-              {editable ? t("save") : t("createRevision")}
+              {editable || revision ? t("save") : t("createRevision")}
             </Button>
           )}
           {revisionable &&
-            save.data &&
-            "product" in save.data &&
-            save.data.status !== "pending" &&
+            revision &&
+            revision.status !== "pending" &&
             !submitRevision.isSuccess && (
               <Button
                 type="button"
@@ -359,9 +716,228 @@ function ProductProfile({
                 {t("submitRevision")}
               </Button>
             )}
+          {revision && (
+            <>
+              <p role="status">{t(`revisionStatuses.${revision.status}`)}</p>
+              {revision.reason && (
+                <Alert>
+                  <AlertDescription>
+                    <bdi>{revision.reason}</bdi>
+                  </AlertDescription>
+                </Alert>
+              )}
+              <Field>
+                <FieldLabel htmlFor="revision-cancel-reason">{t("reason")}</FieldLabel>
+                <Textarea
+                  id="revision-cancel-reason"
+                  value={cancelReason}
+                  onChange={(event) => setCancelReason(event.target.value)}
+                />
+              </Field>
+              <Button
+                variant="outline"
+                disabled={cancelRevision.isPending || !cancelReason.trim()}
+                onClick={() => cancelRevision.mutate()}
+              >
+                {t("cancelRevision")}
+              </Button>
+            </>
+          )}
         </form>
       </CardContent>
     </Card>
+  );
+}
+
+type RevisionVariantDraft = Omit<Revision["proposed"]["variants"][number], "id"> & {
+  id?: string;
+  clientKey: string;
+};
+
+function RevisionVariantFields({
+  access,
+  category,
+  taxonomy,
+  variant,
+  images,
+  disabled,
+  onChange,
+  onUploaded,
+  onUploading,
+  onRemove,
+}: {
+  access: StudioAccess;
+  category: string;
+  taxonomy: Taxonomy;
+  variant: RevisionVariantDraft;
+  images: string[];
+  disabled: boolean;
+  onChange: (variant: RevisionVariantDraft) => void;
+  onUploaded: (id: string) => void;
+  onUploading: (pending: boolean) => void;
+  onRemove: () => void;
+}) {
+  const t = useTranslations("catalogManagement");
+  const id = useId();
+  const upload = useMutation({
+    mutationFn: (file: File) =>
+      uploadProductImage(access.business!.id, access.consent_version, file),
+    onMutate: () => onUploading(true),
+    onSuccess: (file) => onUploaded(file.id),
+    onSettled: () => onUploading(false),
+  });
+  const supply = variant.supply,
+    pack = variant.package;
+  return (
+    <FieldSet>
+      <FieldLegend>{variant.sku || t("newVariant")}</FieldLegend>
+      <FieldGroup>
+        <Field>
+          <FieldLabel htmlFor={`${id}-sku`}>{t("sku")}</FieldLabel>
+          <Input
+            id={`${id}-sku`}
+            value={variant.sku}
+            required
+            maxLength={100}
+            disabled={disabled}
+            onChange={(event) => onChange({ ...variant, sku: event.target.value })}
+          />
+        </Field>
+        <AttributeFields
+          category={category}
+          scope="variant"
+          taxonomy={taxonomy}
+          value={variant.attributes}
+          disabled={disabled}
+          onChange={(attributes) => onChange({ ...variant, attributes })}
+        />
+        <Field>
+          <FieldLabel htmlFor={`${id}-image`}>{t("variantImages")}</FieldLabel>
+          <Input
+            id={`${id}-image`}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            disabled={disabled || upload.isPending || variant.images.length >= 3}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) upload.mutate(file);
+              event.currentTarget.value = "";
+            }}
+          />
+        </Field>
+        <ImageSelection
+          images={[...new Set([...images, ...variant.images])]}
+          selected={variant.images}
+          onChange={(next) => onChange({ ...variant, images: next })}
+          label={t("variantImages")}
+          disabled={disabled || upload.isPending}
+          limit={3}
+        />
+        {supply && (
+          <FieldGroup className="grid gap-4 sm:grid-cols-2">
+            <Field>
+              <FieldLabel htmlFor={`${id}-mode`}>{t("supplyMode")}</FieldLabel>
+              <NativeSelect
+                id={`${id}-mode`}
+                className="w-full"
+                value={supply.mode}
+                disabled={disabled}
+                onChange={(event) => {
+                  const mode = event.target.value;
+                  if (mode !== "ready" && mode !== "production" && mode !== "hybrid") return;
+                  onChange({
+                    ...variant,
+                    supply: {
+                      ...supply,
+                      mode,
+                      ready_stock: mode === "production" ? 0 : supply.ready_stock,
+                      production_cap: mode === "ready" ? 0 : supply.production_cap,
+                      lead_time_days: mode === "ready" ? 0 : supply.lead_time_days,
+                    },
+                  });
+                }}
+              >
+                {(["ready", "production", "hybrid"] as const).map((mode) => (
+                  <NativeSelectOption key={mode} value={mode}>
+                    {t(`supplyModes.${mode}`)}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+            </Field>
+            {(
+              [
+                ["ready_stock", "readyStock"],
+                ["production_cap", "productionCapacity"],
+                ["lead_time_days", "leadDays"],
+              ] as const
+            ).map(([key, label]) => (
+              <Field key={key}>
+                <FieldLabel htmlFor={`${id}-${key}`}>{t(label)}</FieldLabel>
+                <Input
+                  id={`${id}-${key}`}
+                  type="number"
+                  value={supply[key]}
+                  min={key === "ready_stock" ? 0 : 1}
+                  max={key === "lead_time_days" ? 3650 : 1_000_000_000}
+                  required
+                  disabled={
+                    disabled ||
+                    (key === "ready_stock" ? supply.mode === "production" : supply.mode === "ready")
+                  }
+                  onChange={(event) =>
+                    onChange({
+                      ...variant,
+                      supply: { ...supply, [key]: Number(event.target.value) },
+                    })
+                  }
+                />
+              </Field>
+            ))}
+          </FieldGroup>
+        )}
+        {pack && (
+          <FieldGroup className="grid gap-4 sm:grid-cols-2">
+            {(
+              [
+                ["weight_g", "weight"],
+                ["length_mm", "length"],
+                ["width_mm", "width"],
+                ["height_mm", "height"],
+                ["package_count", "count"],
+              ] as const
+            ).map(([key, label]) => (
+              <Field key={key}>
+                <FieldLabel htmlFor={`${id}-${key}`}>{t(`package.${label}`)}</FieldLabel>
+                <Input
+                  id={`${id}-${key}`}
+                  type="number"
+                  min={1}
+                  required
+                  value={pack[key]}
+                  disabled={disabled}
+                  onChange={(event) =>
+                    onChange({
+                      ...variant,
+                      package: { ...pack, [key]: Number(event.target.value) },
+                    })
+                  }
+                />
+              </Field>
+            ))}
+          </FieldGroup>
+        )}
+        {upload.isError && (
+          <Alert variant="destructive">
+            <AlertDescription>{t("saveError")}</AlertDescription>
+          </Alert>
+        )}
+        {!disabled && (
+          <Button variant="outline" onClick={onRemove} disabled={upload.isPending}>
+            {t("removeVariantFromRevision")}
+          </Button>
+        )}
+      </FieldGroup>
+    </FieldSet>
   );
 }
 
@@ -371,35 +947,79 @@ function ImageSelection({
   onChange,
   label,
   disabled,
+  limit = 8,
 }: {
   images: string[];
   selected: string[];
   onChange: (images: string[]) => void;
   label: string;
   disabled?: boolean;
+  limit?: number;
 }) {
+  const t = useTranslations("catalogManagement");
   return (
     <Field>
       <FieldLabel>{label}</FieldLabel>
-      <div className="flex flex-wrap gap-3">
-        {images.map((image, index) => (
-          <label key={image} className="flex items-center gap-2 rounded-lg border p-2">
-            <Checkbox
-              checked={selected.includes(image)}
-              disabled={disabled}
-              onCheckedChange={(checked) =>
-                onChange(checked ? [...selected, image] : selected.filter((id) => id !== image))
-              }
-            />
-            <span>{index + 1}</span>
-          </label>
-        ))}
+      <div className="grid gap-3 sm:grid-cols-3">
+        {[...selected, ...images.filter((image) => !selected.includes(image))].map(
+          (image, index) => (
+            <div key={image} className="flex flex-col gap-2">
+              <ProductImage
+                src={catalogImageUrl(image)}
+                alt={t("imageNumber", { number: index + 1 })}
+                fallback={t("imageNumber", { number: index + 1 })}
+                sizes="160px"
+              />
+              <FieldLabel className="min-h-11">
+                <Checkbox
+                  checked={selected.includes(image)}
+                  disabled={disabled || (!selected.includes(image) && selected.length >= limit)}
+                  onCheckedChange={(checked) =>
+                    onChange(checked ? [...selected, image] : selected.filter((id) => id !== image))
+                  }
+                />
+                {selected[0] === image ? t("mainImage") : t("imageNumber", { number: index + 1 })}
+              </FieldLabel>
+              {selected.includes(image) && !disabled && (
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    disabled={selected.indexOf(image) === 0}
+                    onClick={() => {
+                      const order = [...selected],
+                        position = order.indexOf(image);
+                      order.splice(position, 1);
+                      order.splice(position - 1, 0, image);
+                      onChange(order);
+                    }}
+                  >
+                    {t("moveImageEarlier")}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    disabled={selected.indexOf(image) === selected.length - 1}
+                    onClick={() => {
+                      const order = [...selected],
+                        position = order.indexOf(image);
+                      order.splice(position, 1);
+                      order.splice(position + 1, 0, image);
+                      onChange(order);
+                    }}
+                  >
+                    {t("moveImageLater")}
+                  </Button>
+                </div>
+              )}
+            </div>
+          ),
+        )}
       </div>
     </Field>
   );
 }
 
 function VariantsEditor({
+  access,
   editor,
   editable,
   onSaved,
@@ -418,8 +1038,9 @@ function VariantsEditor({
       <CardContent className="grid gap-5">
         {editor.variants.map((variant) => (
           <VariantForm
-            key={variant.id}
+            key={JSON.stringify(variant)}
             product={editor.product}
+            access={access}
             variant={variant}
             taxonomy={editor.taxonomy}
             productImages={editor.product.images}
@@ -429,7 +1050,9 @@ function VariantsEditor({
         ))}
         {editable && (
           <VariantForm
+            key={editor.variants.length}
             product={editor.product}
+            access={access}
             taxonomy={editor.taxonomy}
             productImages={editor.product.images}
             editable
@@ -442,6 +1065,7 @@ function VariantsEditor({
 }
 
 function VariantForm({
+  access,
   product,
   variant,
   taxonomy,
@@ -450,6 +1074,7 @@ function VariantForm({
   onSaved,
 }: {
   product: Product;
+  access: StudioAccess;
   variant?: Variant;
   taxonomy: Taxonomy;
   productImages: string[];
@@ -457,8 +1082,19 @@ function VariantForm({
   onSaved: () => void;
 }) {
   const t = useTranslations("catalogManagement");
+  const fieldId = useId();
   const [attributes, setAttributes] = useState(variant?.attributes ?? {});
   const [images, setImages] = useState(variant?.images ?? []);
+  const [availableImages, setAvailableImages] = useState([
+    ...new Set([...productImages, ...images]),
+  ]);
+  const upload = useMutation({
+    mutationFn: (file: File) => uploadProductImage(product.business, access.consent_version, file),
+    onSuccess: (file) => {
+      setAvailableImages((current) => [...current, file.id]);
+      setImages((current) => [...current, file.id]);
+    },
+  });
   const save = useMutation({
     mutationFn: (form: HTMLFormElement) => {
       const data = new FormData(form);
@@ -474,14 +1110,16 @@ function VariantForm({
     mutationFn: () => deleteVariant(product.id, variant!.id),
     onSuccess: onSaved,
   });
+  const [activationReason, setActivationReason] = useState("");
   const activation = useMutation({
     mutationFn: () =>
-      setVariantActivation(product.id, variant!.id, !variant!.is_active, "producer_catalog_update"),
+      setVariantActivation(product.id, variant!.id, !variant!.is_active, activationReason),
     onSuccess: onSaved,
   });
   if (!editable && !variant) return null;
   return (
     <form
+      aria-label={variant?.sku ?? t("newVariant")}
       className="grid gap-4 rounded-lg border p-4"
       onSubmit={(event) => {
         event.preventDefault();
@@ -489,8 +1127,14 @@ function VariantForm({
       }}
     >
       <Field>
-        <FieldLabel>{t("sku")}</FieldLabel>
-        <Input name="sku" defaultValue={variant?.sku} required disabled={!editable} />
+        <FieldLabel htmlFor={`${fieldId}-sku`}>{t("sku")}</FieldLabel>
+        <Input
+          id={`${fieldId}-sku`}
+          name="sku"
+          defaultValue={variant?.sku}
+          required
+          disabled={!editable}
+        />
       </Field>
       <AttributeFields
         category={product.category}
@@ -498,14 +1142,33 @@ function VariantForm({
         taxonomy={taxonomy}
         value={attributes}
         onChange={setAttributes}
+        disabled={!editable}
       />
       {editable && (
+        <Field>
+          <FieldLabel htmlFor={`${fieldId}-images`}>{t("variantImages")}</FieldLabel>
+          <Input
+            id={`${fieldId}-images`}
+            type="file"
+            aria-label={t("variantImages")}
+            accept="image/jpeg,image/png,image/webp"
+            disabled={upload.isPending || images.length >= 3}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) upload.mutate(file);
+              event.currentTarget.value = "";
+            }}
+          />
+        </Field>
+      )}
+      {editable && (
         <ImageSelection
-          images={productImages}
+          images={availableImages}
           selected={images}
           onChange={setImages}
           label={t("variantImages")}
           disabled={!editable}
+          limit={3}
         />
       )}
       <div className="flex flex-wrap gap-2">
@@ -525,17 +1188,37 @@ function VariantForm({
           </Button>
         )}
         {!editable && variant && ["published", "inactive"].includes(product.status) && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => activation.mutate()}
-            disabled={activation.isPending}
-          >
-            {variant.is_active ? t("disableVariant") : t("enableVariant")}
-          </Button>
+          <Field>
+            <FieldLabel htmlFor={`${fieldId}-reason`}>{t("reason")}</FieldLabel>
+            <Textarea
+              id={`${fieldId}-reason`}
+              aria-label={t("variantStatusReason", { sku: variant.sku })}
+              value={activationReason}
+              onChange={(event) => setActivationReason(event.target.value)}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => activation.mutate()}
+              disabled={
+                activation.isPending ||
+                !activationReason.trim() ||
+                (!variant.is_active &&
+                  (variant.disabled_code === "revision_removed" ||
+                    (variant.disabled_code === "operator_disabled" && !access.operator)))
+              }
+            >
+              {variant.is_active ? t("disableVariant") : t("enableVariant")}
+            </Button>
+            {variant.status_reason && (
+              <p className="text-sm text-muted-foreground">
+                <bdi>{variant.status_reason}</bdi>
+              </p>
+            )}
+          </Field>
         )}
       </div>
-      {(save.isError || remove.isError || activation.isError) && (
+      {(save.isError || remove.isError || activation.isError || upload.isError) && (
         <Alert variant="destructive">
           <AlertDescription>{t("saveError")}</AlertDescription>
         </Alert>
@@ -557,6 +1240,7 @@ function SalesPlanEditor({
   onSaved: () => void;
 }) {
   const t = useTranslations("catalogManagement");
+  const fieldId = useId();
   const [freeMix, setFreeMix] = useState<number | "">(editor.sales_plan?.free_mix_min ?? "");
   const [tiers, setTiers] = useState<TierDraft[]>(
     editor.sales_plan?.tiers.map((tier) => ({
@@ -575,7 +1259,7 @@ function SalesPlanEditor({
     })) ?? [],
   );
   const save = useMutation({
-    mutationFn: () =>
+    mutationFn: (_form: HTMLFormElement) =>
       saveSalesPlan(editor.product.id, {
         free_mix_min: freeMix === "" ? null : freeMix,
         packs: packs.map((pack) => ({
@@ -587,226 +1271,332 @@ function SalesPlanEditor({
         })),
         tiers: tiers.map((tier) => ({
           min_quantity: tier.min,
-          unit_price_irr: Math.round(tier.priceToman * 10),
+          unit_price_irr: tomanToIrr(tier.priceToman),
           overrides: Object.entries(tier.overrides)
-            .filter(([, price]) => price !== "" && price > 0)
+            .filter(([, price]) => price !== "")
             .map(([variant, price]) => ({
               variant,
-              unit_price_irr: Math.round(Number(price) * 10),
+              unit_price_irr: tomanToIrr(Number(price)),
             })),
         })),
       }),
     onSuccess: onSaved,
+    onError: (error, form) => {
+      [...form.querySelectorAll<HTMLInputElement>("input[name]")]
+        .find((input) => hasFieldError(error, input.name))
+        ?.focus();
+    },
   });
   return (
     <Card>
       <CardHeader>
         <CardTitle>{t("salesAndPricing")}</CardTitle>
       </CardHeader>
-      <CardContent className="grid gap-5">
-        <Field>
-          <FieldLabel>{t("freeMixMinimum")}</FieldLabel>
-          <Input
-            type="number"
-            min={1}
-            value={freeMix}
-            disabled={!editable}
-            onChange={(event) => setFreeMix(event.target.value ? Number(event.target.value) : "")}
-          />
-          <FieldDescription>{t("freeMixHint")}</FieldDescription>
-        </Field>
-        <div className="grid gap-3">
-          <h3 className="font-medium">{t("fixedPacks")}</h3>
-          {packs.map((pack, index) => (
-            <div key={index} className="grid gap-3 rounded-lg border p-3 sm:grid-cols-2">
-              <Input
-                aria-label={t("packCode")}
-                placeholder={t("packCode")}
-                value={pack.code}
-                disabled={!editable}
-                onChange={(event) =>
-                  setPacks((current) =>
-                    current.map((item, itemIndex) =>
-                      itemIndex === index ? { ...item, code: event.target.value } : item,
-                    ),
-                  )
-                }
-              />
-              <Input
-                aria-label={t("packName")}
-                placeholder={t("packName")}
-                value={pack.name}
-                disabled={!editable}
-                onChange={(event) =>
-                  setPacks((current) =>
-                    current.map((item, itemIndex) =>
-                      itemIndex === index ? { ...item, name: event.target.value } : item,
-                    ),
-                  )
-                }
-              />
-              {editor.variants.map((variant) => (
-                <Field key={variant.id}>
-                  <FieldLabel>{variant.sku}</FieldLabel>
+      <CardContent>
+        <form
+          aria-label={t("salesAndPricing")}
+          className="grid gap-5"
+          onSubmit={(event) => {
+            event.preventDefault();
+            save.mutate(event.currentTarget);
+          }}
+          onChangeCapture={() => {
+            if (save.isError) save.reset();
+          }}
+        >
+          <Field>
+            <FieldLabel htmlFor={`${fieldId}-minimum`}>{t("freeMixMinimum")}</FieldLabel>
+            <Input
+              id={`${fieldId}-minimum`}
+              type="number"
+              min={1}
+              value={freeMix}
+              disabled={!editable}
+              onChange={(event) => setFreeMix(event.target.value ? Number(event.target.value) : "")}
+            />
+            <FieldDescription>{t("freeMixHint")}</FieldDescription>
+          </Field>
+          <div className="grid gap-3">
+            <h3 className="font-medium">{t("fixedPacks")}</h3>
+            {packs.map((pack, index) => (
+              <div key={index} className="grid gap-3 rounded-lg border p-3 sm:grid-cols-2">
+                <Field data-invalid={hasFieldError(save.error, `packs.${index}.code`)}>
                   <Input
-                    type="number"
-                    min={0}
-                    value={pack.quantities[variant.id] ?? 0}
+                    aria-label={t("packCode")}
+                    name={`packs.${index}.code`}
+                    aria-invalid={hasFieldError(save.error, `packs.${index}.code`)}
+                    aria-describedby={`${fieldId}-pack-${index}-code-error`}
+                    pattern="[a-zA-Z0-9_-]+"
+                    maxLength={60}
+                    required
+                    placeholder={t("packCode")}
+                    value={pack.code}
                     disabled={!editable}
                     onChange={(event) =>
                       setPacks((current) =>
                         current.map((item, itemIndex) =>
-                          itemIndex === index
-                            ? {
-                                ...item,
-                                quantities: {
-                                  ...item.quantities,
-                                  [variant.id]: Number(event.target.value),
-                                },
-                              }
-                            : item,
+                          itemIndex === index ? { ...item, code: event.target.value } : item,
                         ),
                       )
                     }
                   />
+                  {hasFieldError(save.error, `packs.${index}.code`) && (
+                    <FieldError id={`${fieldId}-pack-${index}-code-error`}>
+                      {t("pricingValidation.packCode")}
+                    </FieldError>
+                  )}
                 </Field>
-              ))}
-              {editable && (
-                <Button
-                  variant="destructive"
-                  onClick={() =>
-                    setPacks((current) => current.filter((_, itemIndex) => itemIndex !== index))
-                  }
-                >
-                  {t("remove")}
-                </Button>
-              )}
-            </div>
-          ))}
-          {editable && (
-            <Button
-              variant="outline"
-              onClick={() =>
-                setPacks((current) => [...current, { code: "", name: "", quantities: {} }])
-              }
-            >
-              {t("addPack")}
-            </Button>
-          )}
-        </div>
-        <div className="grid gap-3">
-          <h3 className="font-medium">{t("priceTiers")}</h3>
-          {tiers.map((tier, index) => (
-            <div key={index} className="grid gap-3 rounded-lg border p-3 sm:grid-cols-2">
-              <Field>
-                <FieldLabel>{t("minimumQuantity")}</FieldLabel>
                 <Input
-                  type="number"
-                  min={1}
-                  value={tier.min}
+                  aria-label={t("packName")}
+                  maxLength={120}
+                  required
+                  placeholder={t("packName")}
+                  value={pack.name}
                   disabled={!editable}
                   onChange={(event) =>
-                    setTiers((current) =>
+                    setPacks((current) =>
                       current.map((item, itemIndex) =>
-                        itemIndex === index ? { ...item, min: Number(event.target.value) } : item,
+                        itemIndex === index ? { ...item, name: event.target.value } : item,
                       ),
                     )
                   }
                 />
-              </Field>
-              <Field>
-                <FieldLabel>{t("unitPriceToman")}</FieldLabel>
-                <Input
-                  type="number"
-                  min={1}
-                  value={tier.priceToman}
-                  disabled={!editable}
-                  onChange={(event) =>
-                    setTiers((current) =>
-                      current.map((item, itemIndex) =>
-                        itemIndex === index
-                          ? { ...item, priceToman: Number(event.target.value) }
-                          : item,
-                      ),
-                    )
-                  }
-                />
-              </Field>
-              {editor.variants.map((variant) => (
-                <Field key={variant.id}>
-                  <FieldLabel>{t("variantOverride", { sku: variant.sku })}</FieldLabel>
+                {editor.variants.map((variant) => (
+                  <Field key={variant.id}>
+                    <FieldLabel htmlFor={`${fieldId}-pack-${index}-${variant.id}`}>
+                      {variant.sku}
+                    </FieldLabel>
+                    <Input
+                      id={`${fieldId}-pack-${index}-${variant.id}`}
+                      name={`packs.${index}.items`}
+                      aria-invalid={hasFieldError(save.error, `packs.${index}.items`)}
+                      aria-describedby={`${fieldId}-pack-${index}-items-error`}
+                      type="number"
+                      min={0}
+                      max={1_000_000_000}
+                      value={pack.quantities[variant.id] ?? 0}
+                      disabled={!editable}
+                      onChange={(event) =>
+                        setPacks((current) =>
+                          current.map((item, itemIndex) =>
+                            itemIndex === index
+                              ? {
+                                  ...item,
+                                  quantities: {
+                                    ...item.quantities,
+                                    [variant.id]: Number(event.target.value),
+                                  },
+                                }
+                              : item,
+                          ),
+                        )
+                      }
+                    />
+                  </Field>
+                ))}
+                {hasFieldError(save.error, `packs.${index}.items`) && (
+                  <FieldError id={`${fieldId}-pack-${index}-items-error`}>
+                    {t("pricingValidation.packItems")}
+                  </FieldError>
+                )}
+                {editable && (
+                  <Button
+                    variant="destructive"
+                    onClick={() =>
+                      setPacks((current) => current.filter((_, itemIndex) => itemIndex !== index))
+                    }
+                  >
+                    {t("remove")}
+                  </Button>
+                )}
+              </div>
+            ))}
+            {editable && (
+              <Button
+                variant="outline"
+                onClick={() =>
+                  setPacks((current) => [...current, { code: "", name: "", quantities: {} }])
+                }
+              >
+                {t("addPack")}
+              </Button>
+            )}
+          </div>
+          <div className="grid gap-3">
+            <h3 className="font-medium">{t("priceTiers")}</h3>
+            {tiers.map((tier, index) => (
+              <div key={index} className="grid gap-3 rounded-lg border p-3 sm:grid-cols-2">
+                <Field data-invalid={hasFieldError(save.error, `tiers.${index}.min_quantity`)}>
+                  <FieldLabel htmlFor={`${fieldId}-tier-${index}-minimum`}>
+                    {t("minimumQuantity")}
+                  </FieldLabel>
                   <Input
+                    id={`${fieldId}-tier-${index}-minimum`}
+                    name={`tiers.${index}.min_quantity`}
+                    aria-invalid={hasFieldError(save.error, `tiers.${index}.min_quantity`)}
+                    aria-describedby={`${fieldId}-tier-${index}-minimum-error`}
+                    required
                     type="number"
                     min={1}
-                    value={tier.overrides[variant.id] ?? ""}
+                    max={1_000_000_000}
+                    value={tier.min}
+                    disabled={!editable}
+                    onChange={(event) =>
+                      setTiers((current) =>
+                        current.map((item, itemIndex) =>
+                          itemIndex === index ? { ...item, min: Number(event.target.value) } : item,
+                        ),
+                      )
+                    }
+                  />
+                  {hasFieldError(save.error, `tiers.${index}.min_quantity`) && (
+                    <FieldError id={`${fieldId}-tier-${index}-minimum-error`}>
+                      {t("pricingValidation.minimum")}
+                    </FieldError>
+                  )}
+                </Field>
+                <Field data-invalid={hasFieldError(save.error, `tiers.${index}.unit_price_irr`)}>
+                  <FieldLabel htmlFor={`${fieldId}-tier-${index}-price`}>
+                    {t("unitPriceToman")}
+                  </FieldLabel>
+                  <Input
+                    id={`${fieldId}-tier-${index}-price`}
+                    name={`tiers.${index}.unit_price_irr`}
+                    aria-invalid={hasFieldError(save.error, `tiers.${index}.unit_price_irr`)}
+                    aria-describedby={`${fieldId}-tier-${index}-price-error`}
+                    required
+                    type="number"
+                    min={1}
+                    max={100_000_000_000_000}
+                    value={tier.priceToman}
                     disabled={!editable}
                     onChange={(event) =>
                       setTiers((current) =>
                         current.map((item, itemIndex) =>
                           itemIndex === index
-                            ? {
-                                ...item,
-                                overrides: {
-                                  ...item.overrides,
-                                  [variant.id]: event.target.value
-                                    ? Number(event.target.value)
-                                    : "",
-                                },
-                              }
+                            ? { ...item, priceToman: Number(event.target.value) }
                             : item,
                         ),
                       )
                     }
                   />
+                  {hasFieldError(save.error, `tiers.${index}.unit_price_irr`) && (
+                    <FieldError id={`${fieldId}-tier-${index}-price-error`}>
+                      {t("pricingValidation.price")}
+                    </FieldError>
+                  )}
                 </Field>
-              ))}
-              {editable && tiers.length > 1 && (
-                <Button
-                  variant="destructive"
-                  onClick={() =>
-                    setTiers((current) => current.filter((_, itemIndex) => itemIndex !== index))
-                  }
-                >
-                  {t("remove")}
-                </Button>
-              )}
-            </div>
-          ))}
+                {editor.variants.map((variant) => (
+                  <Field
+                    key={variant.id}
+                    data-invalid={hasFieldError(
+                      save.error,
+                      `tiers.${index}.overrides.${variant.id}.unit_price_irr`,
+                    )}
+                  >
+                    <FieldLabel htmlFor={`${fieldId}-tier-${index}-${variant.id}`}>
+                      {t("variantOverride", { sku: variant.sku })}
+                    </FieldLabel>
+                    <Input
+                      id={`${fieldId}-tier-${index}-${variant.id}`}
+                      name={`tiers.${index}.overrides.${variant.id}.unit_price_irr`}
+                      aria-invalid={hasFieldError(
+                        save.error,
+                        `tiers.${index}.overrides.${variant.id}.unit_price_irr`,
+                      )}
+                      aria-describedby={`${fieldId}-tier-${index}-${variant.id}-error`}
+                      type="number"
+                      min={1}
+                      max={100_000_000_000_000}
+                      value={tier.overrides[variant.id] ?? ""}
+                      disabled={!editable}
+                      onChange={(event) =>
+                        setTiers((current) =>
+                          current.map((item, itemIndex) =>
+                            itemIndex === index
+                              ? {
+                                  ...item,
+                                  overrides: {
+                                    ...item.overrides,
+                                    [variant.id]: event.target.value
+                                      ? Number(event.target.value)
+                                      : "",
+                                  },
+                                }
+                              : item,
+                          ),
+                        )
+                      }
+                    />
+                    {hasFieldError(
+                      save.error,
+                      `tiers.${index}.overrides.${variant.id}.unit_price_irr`,
+                    ) && (
+                      <FieldError id={`${fieldId}-tier-${index}-${variant.id}-error`}>
+                        {t("pricingValidation.override")}
+                      </FieldError>
+                    )}
+                  </Field>
+                ))}
+                {editable && tiers.length > 1 && (
+                  <Button
+                    variant="destructive"
+                    onClick={() =>
+                      setTiers((current) => current.filter((_, itemIndex) => itemIndex !== index))
+                    }
+                  >
+                    {t("remove")}
+                  </Button>
+                )}
+              </div>
+            ))}
+            {editable && (
+              <Button
+                variant="outline"
+                onClick={() =>
+                  setTiers((current) => [
+                    ...current,
+                    {
+                      min: (current.at(-1)?.min ?? 0) + 1,
+                      priceToman: current.at(-1)?.priceToman ?? 1,
+                      overrides: {},
+                    },
+                  ])
+                }
+              >
+                {t("addTier")}
+              </Button>
+            )}
+          </div>
+          {save.isError && (
+            <Alert variant="destructive">
+              <AlertDescription>{t("saveError")}</AlertDescription>
+            </Alert>
+          )}
           {editable && (
             <Button
-              variant="outline"
-              onClick={() =>
-                setTiers((current) => [
-                  ...current,
-                  {
-                    min: (current.at(-1)?.min ?? 0) + 1,
-                    priceToman: current.at(-1)?.priceToman ?? 1,
-                    overrides: {},
-                  },
-                ])
+              type="submit"
+              disabled={
+                save.isPending ||
+                editor.variants.length === 0 ||
+                (freeMix === "" && packs.length === 0)
               }
             >
-              {t("addTier")}
+              {t("saveSalesPlan")}
             </Button>
           )}
-        </div>
-        {save.isError && (
-          <Alert variant="destructive">
-            <AlertDescription>{t("saveError")}</AlertDescription>
-          </Alert>
-        )}
-        {editable && (
-          <Button
-            onClick={() => save.mutate()}
-            disabled={
-              save.isPending ||
-              editor.variants.length === 0 ||
-              (freeMix === "" && packs.length === 0)
-            }
-          >
-            {t("saveSalesPlan")}
-          </Button>
-        )}
+          {editor.sales_plan && (
+            <section className="grid gap-3" aria-label={t("finalPriceTable")}>
+              <h3 className="font-medium">{t("finalPriceTable")}</h3>
+              <p className="text-sm text-muted-foreground">{t("finalPriceTableHint")}</p>
+              <PriceTable
+                tiers={editor.sales_plan.tiers}
+                variants={editor.variants.filter((variant) => variant.is_active)}
+                caption={t("finalPriceTable")}
+              />
+            </section>
+          )}
+        </form>
       </CardContent>
     </Card>
   );
@@ -830,7 +1620,7 @@ function SupplyEditor({
       <CardContent className="grid gap-4">
         {editor.variants.map((variant) => (
           <SupplyForm
-            key={variant.id}
+            key={`${variant.id}:${JSON.stringify(editor.supplies[variant.id])}`}
             product={editor.product.id}
             variant={variant}
             initial={editor.supplies[variant.id]}
@@ -857,6 +1647,7 @@ function SupplyForm({
   onSaved: () => void;
 }) {
   const t = useTranslations("catalogManagement");
+  const fieldId = useId();
   const [mode, setMode] = useState<SupplyInput["mode"]>(initial?.mode ?? "ready");
   const save = useMutation({
     mutationFn: (form: HTMLFormElement) => {
@@ -872,6 +1663,7 @@ function SupplyForm({
   });
   return (
     <form
+      aria-label={variant.sku}
       className="grid gap-3 rounded-lg border p-3 sm:grid-cols-2"
       onSubmit={(event) => {
         event.preventDefault();
@@ -882,8 +1674,9 @@ function SupplyForm({
         <bdi>{variant.sku}</bdi>
       </h3>
       <Field>
-        <FieldLabel>{t("supplyMode")}</FieldLabel>
+        <FieldLabel htmlFor={`${fieldId}-mode`}>{t("supplyMode")}</FieldLabel>
         <NativeSelect
+          id={`${fieldId}-mode`}
           className="w-full"
           value={mode}
           disabled={!editable}
@@ -897,8 +1690,9 @@ function SupplyForm({
         </NativeSelect>
       </Field>
       <Field>
-        <FieldLabel>{t("readyStock")}</FieldLabel>
+        <FieldLabel htmlFor={`${fieldId}-ready`}>{t("readyStock")}</FieldLabel>
         <Input
+          id={`${fieldId}-ready`}
           name="ready"
           type="number"
           min={0}
@@ -907,8 +1701,9 @@ function SupplyForm({
         />
       </Field>
       <Field>
-        <FieldLabel>{t("productionCapacity")}</FieldLabel>
+        <FieldLabel htmlFor={`${fieldId}-production`}>{t("productionCapacity")}</FieldLabel>
         <Input
+          id={`${fieldId}-production`}
           name="production"
           type="number"
           min={0}
@@ -917,8 +1712,9 @@ function SupplyForm({
         />
       </Field>
       <Field>
-        <FieldLabel>{t("leadDays")}</FieldLabel>
+        <FieldLabel htmlFor={`${fieldId}-lead`}>{t("leadDays")}</FieldLabel>
         <Input
+          id={`${fieldId}-lead`}
           name="lead"
           type="number"
           min={0}
@@ -952,6 +1748,7 @@ function ShippingEditor({
   onSaved: () => void;
 }) {
   const t = useTranslations("catalogManagement");
+  const fieldId = useId();
   const [origin, setOrigin] = useState(
     editor.shipping?.origin ?? access.business?.addresses[0]?.id ?? "",
   );
@@ -981,6 +1778,7 @@ function ShippingEditor({
       </CardHeader>
       <CardContent>
         <form
+          aria-label={t("shipping")}
           className="grid gap-5"
           onSubmit={(event) => {
             event.preventDefault();
@@ -988,8 +1786,9 @@ function ShippingEditor({
           }}
         >
           <Field>
-            <FieldLabel>{t("origin")}</FieldLabel>
+            <FieldLabel htmlFor={`${fieldId}-origin`}>{t("origin")}</FieldLabel>
             <NativeSelect
+              id={`${fieldId}-origin`}
               className="w-full"
               value={origin}
               required
@@ -1038,8 +1837,11 @@ function ShippingEditor({
                   </h3>
                   {(["weight", "length", "width", "height", "count"] as const).map((name) => (
                     <Field key={name}>
-                      <FieldLabel>{t(`package.${name}`)}</FieldLabel>
+                      <FieldLabel htmlFor={`${fieldId}-${variant.id}-${name}`}>
+                        {t(`package.${name}`)}
+                      </FieldLabel>
                       <Input
+                        id={`${fieldId}-${variant.id}-${name}`}
                         name={`${variant.id}:${name}`}
                         type="number"
                         min={1}

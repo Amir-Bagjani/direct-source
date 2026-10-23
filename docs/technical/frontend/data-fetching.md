@@ -311,3 +311,50 @@ cache. This solves draft and scroll loss without retaining usable authorization.
 query state and ProtectedSessionBoundary gate interaction; snapshots never enable a
 request, populate cache, cross identities, or persist to browser storage. Terminal
 session invalidation removes the host and its local memory. See `web-sessions.md`.
+
+
+### PRD-02 workspace continuation — 2026-10-12 (in progress)
+
+Catalogue workspace uses the reviewed `accounts/contracts/catalog-workspace.ts` client contract to gate private reads on the live protected session. Workspace access keys include user scope. Account and catalogue form hosts reuse the neutral retained-query hook and masked PrivateQueryRegion under shared; retention remains in memory, same identity, non-authorizing, and is destroyed by terminal boundary invalidation. Catalogue routes compose the existing AccountShell.
+
+فرادادهٔ کشف کاتالوگ با کلید `catalogKeys.discovery()` و `publicDiscoveryOptions` از
+همان BFF عمومی و schema ثابت خوانده می‌شود. RSC فراداده و نتایج را مستقل با Promise.all
+prefetch می‌کند و هر دو را در همان HydrationBoundary می‌دهد؛ metadata از نتایج صفحهٔ
+جاری استخراج نمی‌شود. این داده قیمت یا اطلاعات خصوصی ندارد. دسته/تولیدکننده/ویژگی و
+حداقل امتیاز در URL، کلید query و صفحه‌بندی حفظ می‌شوند؛ تغییر draft فرم تا Apply
+در سرور state کپی نمی‌شود.
+
+پیش‌نمایش انتخاب PRD-02 در producer و retailer یک فرم مشترک دارد. mutationOptions با
+کلید scope/product در catalogKeys، متغیر void، بدون retry و با gcTime صفر استفاده می‌شود؛
+فقط ورودی همان فرم هنگام درخواست خوانده می‌شود. برآوردها SSR/dehydrate نمی‌شوند. تغییر
+تعداد/روش نتیجهٔ قبلی را reset می‌کند؛ تغییر برنامهٔ ذخیره‌شده یا دادهٔ عرضه، نتیجهٔ
+متعلق به context قبلی را پنهان می‌کند و draft تعدادها را نگه می‌دارد. پاسخ دیررس context
+قدیمی نیز نمایش داده نمی‌شود. خطای 401/403 مجوز زندهٔ wholesale را invalidate می‌کند.
+POST خرده‌فروش فقط برآورد بدون side effect است؛ withCatalogWholesaleRead مجوز را برای
+هر درخواست بررسی می‌کند. transport وب مبلغ‌های quote را با توکن دقیق JSON به رشتهٔ
+ده‌دهی تبدیل می‌کند؛ BigInt در domain UI فقط برای نمایش/کنترل جمع استفاده می‌شود و وارد
+JSON/query key نمی‌شود. سایر مبلغ‌های کاتالوگ همان قرارداد عدد صحیح قبلی را دارند.
+
+نظرهای منتشرشدهٔ محصول در بخش کم‌اولویت پایین جزئیات با `publicReviewsOptions` و
+کلید محصول/صفحه خوانده می‌شوند. این بخش CSR مستقل با loading/error/empty صریح است تا
+دریافت نظر، نمایش اولیهٔ محتوای اصلی را معطل نکند. تغییر صفحه state همان کنترل است؛
+پاسخ Query در state کپی نمی‌شود. `publicReviewImagesOptions` تنها بعد از بازکردن تصاویر
+فعال است؛ URLهای شصت‌ثانیه‌ای staleTime/gcTime صفر دارند و SSR/dehydrate نمی‌شوند.
+BFF نظر فقط مسیر public و topic محصول را می‌پذیرد و کوکی/توکن وب را ارسال نمی‌کند.
+
+Studio، ساختار/صف اپراتور و فرم تصمیم محصول/بازنگری همان استثنای حفظ فرمِ account و
+editor را استفاده می‌کنند: snapshot در حافظه و با کلید هویت نگه داشته می‌شود و در زمان
+بررسی نشست یا خطای موقت، PrivateQueryRegion آن را invisible، aria-hidden و inert می‌کند.
+retry همان query زنده را اجرا می‌کند و فرم دوباره ساخته نمی‌شود. پاسخ صریح 401/403/404
+فرم خصوصی را unmount می‌کند؛ نتیجهٔ موفق `operator=false` نیز فرم تصمیم/ساختار را حذف
+می‌کند. snapshot به تنهایی نه خواندن و نه mutation را مجاز نمی‌کند. 401/تغییر هویت و
+logout همچنان تحت مرز نشست سراسری، همراه cancel/clear و خروج از صفحه هستند.
+
+
+پیش‌نمایش محصول در workspace تولیدکننده/بررسی اپراتور، query خصوصی تعاملی جداگانه با `staleTime: 0`، `gcTime: 0` و بدون retry خودکار است. خواندن سنگین projection تصاویر/قیمت، پس از تأیید نشست و خواندن موفق workspace آغاز می‌شود تا بارگذاری و خطای آن مانع ویرایش فرم نشود. کلید preview زیر کلید editor همان هویت/محصول است؛ ذخیره و invalidation editor پیش‌نمایش را نیز تازه می‌کند. هنگام refetch یا از دست رفتن مجوز، نمایش دادهٔ قبلی متوقف می‌شود. چک‌لیست انتشار همراه سایر خواندن‌های مستقل editor به‌صورت موازی دریافت می‌شود؛ اعتبارسنجی نهایی در mutation بک‌اند تکرار می‌شود.
+
+
+خواندن workspace بررسی بازنگری (`studio/revision`) در BFF، بازنگری مجاز و taxonomy را
+به‌صورت موازی می‌گیرد و با `revisionReviewSchema` به `{revision,taxonomy}` محدود می‌کند.
+کلید هویت‌دار existing `operatorRevision`، عدم retry خودکار، no-store و رفتار حفظ/پوشاندن
+فرم تصمیم حفظ می‌شوند. دادهٔ مالی یا عملیاتی قدیمی به snapshot محتوا افزوده نمی‌شود.

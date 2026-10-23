@@ -7,14 +7,15 @@ import {
   readRevision,
   readStudio,
   readStudioAccess,
+  readProductPreview,
 } from "../api/catalog-management.api";
 import { catalogKeys } from "./catalog.keys";
 
 const privateQuery = { staleTime: 0, gcTime: 0, retry: false } as const;
 
-export const studioAccessOptions = () =>
+export const studioAccessOptions = (scope: string) =>
   queryOptions({
-    queryKey: catalogKeys.studioAccess(),
+    queryKey: catalogKeys.studioAccess(scope),
     queryFn: ({ signal }) => readStudioAccess(signal),
     ...privateQuery,
   });
@@ -51,5 +52,12 @@ export const revisionOptions = (scope: string, id: string) =>
   queryOptions({
     queryKey: catalogKeys.operatorRevision(scope, id),
     queryFn: ({ signal }) => readRevision(id, signal),
+    ...privateQuery,
+  });
+
+export const productPreviewOptions = (scope: string, id: string) =>
+  queryOptions({
+    queryKey: catalogKeys.preview(scope, id),
+    queryFn: ({ signal }) => readProductPreview(id, signal),
     ...privateQuery,
   });

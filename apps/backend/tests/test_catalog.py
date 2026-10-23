@@ -68,6 +68,31 @@ def test_private_draft_variants_and_business_sku(client, catalog, user_factory):
     assert AuditEvent.objects.filter(action="catalog.product_created").count() == 2
 
 
+def test_owner_receives_lifecycle_reasons_but_cannot_forge_them(client, catalog):
+    product = create_product(client, catalog)
+    obj = Product.objects.get(pk=product["id"])
+    obj.decision_code, obj.decision_reason = "content_incomplete", "اصلاح تصاویر"
+    obj.save()
+    url = BASE + f"products/{obj.pk}/"
+    response = client.patch(
+        url,
+        {
+            "brand": "",
+            "manufacturer_model": "",
+            "decision_reason": "forged",
+            "decision_code": "approved",
+            "status": "published",
+        },
+        format="json",
+    )
+    assert response.status_code == 200
+    assert response.data["decision_reason"] == "اصلاح تصاویر"
+    assert response.data["decision_code"] == "content_incomplete"
+    assert response.data["status"] == "draft"
+    assert response.data["submitted_at"] is None
+    assert response.data["brand"] == response.data["manufacturer_model"] == ""
+
+
 def test_taxonomy_permissions_cycles_and_used_structure(client, catalog, user_factory):
     actor, business, category = catalog
     client.force_authenticate(actor)

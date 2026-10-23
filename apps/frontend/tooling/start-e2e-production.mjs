@@ -14,5 +14,5 @@ for (const [source, target] of [
   if (existsSync(source)) cpSync(source, target, { recursive: true });
 }
 process.env.PORT ??= "3100";
-process.env.HOSTNAME = "127.0.0.1";
+process.env.HOSTNAME ??= "localhost";
 await import(pathToFileURL(server).href);

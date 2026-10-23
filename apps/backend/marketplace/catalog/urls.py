@@ -5,7 +5,7 @@ from . import lifecycle_api as lifecycle
 from . import publication_api as publication
 from . import revision_api as revision
 from .api import AttributeViewSet, CategoryViewSet, OptionViewSet, ProductViewSet, VariantViewSet
-from .sales_api import QuoteView, SalesPlanView, SupplyView
+from .sales_api import QuoteView, RetailerQuoteView, SalesPlanView, SupplyView
 
 router = SimpleRouter()
 router.register("categories", CategoryViewSet, basename="catalog-category")
@@ -32,13 +32,17 @@ urlpatterns = router.urls + [
     path("products/<uuid:pk>/activate/", publication.ActivateView.as_view()),
     path("products/<uuid:pk>/deactivate/", publication.DeactivateView.as_view()),
     path("products/<uuid:pk>/submit/", publication.SubmitView.as_view()),
+    path("products/<uuid:pk>/readiness/", publication.PublicationReadinessView.as_view()),
+    path("products/<uuid:pk>/preview/", publication.ProductPreviewView.as_view()),
     path("products/<uuid:pk>/claim/", publication.ClaimView.as_view()),
     path("products/<uuid:pk>/review/", publication.ReviewView.as_view()),
     path("products/<uuid:pk>/reopen/", publication.ReopenView.as_view()),
     path("review-queue/", publication.QueueView.as_view()),
     path("review-products/<uuid:pk>/", publication.ReviewDetailView.as_view()),
     path("public/products/", publication.PublicProductList.as_view()),
+    path("public/discovery/", publication.PublicDiscovery.as_view()),
     path("public/products/<uuid:pk>/", publication.PublicProductDetail.as_view()),
+    path("public/products/<uuid:pk>/quote/", RetailerQuoteView.as_view()),
     path(
         "public/manufacturers/<uuid:pk>/",
         publication.PublicManufacturerDetail.as_view(),

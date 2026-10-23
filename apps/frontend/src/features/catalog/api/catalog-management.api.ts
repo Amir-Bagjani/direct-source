@@ -1,5 +1,6 @@
 "use client";
 import { z } from "zod";
+import { productPreviewSchema } from "../schemas/public-catalog.schema";
 import { bffRequest } from "@/shared/api/browser-client";
 import {
   editorSchema,
@@ -8,9 +9,17 @@ import {
   proposalSchema,
   reviewDetailSchema,
   revisionSchema,
+  revisionReviewSchema,
   studioAccessSchema,
   studioSchema,
   variantSchema,
+  salesPlanSchema,
+  supplySchema,
+  shippingInputSchema,
+  categorySchema,
+  attributeSchema,
+  optionSchema,
+  taxonomyMutationSchema,
   type ProductInput,
   type SalesPlanInput,
   type ShippingInput,
@@ -49,7 +58,7 @@ export const readOperatorDashboard = (signal?: AbortSignal) =>
 export const readReviewDetail = (id: string, signal?: AbortSignal) =>
   bffRequest(endpoint("review-detail", { id }), reviewDetailSchema, signal ? { signal } : {});
 export const readRevision = (id: string, signal?: AbortSignal) =>
-  bffRequest(endpoint("revision", { id }), revisionSchema, signal ? { signal } : {});
+  bffRequest(endpoint("revision", { id }), revisionReviewSchema, signal ? { signal } : {});
 
 export const saveProduct = (input: ProductInput, id?: string) =>
   post("product-save", productSchema, input, id ? { id } : undefined);
@@ -66,11 +75,11 @@ export const setVariantActivation = (
   reason: string,
 ) => post("variant-activation", variantSchema, { enabled, reason }, { product, id });
 export const saveSalesPlan = (product: string, input: SalesPlanInput) =>
-  post("sales-save", z.unknown(), input, { product });
+  post("sales-save", salesPlanSchema, input, { product });
 export const saveSupply = (product: string, id: string, input: SupplyInput) =>
-  post("supply-save", z.unknown(), input, { product, id });
+  post("supply-save", supplySchema, input, { product, id });
 export const saveShipping = (product: string, input: ShippingInput) =>
-  post("shipping-save", z.unknown(), input, { product });
+  post("shipping-save", shippingInputSchema, input, { product });
 export const submitProduct = (id: string) => post("submit", productSchema, {}, { id });
 export const productCommand = (
   action: "activate" | "deactivate" | "reopen",
@@ -83,7 +92,12 @@ export const reviewProduct = (id: string, decision: string, code: string, reason
 export const saveProposal = (body: unknown) => post("proposal-save", proposalSchema, body);
 export const reviewProposal = (id: string, body: unknown) =>
   post("proposal-review", proposalSchema, body, { id });
-export const saveTaxonomy = (body: unknown) => post("taxonomy-save", z.unknown(), body);
+export async function saveTaxonomy(body: unknown) {
+  const input = taxonomyMutationSchema.parse(body);
+  if (input.kind === "category") return post("taxonomy-save", categorySchema, input);
+  if (input.kind === "attribute") return post("taxonomy-save", attributeSchema, input);
+  return post("taxonomy-save", optionSchema, input);
+}
 export const saveRevision = (product: string, body: unknown, id?: string) =>
   post("revision-save", revisionSchema, body, { product, ...(id ? { id } : {}) });
 export const revisionCommand = (
@@ -104,3 +118,6 @@ export function uploadProductImage(business: string, consentVersion: string, fil
     { method: "POST", body: form },
   );
 }
+
+export const readProductPreview = (id: string, signal?: AbortSignal) =>
+  bffRequest(endpoint("preview", { id }), productPreviewSchema, signal ? { signal } : {});

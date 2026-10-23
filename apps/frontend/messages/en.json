@@ -61,7 +61,12 @@
       "summaryPriceMax": "Price up to {amount} toman",
       "active": "Applied filters",
       "remove": "Remove filter {filter}",
-      "updating": "Updating results…"
+      "updating": "Updating results…",
+      "attributeValues": "Attribute values",
+      "attributeValuesHint": "Separate values with commas. Any value within this attribute can match; different filters must all match.",
+      "ratingMin": "Minimum product rating (of 5)",
+      "summaryRating": "Rating at least {count}",
+      "categoryPathSeparator": " / "
     },
     "sort": {
       "default": "Default order",
@@ -95,13 +100,14 @@
     "priceUnavailable": "Wholesale price unavailable",
     "tomanAmount": "{amount} toman",
     "wholesale": {
+      "scrollHint": "On smaller screens, scroll the table horizontally to compare every SKU.",
       "title": "Wholesale price tiers",
       "caption": "Unit prices by total product quantity. Variant columns include any applicable override.",
       "quantity": "Total quantity",
       "defaultPrice": "Default unit price",
       "openRange": "{min}+",
       "closedRange": "{min}–{max}",
-      "freeMixMinimum": "Minimum free-mix quantity: {count}",
+      "freeMixMinimum": "Minimum free-mix quantity: {count, number}",
       "packs": "Fixed packs",
       "packUnits": "{count} units per pack",
       "loading": "Checking your current wholesale prices…",
@@ -129,11 +135,24 @@
       "description": "Active variants remain visible even when they currently have no orderable supply.",
       "readyStock": "Ready stock: {count}",
       "productionCap": "Production capacity: {count}",
-      "noSupply": "This variant currently has no orderable supply."
+      "noSupply": "This variant currently has no orderable supply.",
+      "image": "Variant images",
+      "sku": "SKU",
+      "readyHeading": "Ready stock",
+      "productionHeading": "Production capacity",
+      "productionDays": "Production: {count} days",
+      "viewImages": "View images for {sku}",
+      "galleryDescription": "Images of this variant, with the main product image used when no separate image is provided.",
+      "galleryUnavailable": "This variant is no longer available.",
+      "comparisonCaption": "Compare active variants. On smaller screens, scroll the table horizontally.",
+      "empty": "There are no active variants.",
+      "preparationHint": "Ready units can dispatch without production time. Larger selections can require production; preparation is separate from delivery time."
     },
     "shipping": {
       "title": "Shipping methods",
-      "unavailable": "No active shipping method is shown for this product."
+      "unavailable": "No active shipping method is shown for this product.",
+      "deliveryRange": "Estimated delivery: {min}–{max} days after dispatch",
+      "costHint": "Delivery time starts after preparation. Final delivery availability and cost depend on the destination and selected items."
     },
     "manufacturer": {
       "title": "Manufacturer",
@@ -147,7 +166,8 @@
       "categorySeparator": ", ",
       "locationSeparator": ", ",
       "products": "Published products",
-      "noProducts": "There are no published products at this time."
+      "noProducts": "There are no published products at this time.",
+      "rating": "Collaboration rating"
     },
     "card": {
       "preparation": "Preparation",
@@ -160,6 +180,63 @@
       "noRating": "No published ratings yet",
       "unitPrice": "Per unit · representative first-tier price",
       "view": "View product"
+    },
+    "gallery": {
+      "title": "Product image gallery",
+      "previous": "Previous image",
+      "next": "Next image",
+      "position": "{index} of {total}",
+      "thumbnails": "Choose a product image",
+      "select": "View image {number}"
+    },
+    "specificationsUnavailable": "No additional specifications provided.",
+    "selection": {
+      "title": "Selection estimate",
+      "description": "Choose quantities using the saved sales plan. This estimate reserves no stock and includes goods only; shipping, fees and delivery time are separate. Recalculate after changing your selection.",
+      "method": "Sale method",
+      "minimum": "Choose at least {count} units across variants.",
+      "variantQuantity": "Quantity for {sku}",
+      "pack": "Fixed pack",
+      "packCount": "Number of packs",
+      "calculate": "Calculate estimate",
+      "result": "Current selection estimate",
+      "quantity": "Total units",
+      "tier": "Applied tier starts at",
+      "total": "Goods total",
+      "preparation": "Preparation before dispatch",
+      "productionDays": "{count} days of production",
+      "sku": "SKU",
+      "ready": "From ready stock",
+      "production": "From production",
+      "unitPrice": "Unit price",
+      "lines": "Selected units, supply allocation and current prices",
+      "error": "The estimate could not be loaded. Try again.",
+      "accessError": "Your price access changed. Verify your business access before trying again.",
+      "supplyError": "Current supply or the sales plan changed. Review the quantities and calculate again.",
+      "invalidError": "Check the sale method, minimum quantity and pack count, then try again.",
+      "changed": "The saved price or supply changed. Your quantities are kept; calculate a fresh estimate."
+    },
+    "reviews": {
+      "title": "Buyer reviews",
+      "description": "Published reviews from verified purchases. Scores remain visible when review content is hidden.",
+      "verifiedBuyer": "Verified buyer",
+      "overall": "Overall",
+      "quality": "Quality",
+      "conformity": "Matches description",
+      "score": "{value} out of 5",
+      "hidden": "Content hidden by moderation.",
+      "showImages": "Show review images ({count})",
+      "hideImages": "Hide review images",
+      "loadingImages": "Loading review images…",
+      "imagesUnavailable": "Review images are unavailable.",
+      "imagesLabel": "Buyer review images",
+      "reply": "Response from {name}",
+      "loading": "Loading buyer reviews…",
+      "unavailable": "Reviews are unavailable",
+      "retryDescription": "We could not load the published reviews. Try again.",
+      "empty": "No published buyer reviews yet",
+      "emptyDescription": "Reviews appear after an eligible purchase and publication.",
+      "pagination": "Buyer review pages"
     }
   },
   "catalogManagement": {
@@ -208,6 +285,13 @@
     "freeMixHint": "Leave blank when this product is sold only as fixed packs.",
     "fixedPacks": "Fixed packs",
     "packCode": "Pack code",
+    "pricingValidation": {
+      "packCode": "Use a unique pack code with letters, numbers, hyphens or underscores.",
+      "packItems": "Include at least one unit and keep the pack total within 1,000,000,000 units.",
+      "minimum": "Start the first tier at the smallest order quantity. Later tiers must have unique, increasing minimums.",
+      "price": "Use a positive whole-toman price. Default and effective variant prices must not increase in a later tier.",
+      "override": "Use a positive whole-toman override no higher than this variant’s effective price in the previous tier."
+    },
     "packName": "Pack name",
     "addPack": "Add fixed pack",
     "priceTiers": "Price tiers",
@@ -318,6 +402,91 @@
       "published": "Published",
       "rejected": "Rejected",
       "inactive": "Inactive"
+    },
+    "cancelRevision": "Cancel revision",
+    "revisionStatuses": {
+      "draft": "Revision draft",
+      "pending": "Revision under review",
+      "changes_requested": "Revision needs changes",
+      "approved": "Revision approved",
+      "rejected": "Revision rejected",
+      "cancelled": "Revision cancelled"
+    },
+    "editorNavigation": "Product setup sections",
+    "confirmSubmit": "Confirm and send for review",
+    "confirmDelete": "Confirm deletion",
+    "deleteDraftHint": "This removes the private draft and its variants. Uploaded files follow their separate retention policy.",
+    "proposalHistory": "Your taxonomy proposals",
+    "noProposals": "No proposals yet.",
+    "proposalStatuses": {
+      "pending": "Awaiting review",
+      "approved": "Approved and added",
+      "rejected": "Rejected"
+    },
+    "imageNumber": "Image {number}",
+    "mainImage": "Main image",
+    "moveImageEarlier": "Move earlier",
+    "moveImageLater": "Move later",
+    "variantStatusReason": "Status reason for {sku}",
+    "revisionVariants": "Variants in the proposed version",
+    "revisionVariantsHint": "Keep every variant that should remain active. Removed variants are archived only after approval; current pricing and supply stay separate. New variants need complete supply and packaging.",
+    "newVariant": "New variant",
+    "removeVariantFromRevision": "Remove from proposed version",
+    "proposalDefinitionHint": "Complete the definition before approval. Approval creates an active catalogue definition; structural changes to used definitions remain protected.",
+    "editDefinition": "Edit definition",
+    "definitionHistoryHint": "Used category parents, attribute structure and option codes are protected. Create a new definition for a new meaning.",
+    "cancel": "Cancel",
+    "saveDefinition": "Save definition",
+    "finalPriceTable": "Saved final price table",
+    "finalPriceTableHint": "These are the validated saved prices for each active SKU and quantity tier. Save your edits to update this table before submitting for review.",
+    "preview": {
+      "title": "Saved product preview",
+      "description": "Review the saved product in public and verified-retailer views. Save your edits to update this preview.",
+      "mode": "Preview audience",
+      "public": "Public view",
+      "retailer": "Verified retailer view",
+      "unavailable": "Preview is unavailable",
+      "content": "Saved product content",
+      "publicHint": "Public visitors see product information without wholesale amounts.",
+      "methods": "Sale methods",
+      "noMethods": "No sale method saved yet."
+    },
+    "checklist": {
+      "title": "Publication checklist",
+      "description": "Complete the sections below before submitting for review. Checks use your saved information.",
+      "complete": "Complete",
+      "incomplete": "Needs attention",
+      "edit": "Review this section",
+      "ready": "Saved information meets the automatic publication checks.",
+      "blocked": "Resolve the incomplete sections before submitting for review.",
+      "sections": {
+        "business": "Verified manufacturer",
+        "content": "Product content and main image",
+        "variants": "Active variants and images",
+        "supply": "Supply and packaging",
+        "pricing": "Sales plan and tier prices",
+        "shipping": "Orderable selection and nationwide shipping"
+      },
+      "hints": {
+        "business": "Complete manufacturer verification before submitting.",
+        "content": "Use a valid leaf category, required product attributes and clean product images.",
+        "variants": "Save at least one active variant with valid attributes and images.",
+        "supply": "Save valid supply and package specifications for every active variant. Packaging is in the shipping section.",
+        "pricing": "Save a complete sales method with valid quantity tiers and prices for active variants.",
+        "shipping": "Ensure that at least one selection can be supplied and shipped through active nationwide services and tariffs."
+      }
+    },
+    "revisionDiff": {
+      "title": "Review content changes",
+      "description": "Compare the approved content with this proposal. Approval preserves current prices, supply, packaging and shipping for existing variants. New variants include their proposed supply and packaging.",
+      "attributes": "Product attributes",
+      "changed": "Changed",
+      "unchanged": "Unchanged",
+      "added": "New variant",
+      "removed": "Removed variant",
+      "empty": "Not provided",
+      "absent": "Not in this version",
+      "packaging": "Variant packaging"
     }
   },
   "common": {

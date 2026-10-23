@@ -65,6 +65,79 @@ def test_checkout_snapshot_retry_and_new_cart(client, cart_world):
             model.objects.filter(pk=pk).update(**change)
 
 
+def test_catalog_operations_and_retailer_restrictions_preserve_owned_order_snapshot(
+    client, cart_world
+):
+    buyer, retailer, product, variant, _ = cart_world
+    product.published_at = timezone.now()
+    product.save()
+    group, _ = submit(client, cart_world)
+    order_url = BASE + group["orders"][0]["id"] + "/"
+    original = client.get(order_url)
+    assert original.status_code == 200
+    before = original.data
+    catalog_url = f"/api/v1/catalog/products/{product.pk}/"
+    public_url = f"/api/v1/catalog/public/products/{product.pk}/"
+    client.force_authenticate(product.business.membership.user)
+    plan = client.put(
+        catalog_url + "sales-plan/",
+        {
+            "free_mix_min": 2,
+            "packs": [],
+            "tiers": [{"min_quantity": 2, "unit_price_irr": 2000}],
+        },
+        format="json",
+    )
+    assert plan.status_code == 200, plan.data
+    supply = client.put(
+        catalog_url + f"variants/{variant.pk}/supply/",
+        {
+            "mode": "ready",
+            "ready_stock": 30,
+            "production_cap": 0,
+            "lead_time_days": 0,
+        },
+        format="json",
+    )
+    assert supply.status_code == 200, supply.data
+    client.force_authenticate(buyer)
+    current = client.post(public_url + "quote/", selection(variant), format="json")
+    assert current.status_code == 200, current.data
+    assert current.data["lines"][0]["unit_price_irr"] == 2000
+    assert client.get(order_url).data == before
+    # Business state setup isolates the catalogue/continuity boundary from suspension workflow.
+    retailer.controlled_access = False
+    retailer.save()
+    with patch(
+        "marketplace.catalog.publication_api.default_storage.url", return_value="http://image"
+    ):
+        assert "wholesale" in client.get(public_url).data
+        assert (
+            client.post(
+                ROOT + f"products/{product.pk}/", selection(variant), format="json"
+            ).status_code
+            == 403
+        )
+        retailer.status = "suspended"
+        retailer.save()
+        assert "wholesale" not in client.get(public_url).data
+        assert client.get(order_url).data == before
+        retailer.status = "verified"
+        retailer.controlled_access = True
+        retailer.save()
+        assert "wholesale" in client.get(public_url).data
+    client.force_authenticate(product.business.membership.user)
+    stopped = client.post(catalog_url + "deactivate/", {"reason": "توقف تولید"}, format="json")
+    assert stopped.status_code == 200, stopped.data
+    client.force_authenticate(buyer)
+    assert client.get(public_url).status_code == 404
+    assert (
+        client.post(ROOT + f"products/{product.pk}/", selection(variant), format="json").status_code
+        == 409
+    )
+    assert client.get(order_url).data == before
+
+
 def test_checkout_requires_new_price_confirmation_and_rolls_back(client, cart_world):
     prepared(client, cart_world)
     _, _, product, _, _ = cart_world

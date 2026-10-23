@@ -26,7 +26,8 @@
     "test:e2e:recovery": "playwright test --config playwright.recovery.config.ts",
     "test:e2e:business": "playwright test --config playwright.business.config.ts",
     "test:e2e:onboarding": "playwright test --config playwright.onboarding.config.ts",
-    "test:e2e:catalog": "playwright test --config playwright.catalog.config.ts"
+    "test:e2e:catalog": "playwright test --config playwright.catalog.config.ts",
+    "test:e2e:prd02": "playwright test --config playwright.prd02.config.ts"
   },
   "dependencies": {
     "@base-ui/react": "1.8.0",

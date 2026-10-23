@@ -8,6 +8,7 @@ import { cn } from "@/shared/ui/cn";
 import { Alert, AlertDescription } from "@/shared/ui/alert/alert";
 import { Button } from "@/shared/ui/button/button";
 import { Spinner } from "@/shared/ui/spinner/spinner";
+import { PortalContainer } from "@/shared/ui/portal-container/portal-container";
 import {
   announceSessionChange,
   listenForSessionChange,
@@ -148,14 +149,14 @@ export function ProtectedSessionBoundary({ children }: { children: ReactNode }) 
         <ProtectedSessionContext
           value={{ user: identity, authorized, logout: leave, loggingOut: mutation.isPending }}
         >
-          <div
+          <PortalContainer
             ref={content}
             inert={!authorized}
             aria-hidden={!authorized}
             className={cn(!authorized && "invisible")}
           >
             {children}
-          </div>
+          </PortalContainer>
         </ProtectedSessionContext>
       )}
       {!authorized && (

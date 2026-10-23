@@ -16,6 +16,13 @@ native form controls, navigation, tables and dialog content inherit that choice;
 font-family declarations in each component. Keep Tahoma/Arial and the documented system sans
 stack as load-failure fallbacks.
 
+The English stack also includes the already loaded Vazirmatn after Inter so Persian
+catalogue names and managed values retain approved glyphs on English pages.
+The English primary family uses the emitted self-hosted `Inter` name: its generated
+variable also contains an Arial fallback, which would consume Persian glyphs before
+Vazirmatn. Arial remains the final explicit load-failure fallback. Browser tests inspect
+the actual rendered fonts for mixed Persian/English product names.
+
 Keep body/control copy at a readable 14–16px and inputs at 16px. Use shadcn typography and responsive Tailwind layout; do not force desktop sizes onto mobile.
 
 English headings may use shadcn tracking. Persian headings use normal

@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslations } from "next-intl";
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog";
 import { cn } from "@/shared/ui/cn";
+import { PortalContainerContext } from "@/shared/ui/portal-container/portal-container";
 
 import { Button } from "@/shared/ui/button/button";
 import { XIcon } from "lucide-react";
@@ -21,7 +22,8 @@ function SheetClose({ ...props }: SheetPrimitive.Close.Props) {
 }
 
 function SheetPortal({ ...props }: SheetPrimitive.Portal.Props) {
-  return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />;
+  const container = React.useContext(PortalContainerContext);
+  return <SheetPrimitive.Portal data-slot="sheet-portal" container={container} {...props} />;
 }
 
 function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {

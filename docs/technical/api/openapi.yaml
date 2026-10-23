@@ -3968,6 +3968,156 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/products/{id}/preview/:
+    get:
+      operationId: catalog_products_preview_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductPreviewOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/products/{id}/readiness/:
+    get:
+      operationId: catalog_products_readiness_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicationReadinessOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
   /api/v1/catalog/products/{id}/reassign/:
     post:
       operationId: catalog_products_reassign_create
@@ -4368,6 +4518,92 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
   /api/v1/catalog/products/{product_id}/revisions/:
+    get:
+      operationId: catalog_products_revisions_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: یک شماره صفحه‌ در مجموعه نتایج صفحه‌بندی شده.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: تعداد نتایج برای نمایش در هر صفحه.
+        schema:
+          type: integer
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRevisionOutputList'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
     post:
       operationId: catalog_products_revisions_create
       parameters:
@@ -5576,6 +5812,75 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/public/discovery/:
+    get:
+      operationId: catalog_public_discovery_retrieve
+      tags:
+      - catalog
+      security:
+      - bearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiscoveryOutput'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
   /api/v1/catalog/public/manufacturers/{id}/:
     get:
       operationId: catalog_public_manufacturers_retrieve
@@ -5850,6 +6155,87 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PublicProduct'
+          description: ''
+        '400':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '413':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          description: API error with request correlation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/catalog/public/products/{id}/quote/:
+    post:
+      operationId: catalog_public_products_quote_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuoteInputRequest'
+        required: true
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuoteOutput'
           description: ''
         '400':
           description: API error with request correlation ID
@@ -17767,6 +18153,22 @@ components:
       required:
       - reason
       - token
+    CodeEnum:
+      enum:
+      - business
+      - content
+      - variants
+      - supply
+      - pricing
+      - shipping
+      type: string
+      description: |-
+        * `business` - business
+        * `content` - content
+        * `variants` - variants
+        * `supply` - supply
+        * `pricing` - pricing
+        * `shipping` - shipping
     CodeInputRequest:
       type: object
       properties:
@@ -18007,6 +18409,73 @@ components:
       - province
       - recipient_mobile
       - recipient_name
+    DiscoveryCategory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 120
+        slug:
+          type: string
+          maxLength: 50
+          pattern: ^[-a-zA-Z0-9_]+$
+        parent:
+          type: string
+          format: uuid
+          nullable: true
+        description:
+          type: string
+          maxLength: 1000
+        position:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        is_active:
+          type: boolean
+        path:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryPathOutput'
+          readOnly: true
+      required:
+      - id
+      - name
+      - path
+      - slug
+    DiscoveryManufacturer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+      required:
+      - id
+      - name
+    DiscoveryOutput:
+      type: object
+      properties:
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/DiscoveryCategory'
+        attributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attribute'
+        manufacturers:
+          type: array
+          items:
+            $ref: '#/components/schemas/DiscoveryManufacturer'
+      required:
+      - attributes
+      - categories
+      - manufacturers
     DiscrepancyClaimInputKindEnum:
       enum:
       - shortage
@@ -18055,6 +18524,21 @@ components:
       - kind
       - line_id
       - quantity
+    DisplayAttribute:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        value: {}
+        unit:
+          type: string
+      required:
+      - code
+      - name
+      - unit
+      - value
     DisputeDecisionInputRequest:
       type: object
       properties:
@@ -18611,11 +19095,16 @@ components:
           type: string
           format: date-time
           nullable: true
+        logo_url:
+          type: string
+          format: uri
+          nullable: true
       required:
       - city
       - description
       - id
       - joined_at
+      - logo_url
       - name
       - province
       - verified
@@ -19522,6 +20011,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Revision'
+    PaginatedRevisionOutputList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/RevisionOutput'
     PaginatedRevisionQueueList:
       type: object
       required:
@@ -20030,15 +20542,147 @@ components:
           type: string
           format: date-time
           readOnly: true
+        assigned_to:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        submitted_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        published_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        decision_code:
+          type: string
+          readOnly: true
+        decision_reason:
+          type: string
+          readOnly: true
       required:
+      - assigned_to
       - business
       - category
       - created_at
+      - decision_code
+      - decision_reason
       - description
       - id
       - name
+      - published_at
       - status
+      - submitted_at
       - updated_at
+    ProductPreviewOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        business:
+          type: string
+          format: uuid
+        category:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        brand:
+          type: string
+        manufacturer_model:
+          type: string
+        attributes:
+          type: object
+          additionalProperties: {}
+        display_attributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/DisplayAttribute'
+        image_urls:
+          type: array
+          items:
+            type: string
+            format: uri
+        wholesale:
+          $ref: '#/components/schemas/PlanOutput'
+        representative_price_irr:
+          type: integer
+          nullable: true
+        price_access_message:
+          type: string
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicVariantSummary'
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+        category_path:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryPathOutput'
+        manufacturer:
+          $ref: '#/components/schemas/ManufacturerOutput'
+        rating:
+          $ref: '#/components/schemas/RatingOutput'
+        shipping_services:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicShippingOutput'
+        orderable:
+          type: boolean
+        lead_time_days:
+          type: integer
+          nullable: true
+        supply_modes:
+          type: array
+          items:
+            type: string
+        sale_methods:
+          type: array
+          items:
+            type: string
+        minimum_order:
+          type: integer
+          nullable: true
+        free_mix_min:
+          type: integer
+          nullable: true
+        packs:
+          type: array
+          items:
+            $ref: '#/components/schemas/PackInput'
+      required:
+      - attributes
+      - brand
+      - business
+      - category
+      - category_path
+      - description
+      - display_attributes
+      - free_mix_min
+      - id
+      - image_urls
+      - lead_time_days
+      - manufacturer
+      - manufacturer_model
+      - minimum_order
+      - name
+      - orderable
+      - packs
+      - published_at
+      - rating
+      - sale_methods
+      - shipping_services
+      - supply_modes
+      - variants
     ProductPublicationDecisionEnum:
       enum:
       - published
@@ -20377,6 +21021,10 @@ components:
         attributes:
           type: object
           additionalProperties: {}
+        display_attributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/DisplayAttribute'
         image_urls:
           type: array
           items:
@@ -20438,6 +21086,7 @@ components:
       - category
       - category_path
       - description
+      - display_attributes
       - free_mix_min
       - id
       - image_urls
@@ -20464,7 +21113,15 @@ components:
           type: string
         kind:
           type: string
+        delivery_days_min:
+          type: integer
+          minimum: 0
+        delivery_days_max:
+          type: integer
+          minimum: 0
       required:
+      - delivery_days_max
+      - delivery_days_min
       - id
       - kind
       - name
@@ -20479,6 +21136,10 @@ components:
         attributes:
           type: object
           additionalProperties: {}
+        display_attributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/DisplayAttribute'
         image_urls:
           type: array
           items:
@@ -20492,11 +21153,22 @@ components:
           nullable: true
       required:
       - attributes
+      - display_attributes
       - id
       - image_urls
       - orderable
       - sku
       - supply
+    PublicationCheckOutput:
+      type: object
+      properties:
+        code:
+          $ref: '#/components/schemas/CodeEnum'
+        passed:
+          type: boolean
+      required:
+      - code
+      - passed
     PublicationOutput:
       type: object
       properties:
@@ -20578,6 +21250,18 @@ components:
       - status
       - submitted_at
       - updated_at
+    PublicationReadinessOutput:
+      type: object
+      properties:
+        ready:
+          type: boolean
+        checks:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicationCheckOutput'
+      required:
+      - checks
+      - ready
     PublishedReply:
       type: object
       properties:
@@ -21259,8 +21943,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SupplyDetail'
+        readiness:
+          $ref: '#/components/schemas/PublicationReadinessOutput'
       required:
       - product
+      - readiness
       - sales_plan
       - shipping
       - supplies
@@ -21529,6 +22216,9 @@ components:
         product:
           type: string
           format: uuid
+        product_name:
+          type: string
+          readOnly: true
         status:
           type: string
           maxLength: 20
@@ -21544,6 +22234,7 @@ components:
       - created_at
       - id
       - product
+      - product_name
     RevisionVariantRequest:
       type: object
       properties:

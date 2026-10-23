@@ -142,7 +142,7 @@ export const serviceSchema = z.object({
   operational: z.boolean(),
   delivery_days_min: z.number().int(),
   delivery_days_max: z.number().int(),
-  max_weight_g: z.number().int(),
+  max_weight_g: z.number().int().positive().nullable(),
 });
 
 export const proposalSchema = z.object({
@@ -165,8 +165,46 @@ export const revisionSchema = z.object({
   id: uuid,
   product: uuid,
   status: z.enum(["draft", "pending", "changes_requested", "approved", "rejected", "cancelled"]),
-  before: z.record(z.string(), z.unknown()),
-  proposed: z.record(z.string(), z.unknown()),
+  before: z.object({
+    profile: productSchema.pick({
+      category: true,
+      name: true,
+      description: true,
+      brand: true,
+      manufacturer_model: true,
+      attributes: true,
+      images: true,
+    }),
+    variants: z.array(
+      z.object({
+        id: uuid,
+        sku: z.string(),
+        attributes: z.record(z.string(), z.unknown()),
+        images: z.array(uuid),
+      }),
+    ),
+  }),
+  proposed: z.object({
+    profile: productSchema.pick({
+      category: true,
+      name: true,
+      description: true,
+      brand: true,
+      manufacturer_model: true,
+      attributes: true,
+      images: true,
+    }),
+    variants: z.array(
+      z.object({
+        id: uuid,
+        sku: z.string(),
+        attributes: z.record(z.string(), z.unknown()),
+        images: z.array(uuid),
+        supply: supplySchema.optional(),
+        package: packageSchema.omit({ variant: true }).optional(),
+      }),
+    ),
+  }),
   assigned_to: nullableUuid,
   reason: z.string(),
   code: z.string(),
@@ -196,11 +234,37 @@ export const taxonomySchema = z.object({
   attributes: z.array(attributeSchema),
   options: z.array(optionSchema),
 });
+export const revisionReviewSchema = z.object({
+  revision: revisionSchema,
+  taxonomy: taxonomySchema,
+});
+
 export const studioSchema = z.object({
   taxonomy: taxonomySchema,
   products: z.array(productSchema),
   proposals: z.array(proposalSchema),
 });
+export const publicationReadinessSchema = z
+  .object({
+    ready: z.boolean(),
+    checks: z
+      .array(
+        z
+          .object({
+            code: z.enum(["business", "content", "variants", "supply", "pricing", "shipping"]),
+            passed: z.boolean(),
+          })
+          .strict(),
+      )
+      .length(6),
+  })
+  .strict()
+  .refine(
+    (value) =>
+      new Set(value.checks.map((row) => row.code)).size === 6 &&
+      value.ready === value.checks.every((row) => row.passed),
+  );
+export type PublicationReadiness = z.infer<typeof publicationReadinessSchema>;
 export const editorSchema = z.object({
   product: productSchema,
   variants: z.array(variantSchema),
@@ -209,6 +273,8 @@ export const editorSchema = z.object({
   supplies: z.record(z.string(), supplySchema),
   services: z.array(serviceSchema),
   taxonomy: taxonomySchema,
+  revisions: z.array(revisionSchema),
+  readiness: publicationReadinessSchema,
 });
 
 const queueItemSchema = z.object({
@@ -222,6 +288,7 @@ const queueItemSchema = z.object({
 const revisionQueueItemSchema = z.object({
   id: uuid,
   product: uuid,
+  product_name: z.string(),
   status: z.string(),
   assigned_to: nullableUuid,
   created_at: z.string(),
@@ -238,6 +305,7 @@ export const reviewDetailSchema = z.object({
   sales_plan: salesPlanSchema.nullable(),
   shipping: shippingInputSchema.nullable(),
   supplies: z.array(supplySchema.extend({ variant: uuid })),
+  readiness: publicationReadinessSchema,
 });
 
 export const productPageSchema = page(productSchema);
@@ -249,6 +317,7 @@ export const servicePageSchema = page(serviceSchema);
 export const proposalPageSchema = page(proposalSchema);
 export const productQueueSchema = page(queueItemSchema);
 export const revisionQueueSchema = page(revisionQueueItemSchema);
+export const revisionPageSchema = page(revisionSchema);
 
 export const productInputSchema = productSchema.pick({
   business: true,
@@ -261,6 +330,23 @@ export const productInputSchema = productSchema.pick({
   images: true,
 });
 export const variantInputSchema = variantSchema.pick({ sku: true, attributes: true, images: true });
+export const revisionInputSchema = z
+  .object({
+    profile: productInputSchema.omit({ business: true }).partial().optional(),
+    variants: z
+      .array(
+        variantInputSchema.extend({
+          id: uuid.optional(),
+          supply: supplySchema.optional(),
+          package: packageSchema.omit({ variant: true }).optional(),
+        }),
+      )
+      .min(1)
+      .max(1000)
+      .optional(),
+  })
+  .strict()
+  .refine((value) => Object.keys(value).length > 0);
 export const supplyInputSchema = supplySchema;
 export const reasonInputSchema = z.object({ reason: z.string().trim().min(1).max(2000) });
 export const reviewInputSchema = reasonInputSchema.extend({
@@ -321,10 +407,12 @@ export const taxonomyMutationSchema = z.discriminatedUnion("kind", [
 ]);
 
 export type StudioAccess = z.infer<typeof studioAccessSchema>;
+export type TaxonomyMutation = z.infer<typeof taxonomyMutationSchema>;
 export type Taxonomy = z.infer<typeof taxonomySchema>;
 export type Product = z.infer<typeof productSchema>;
 export type Variant = z.infer<typeof variantSchema>;
 export type Editor = z.infer<typeof editorSchema>;
+export type Revision = z.infer<typeof revisionSchema>;
 export type ProductInput = z.infer<typeof productInputSchema>;
 export type VariantInput = z.infer<typeof variantInputSchema>;
 export type SupplyInput = z.infer<typeof supplyInputSchema>;
